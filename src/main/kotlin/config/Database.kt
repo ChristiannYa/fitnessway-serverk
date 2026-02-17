@@ -1,6 +1,7 @@
 package com.example.config
 
 import io.ktor.server.application.*
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 
 fun Application.configureDatabase() {
@@ -11,17 +12,15 @@ fun Application.configureDatabase() {
     val user = config.property("storage.user").getString()
     val password = config.property("storage.password").getString()
 
-    /*
     // Run Flyway migrations before connecting Exposed
     val flyway = Flyway
         .configure()
         .dataSource(url, user, password)
         .locations("classpath:db/migration")
+        .baselineOnMigrate(true)
         .load()
 
     flyway.migrate()
-
-     */
 
     Database.connect(
         url = url,

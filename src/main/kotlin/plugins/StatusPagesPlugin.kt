@@ -1,12 +1,14 @@
 package com.example.plugins
 
 import com.example.dto.DtoRes
+import com.example.exception.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.statements.BatchDataInconsistentException
 
 fun Application.configureStatusPages() {
@@ -40,15 +42,65 @@ fun Application.configureStatusPages() {
             HttpStatusCode.BadRequest
         )
 
+        handleException<RequestValidationException>(
+            "request validation error",
+            HttpStatusCode.BadRequest
+        )
+
+        handleException<ExposedSQLException>(
+            "internal server error",
+            HttpStatusCode.InternalServerError
+        )
+
         handleException<BatchDataInconsistentException>(
             "internal server error",
             HttpStatusCode.BadRequest
         )
 
-        handleException<RequestValidationException>(
-            "request validation error",
-            HttpStatusCode.BadRequest
-        )
+        // -----------------
+        // TOKEN EXCEPTIONS
+        // ----------------
+        handleExceptions<TokenException> { cause ->
+            when (cause) {
+                is InvalidTokenException
+                    -> "token is invalid" to HttpStatusCode.Unauthorized
+
+                is TokenVerificationException
+                    -> "token verification failed" to HttpStatusCode.Unauthorized
+
+                is TokenGenerationException
+                    -> "token generation error" to HttpStatusCode.InternalServerError
+            }
+        }
+
+        // ---------------
+        // AUTH EXCEPTIONS
+        // ---------------
+        handleExceptions<AuthException> { cause ->
+            when (cause) {
+                is InvalidCredentialsException ->
+                    "invalid credentials" to HttpStatusCode.Unauthorized
+
+                is UnauthorizedException ->
+                    "authentication required" to HttpStatusCode.Unauthorized
+
+                is ForbiddenException ->
+                    "no permission to access this resource" to HttpStatusCode.Forbidden
+            }
+        }
+
+        // ---------------
+        // USER EXCEPTIONS
+        // ---------------
+        handleExceptions<UserException> { cause ->
+            when (cause) {
+                is UserNotFoundException
+                    -> "user not found" to HttpStatusCode.NotFound
+
+                is UserAlreadyExistsException
+                    -> "user already exists" to HttpStatusCode.Conflict
+            }
+        }
     }
 }
 
