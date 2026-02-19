@@ -2,9 +2,9 @@ package com.example.routes.auth
 
 import com.example.config.AuthServiceKey
 import com.example.dto.DtoRes
-import com.example.dto.LogoutRequestDto
-import com.example.utils.toValidationResult
-import com.example.utils.validate
+import com.example.dto.LogoutRequest
+import com.example.validation.toValidationResult
+import com.example.validation.validate
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 
 fun Route.logout() {
     post("/logout") {
-        val req = call.receive<LogoutRequestDto>()
+        val req = call.receive<LogoutRequest>()
         val authService = application.attributes[AuthServiceKey]
 
         // Log out user
@@ -27,8 +27,8 @@ fun Route.logout() {
     }
 }
 
-fun validateLogoutRequest(req: LogoutRequestDto): ValidationResult {
-    req.refreshToken.validate("refresh_token") {
+fun LogoutRequest.validate(): ValidationResult {
+    this.refreshToken.validate("refresh_token") {
         it.isProvided()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it

@@ -42,10 +42,12 @@ fun Application.configureStatusPages() {
             HttpStatusCode.BadRequest
         )
 
-        handleException<RequestValidationException>(
-            "request validation error",
+        handleExceptionWithContext<RequestValidationException>(
             HttpStatusCode.BadRequest
-        )
+        ) { _, ex ->
+            if (ex.reasons.isNotEmpty()) ex.reasons.joinToString(", ")
+            else "request validation error"
+        }
 
         handleException<ExposedSQLException>(
             "internal server error",
@@ -60,47 +62,73 @@ fun Application.configureStatusPages() {
         // -----------------
         // TOKEN EXCEPTIONS
         // ----------------
-        handleExceptions<TokenException> { cause ->
-            when (cause) {
+        handleExceptions<TokenException> { ex ->
+            when (ex) {
                 is InvalidTokenException
-                    -> "token is invalid" to HttpStatusCode.Unauthorized
+                    -> ex.message.toString() to HttpStatusCode.Unauthorized
 
                 is TokenVerificationException
-                    -> "token verification failed" to HttpStatusCode.Unauthorized
+                    -> ex.message.toString() to HttpStatusCode.Unauthorized
 
                 is TokenGenerationException
-                    -> "token generation error" to HttpStatusCode.InternalServerError
+                    -> ex.message.toString() to HttpStatusCode.InternalServerError
             }
         }
 
         // ---------------
         // AUTH EXCEPTIONS
         // ---------------
-        handleExceptions<AuthException> { cause ->
-            when (cause) {
-                is InvalidCredentialsException ->
-                    "invalid credentials" to HttpStatusCode.Unauthorized
+        handleExceptions<AuthException> { ex ->
+            when (ex) {
+                is InvalidCredentialsException
+                    -> ex.message.toString() to HttpStatusCode.Unauthorized
 
-                is UnauthorizedException ->
-                    "authentication required" to HttpStatusCode.Unauthorized
+                is UnauthorizedException
+                    -> ex.message.toString() to HttpStatusCode.Unauthorized
 
-                is ForbiddenException ->
-                    "no permission to access this resource" to HttpStatusCode.Forbidden
+                is ForbiddenException
+                    -> ex.message.toString() to HttpStatusCode.Forbidden
             }
         }
 
         // ---------------
         // USER EXCEPTIONS
         // ---------------
-        handleExceptions<UserException> { cause ->
-            when (cause) {
+        handleExceptions<UserException> { ex ->
+            when (ex) {
                 is UserNotFoundException
-                    -> "user not found" to HttpStatusCode.NotFound
+                    -> ex.message.toString() to HttpStatusCode.NotFound
 
                 is UserAlreadyExistsException
-                    -> "user already exists" to HttpStatusCode.Conflict
+                    -> ex.message.toString() to HttpStatusCode.Conflict
             }
         }
+
+        // ------------------------
+        // PENDING FOOD EXCEPTIONS
+        // ------------------------
+        handleExceptions<PendingFoodsException> { ex ->
+            when (ex) {
+                is PendingFoodNotFoundException
+                    -> ex.message.toString() to HttpStatusCode.NotFound
+
+                is DailySubmissionLimitExceededException
+                    -> ex.message.toString() to HttpStatusCode.TooManyRequests
+
+                is DuplicateFoodSubmissionException
+                    -> ex.message.toString() to HttpStatusCode.Conflict
+            }
+        }
+    }
+}
+
+private inline fun <reified T : Throwable> StatusPagesConfig.handleExceptionWithContext(
+    statusCode: HttpStatusCode,
+    crossinline message: suspend (ApplicationCall, T) -> String
+) {
+    exception<T> { call, cause ->
+        cause.logDetails()
+        call.respond(statusCode, DtoRes.error(message(call, cause)))
     }
 }
 
@@ -130,14 +158,6 @@ private fun Throwable.logDetails() {
     println("> $exceptionName")
     println("> Message: ${this.message}")
     println("> Cause: ${this.cause}")
-    println("> At: ${this.traceMethods()}")
 
     this.printStackTrace()
-}
-
-private fun Throwable.traceMethods(): String {
-    return this.stackTrace
-        .reversed()
-        .drop(1)
-        .joinToString(" -> ") { "${it.methodName}()" }
 }

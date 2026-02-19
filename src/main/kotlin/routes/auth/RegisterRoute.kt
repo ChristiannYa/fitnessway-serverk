@@ -3,8 +3,8 @@ package com.example.routes.auth
 import com.example.config.AuthServiceKey
 import com.example.domain.UserRegisterData
 import com.example.dto.DtoRes
-import com.example.dto.RegisterRequestDto
-import com.example.utils.*
+import com.example.dto.RegisterRequest
+import com.example.validation.*
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -12,8 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.register() {
-    post(path = "/register") {
-        val req = call.receive<RegisterRequestDto>()
+    post("/register") {
+        val req = call.receive<RegisterRequest>()
         val authService = application.attributes[AuthServiceKey]
 
         // Register and obtain tokens
@@ -40,8 +40,10 @@ fun Route.register() {
     }
 }
 
-fun validateRegisterRequest(req: RegisterRequestDto): ValidationResult {
-    validateName(req.name).toValidationResult().let {
+fun RegisterRequest.validate(): ValidationResult {
+    val req = this
+
+    req.name.validateAsName().toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }
 
@@ -49,7 +51,7 @@ fun validateRegisterRequest(req: RegisterRequestDto): ValidationResult {
         return ValidationResult.Invalid("invalid email")
     }
 
-    validatePassword(req.password).toValidationResult().let {
+    req.password.validateAsPassword().toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }
 

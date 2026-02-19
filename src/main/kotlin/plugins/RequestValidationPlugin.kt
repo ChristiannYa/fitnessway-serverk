@@ -1,24 +1,24 @@
 package com.example.plugins
 
-import com.example.dto.LoginRequestDto
-import com.example.dto.LogoutRequestDto
-import com.example.dto.RefreshRequestDto
-import com.example.dto.RegisterRequestDto
-import com.example.routes.auth.validateLoginRequest
-import com.example.routes.auth.validateLogoutRequest
-import com.example.routes.auth.validateRefreshRequest
-import com.example.routes.auth.validateRegisterRequest
+import com.example.dto.*
+import com.example.routes.auth.validate
+import com.example.routes.foods.pending.validate
 import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
 
 fun Application.configureRequestValidation() {
     install(RequestValidation) {
         // --------------
-        // Authentication
+        // AUTHENTICATION
         // --------------
-        validate<RegisterRequestDto> { validateRegisterRequest(it) }
-        validate<RefreshRequestDto> { validateRefreshRequest(it) }
-        validate<LoginRequestDto> { validateLoginRequest(it) }
-        validate<LogoutRequestDto> { validateLogoutRequest(it) }
+        validate<RegisterRequest> { it.validate() }
+        validate<RefreshRequest> { it.validate() }
+        validate<LoginRequest> { it.validate() }
+        validate<LogoutRequest> { it.validate() }
+
+        // ------------
+        // PENDING FOOD
+        // ------------
+        validate<AddPendingFoodRequest> { it.validate() }
     }
 }

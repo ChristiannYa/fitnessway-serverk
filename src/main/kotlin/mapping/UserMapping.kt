@@ -1,5 +1,6 @@
-package com.example.db
+package com.example.mapping
 
+import com.example.domain.User
 import com.example.domain.UserType
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -30,3 +31,14 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var createdAt by UsersTable.createdAt
     var updatedAt by UsersTable.updatedAt
 }
+
+fun UserDao.toDomain() = User(
+    this.id.value,
+    this.name,
+    this.email,
+    this.passwordHash,
+    this.isPremium,
+    this.createdAt,
+    this.updatedAt,
+    this.userType
+)

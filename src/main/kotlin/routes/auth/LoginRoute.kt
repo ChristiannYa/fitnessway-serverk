@@ -3,9 +3,9 @@ package com.example.routes.auth
 import com.example.config.AuthServiceKey
 import com.example.domain.UserLoginData
 import com.example.dto.DtoRes
-import com.example.dto.LoginRequestDto
+import com.example.dto.LoginRequest
 import com.example.service.AuthService
-import com.example.utils.isValidEmail
+import com.example.validation.isValidEmail
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 
 fun Route.login() {
     post("/login") {
-        val req = call.receive<LoginRequestDto>()
+        val req = call.receive<LoginRequest>()
         val authService: AuthService = application.attributes[AuthServiceKey]
 
         // Login and obtain tokens
@@ -37,12 +37,12 @@ fun Route.login() {
     }
 }
 
-fun validateLoginRequest(req: LoginRequestDto): ValidationResult {
-    if (!req.email.isValidEmail()) {
+fun LoginRequest.validate(): ValidationResult {
+    if (!this.email.isValidEmail()) {
         return ValidationResult.Invalid("invalid email")
     }
 
-    if (req.password.isEmpty()) {
+    if (this.password.isEmpty()) {
         return ValidationResult.Invalid("")
     }
 

@@ -1,10 +1,7 @@
-package com.example.utils
+package com.example.validation
 
 import io.ktor.server.plugins.requestvalidation.*
 
-private val EMAIL_ADDRESS_PATTERN = Regex(
-    "[a-zA-Z0-9+_.-]{1,256}@[a-zA-Z0-9][a-zA-Z0-9-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9-]{0,25})+"
-)
 private val err_min_len = { len: Int -> "must be at least $len characters long" }
 private val err_max_len = { len: Int -> "cannot have more than $len characters" }
 private val err_len_in = { minLen: Int, maxLen: Int -> "must have between $minLen and $maxLen characters" }
@@ -52,7 +49,11 @@ class ValidationScope(private val fieldName: String, private val value: String) 
         runCatching { require(this.any { !it.isLetterOrDigit() }) { "$fieldName $ERR_SPECIAL" } }
 
     fun String.hasNoSpecialChar(): Result<Unit> =
-        runCatching { require(this.all { it.isLetterOrDigit() || it.isWhitespace() }) { "$fieldName $ERR_NO_SPECIAL" } }
+        runCatching {
+            require(this.all { it.isLetter() || it.isDigit() || it.isWhitespace() || it in "-'." }) {
+                "$fieldName $ERR_NO_SPECIAL"
+            }
+        }
 }
 
 fun String.validate(fieldName: String, block: ValidationScope.(String) -> Result<Unit>): Result<Unit> {
@@ -63,39 +64,3 @@ fun String.validate(fieldName: String, block: ValidationScope.(String) -> Result
 fun Result<Unit>.toValidationResult(): ValidationResult =
     if (isSuccess) ValidationResult.Valid
     else ValidationResult.Invalid(exceptionOrNull()?.message ?: "Validation failed")
-
-// Generic type information is erased at runtime due to Java's type erasure.
-// `reified` preserves the type at runtime, but only works with inline functions.
-// By making the function `inline`, the compiler knows the actual type at each call site.
-inline fun <reified T : Enum<T>> enumContainsIgnoreCase(name: String): Boolean =
-    enumValues<T>().any { it.name.equals(name, ignoreCase = true) }
-/*
-// Without reified
-fun <T : Enum<T>> enumContainsIgnoreCaseWrong(name: String): Boolean =
-    // ERROR: Cannot access T::class at runtime!
-    enumValues<T>().any {  it.name.equals(name, ignoreCase = true) }
- */
-
-// -----------
-// Validations
-// -----------
-fun String.isValidEmail(): Boolean = this.isNotEmpty() && EMAIL_ADDRESS_PATTERN.matches(this)
-
-fun validatePassword(password: String): Result<Unit> = password.validate("password") {
-    it.isProvided()
-        .andThen { it.hasNoWhitespace() }
-        .andThen { it.hasLenIn(8, 64) }
-        .andThen { it.hasDigit() }
-        .andThen { it.hasUpperCase() }
-        .andThen { it.hasLowerCase() }
-        .andThen { it.hasSpecialChar() }
-        .andThen { it.hasNoWhitespace() }
-}
-
-fun validateName(name: String): Result<Unit> = name.validate("name") {
-    it.isProvided()
-        .andThen { it.hasNoWhitespace() }
-        .andThen { it.hasLenIn(2, 50) }
-        .andThen { it.hasNoSpecialChar() }
-}
-

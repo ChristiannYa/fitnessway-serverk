@@ -1,11 +1,11 @@
 package com.example.repository.user
 
-import com.example.db.UserDao
-import com.example.db.UsersTable
 import com.example.domain.User
 import com.example.domain.UserCreate
 import com.example.domain.UserType
-import com.example.mappers.toDomain
+import com.example.mapping.UserDao
+import com.example.mapping.UsersTable
+import com.example.mapping.toDomain
 import com.example.utils.suspendTransaction
 import java.time.Instant
 import java.util.*

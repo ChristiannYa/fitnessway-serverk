@@ -5,7 +5,6 @@ import com.example.domain.*
 import com.example.exception.InvalidCredentialsException
 import com.example.exception.UserAlreadyExistsException
 import com.example.exception.UserNotFoundException
-import com.example.mappers.toPrincipal
 import com.example.repository.refresh.IRefreshRepository
 import com.example.repository.user.IUserRepository
 import com.example.utils.hashPassword
@@ -75,7 +74,7 @@ class AuthService(
         // Verify JWT signature
         val decodedJwt = jwtService.verifyToken(refreshTokenString, TokenType.REFRESH)
 
-        // Extract user id
+        // Extract user id from the decoded JWT
         val userId = jwtService.extractUserId(decodedJwt, TokenType.REFRESH)
 
         // Hash refresh token
@@ -89,7 +88,7 @@ class AuthService(
 
         // Get current user data
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException()
+            ?: throw UserNotFoundException("user not found while refreshing access token")
 
         // Update last used time before generating access token, that way if generation
         // fails the timestamps will show that an attempt was made

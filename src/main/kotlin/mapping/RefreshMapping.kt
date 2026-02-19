@@ -1,5 +1,6 @@
-package com.example.db
+package com.example.mapping
 
+import com.example.domain.RefreshToken
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -8,7 +9,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.util.*
 
 object RefreshTokensTable : UUIDTable("refresh_tokens") {
-    val userId = uuid("user_id")
+    val userId = reference("user_id", UsersTable)
     val deviceName = varchar("device_name", 255)
     val hash = varchar("hash", 255)
     val createdAt = timestamp("created_at")
@@ -28,3 +29,13 @@ class RefreshTokenDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var lastUsedAt by RefreshTokensTable.lastUsedAt
     var revokedAt by RefreshTokensTable.revokedAt
 }
+
+fun RefreshTokenDao.toDomain() = RefreshToken(
+    this.id.value,
+    this.userId.value,
+    this.hash,
+    this.expiresAt,
+    this.createdAt,
+    this.lastUsedAt,
+    this.revokedAt
+)

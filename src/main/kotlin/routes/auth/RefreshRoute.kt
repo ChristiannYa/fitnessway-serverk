@@ -2,9 +2,9 @@ package com.example.routes.auth
 
 import com.example.config.AuthServiceKey
 import com.example.dto.DtoRes
-import com.example.dto.RefreshRequestDto
-import com.example.utils.toValidationResult
-import com.example.utils.validate
+import com.example.dto.RefreshRequest
+import com.example.validation.toValidationResult
+import com.example.validation.validate
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 
 fun Route.refresh() {
     post("/refresh") {
-        val req = call.receive<RefreshRequestDto>()
+        val req = call.receive<RefreshRequest>()
         val authService = application.attributes[AuthServiceKey]
 
         // Refresh user's token
@@ -30,8 +30,8 @@ fun Route.refresh() {
     }
 }
 
-fun validateRefreshRequest(req: RefreshRequestDto): ValidationResult {
-    req.refreshToken.validate("refresh token") {
+fun RefreshRequest.validate(): ValidationResult {
+    this.refreshToken.validate("refresh token") {
         it.isProvided()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it

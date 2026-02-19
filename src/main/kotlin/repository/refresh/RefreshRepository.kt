@@ -1,12 +1,14 @@
 package com.example.repository.refresh
 
-import com.example.db.RefreshTokenDao
-import com.example.db.RefreshTokensTable
 import com.example.domain.RefreshToken
 import com.example.domain.RefreshTokenCreate
 import com.example.domain.TokenValidationResult
-import com.example.mappers.toDomain
+import com.example.mapping.RefreshTokenDao
+import com.example.mapping.RefreshTokensTable
+import com.example.mapping.UsersTable
+import com.example.mapping.toDomain
 import com.example.utils.suspendTransaction
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -17,7 +19,7 @@ class RefreshRepository : IRefreshRepository {
     override suspend fun save(refreshTokenCreate: RefreshTokenCreate): RefreshToken = suspendTransaction {
         RefreshTokenDao.Companion
             .new {
-                userId = refreshTokenCreate.userId
+                userId = EntityID(refreshTokenCreate.userId, UsersTable)
                 deviceName = refreshTokenCreate.deviceName
                 hash = refreshTokenCreate.hash
                 expiresAt = refreshTokenCreate.expiresAt

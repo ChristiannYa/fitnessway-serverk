@@ -24,8 +24,10 @@ fun Application.module() {
     configureStatusPages()
     configureJwt(this.attributes[JwtServiceKey])
 
-    // Configure routes
+    // Configure routes' request validation
     configureRequestValidation()
+
+    // Configure routes
     configureAppRoutes()
     configureApiRoues()
 }

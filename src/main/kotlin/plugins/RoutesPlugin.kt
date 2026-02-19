@@ -1,6 +1,7 @@
 package com.example.plugins
 
 import com.example.routes.auth.authRoutes
+import com.example.routes.foods.foodRoutes
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -11,8 +12,12 @@ fun Application.configureApiRoues() {
             get {
                 call.respondText("Hello from Fitnessway's API Kotlin version. This is the main api route!")
             }
-            
+
             authRoutes()
+
+            withAuth {
+                foodRoutes()
+            }
         }
     }
 }

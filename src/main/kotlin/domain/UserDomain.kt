@@ -29,3 +29,9 @@ data class UserCreate(
     val email: String,
     val passwordHash: String
 )
+
+fun User.toPrincipal() = UserPrincipal(
+    this.id,
+    this.type,
+    this.isPremium
+)

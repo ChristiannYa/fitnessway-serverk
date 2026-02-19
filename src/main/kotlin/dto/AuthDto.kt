@@ -1,38 +1,29 @@
 package com.example.dto
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LoginRequestDto(
+data class LoginRequest(
     val email: String,
     val password: String,
-
-    @SerialName("device_name")
     val deviceName: String
 )
 
 @Serializable
-data class RegisterRequestDto(
+data class RegisterRequest(
     val name: String,
     val email: String,
     val password: String,
-
-    @SerialName("device_name")
-    val deviceName: String,
-
-    @SerialName("confirmed_password")
-    val confirmedPassword: String
+    val confirmedPassword: String,
+    val deviceName: String
 )
 
 @Serializable
-data class RefreshRequestDto(
-    @SerialName("refresh_token")
+data class RefreshRequest(
     val refreshToken: String
 )
 
 @Serializable
-data class LogoutRequestDto(
-    @SerialName("refresh_token")
+data class LogoutRequest(
     val refreshToken: String
 )
