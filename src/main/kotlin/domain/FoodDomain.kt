@@ -20,10 +20,14 @@ enum class ServingUnit {
 }
 
 @Serializable
-enum class AppFoodPendingStatus {
+enum class PendingFoodStatus {
     PENDING,
     APPROVED,
-    REJECTED
+    REJECTED;
+
+    fun isReviewed() = this != PENDING
+    fun isApproved() = this == APPROVED
+    fun isRejected() = this == REJECTED
 }
 
 @Serializable
@@ -43,7 +47,7 @@ data class FoodInformation<N : NutrientGeneric>(
 @Serializable
 data class AppFood(
     val id: Int,
-    val base: FoodInformation<NutrientInFood>,
+    val information: FoodInformation<NutrientInFood>,
     val createdBy: UUID?, // User could delete their account
     val createdAt: Instant,
     val updatedAt: Instant? = null
@@ -52,9 +56,9 @@ data class AppFood(
 @Serializable
 data class PendingFood(
     val id: Int,
-    val base: FoodInformation<NutrientInFood>,
-    val submittedBy: UUID,
-    val status: AppFoodPendingStatus,
+    val information: FoodInformation<NutrientInFood>,
+    val createdBy: UUID,
+    val status: PendingFoodStatus,
     val reviewedBy: UUID? = null,
     val reviewedAt: Instant? = null,
     val createdAt: Instant,
@@ -62,6 +66,18 @@ data class PendingFood(
 )
 
 data class PendingFoodCreate(
-    val information: FoodInformation<NutrientIdWithAmount>,
+    val foodInformation: FoodInformation<NutrientIdWithAmount>,
     val submittedBy: UUID
 )
+
+data class PendingFoodReview(
+    val pendingFoodId: Int,
+    val reviewerId: UUID,
+    val rejectionReason: String?
+) {
+    fun isApproved() = this.rejectionReason == null
+
+    fun getApprovalStatus() = if (this.isApproved()) {
+        PendingFoodStatus.APPROVED
+    } else PendingFoodStatus.REJECTED
+}

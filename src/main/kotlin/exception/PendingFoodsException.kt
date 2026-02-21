@@ -32,3 +32,12 @@ class DuplicateFoodSubmissionException(
     message: String = "you have already submitted this exact food",
     cause: Throwable? = null
 ) : PendingFoodsException(message, cause)
+
+/**
+ * Thrown when the reviewer tries to review a pending food that has already been
+ * reviewed
+ */
+class PendingFoodAlreadyReviewedException(
+    message: String = "This pending food has already been reviewed",
+    cause: Throwable? = null
+) : PendingFoodsException(message, cause)

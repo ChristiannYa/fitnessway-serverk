@@ -63,4 +63,5 @@ data class UserRegisterData(
     val name: String,
     val email: String,
     val password: String,
+    val userType: UserType = UserType.USER
 )

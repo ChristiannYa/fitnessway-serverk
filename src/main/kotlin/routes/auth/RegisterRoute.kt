@@ -2,8 +2,12 @@ package com.example.routes.auth
 
 import com.example.config.AuthServiceKey
 import com.example.domain.UserRegisterData
+import com.example.domain.UserType
 import com.example.dto.DtoRes
 import com.example.dto.RegisterRequest
+import com.example.utils.asEnum
+import com.example.utils.enumContains
+import com.example.utils.listEnumValues
 import com.example.validation.*
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -22,6 +26,7 @@ fun Route.register() {
                 req.name,
                 req.email,
                 req.password,
+                req.userType.asEnum<UserType>()
             ),
             req.deviceName
         )
@@ -59,6 +64,12 @@ fun RegisterRequest.validate(): ValidationResult {
         it.isEqualTo(req.password, "password")
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
+    }
+
+    if (!enumContains<UserType>(req.userType)) {
+        return ValidationResult.Invalid(
+            "\"${req.userType}\" is an invalid user type, must be one of: ${listEnumValues<UserType>()}"
+        )
     }
 
     return ValidationResult.Valid

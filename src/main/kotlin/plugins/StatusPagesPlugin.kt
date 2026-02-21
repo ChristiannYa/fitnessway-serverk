@@ -117,6 +117,9 @@ fun Application.configureStatusPages() {
 
                 is DuplicateFoodSubmissionException
                     -> ex.message.toString() to HttpStatusCode.Conflict
+
+                is PendingFoodAlreadyReviewedException
+                    -> ex.message.toString() to HttpStatusCode.Conflict
             }
         }
     }

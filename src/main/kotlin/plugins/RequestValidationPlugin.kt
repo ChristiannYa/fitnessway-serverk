@@ -20,5 +20,6 @@ fun Application.configureRequestValidation() {
         // PENDING FOOD
         // ------------
         validate<AddPendingFoodRequest> { it.validate() }
+        validate<ReviewPendingFoodRequest> { it.validate() }
     }
 }

@@ -7,6 +7,10 @@ enum class UserType {
     USER, CONTRIBUTOR, ADMIN
 }
 
+enum class UserTransactionType {
+    FOOD_APPROVAL, REDEEM, FOOD_LOGGED
+}
+
 data class User(
     val id: UUID,
     val name: String,
@@ -27,7 +31,14 @@ data class UserPrincipal(
 data class UserCreate(
     val name: String,
     val email: String,
-    val passwordHash: String
+    val passwordHash: String,
+    val userType: UserType = UserType.USER
+)
+
+data class UserAddCurrency(
+    val userId: UUID,
+    val amount: Double,
+    val transactionType: UserTransactionType
 )
 
 fun User.toPrincipal() = UserPrincipal(

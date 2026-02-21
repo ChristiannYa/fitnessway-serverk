@@ -9,3 +9,9 @@ data class AddPendingFoodRequest(
     val base: FoodBase,
     val nutrients: List<NutrientIdWithAmount>
 )
+
+@Serializable
+data class ReviewPendingFoodRequest(
+    val pendingFoodId: Int,
+    val rejectionReason: String?
+)

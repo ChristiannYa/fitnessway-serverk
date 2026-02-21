@@ -5,5 +5,6 @@ import io.ktor.server.routing.*
 fun Route.pendingFoodRoutes() {
     route("/pending") {
         addPendingFood()
+        reviewPendingFood()
     }
 }

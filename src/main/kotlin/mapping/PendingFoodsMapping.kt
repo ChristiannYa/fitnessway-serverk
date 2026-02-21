@@ -14,8 +14,8 @@ object PendingFoodsTable : IntIdTable("user_pending_foods") {
     val brand = varchar("brand", 50)
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
-    val status = pgEnum<AppFoodPendingStatus>("status", "app_food_pending_status")
-    val submittedBy = reference("submitted_by", UsersTable)
+    val status = pgEnum<PendingFoodStatus>("status", "app_food_pending_status")
+    val createdBy = reference("created_by", UsersTable)
     val reviewedBy = reference("reviewed_by", UsersTable).nullable()
     val reviewedAt = timestamp("reviewed_at").nullable()
     val createdAt = timestamp("created_at")
@@ -30,16 +30,16 @@ class PendingFoodDao(id: EntityID<Int>) : IntEntity(id) {
     var amountPerServing by PendingFoodsTable.amountPerServing
     var servingUnit by PendingFoodsTable.servingUnit
     var status by PendingFoodsTable.status
-    var submittedBy by PendingFoodsTable.submittedBy
+    var createdBy by PendingFoodsTable.createdBy
     var reviewedBy by PendingFoodsTable.reviewedBy
-    val reviewedAt by PendingFoodsTable.reviewedAt
+    var reviewedAt by PendingFoodsTable.reviewedAt
     var createdAt by PendingFoodsTable.createdAt
     var rejectionReason by PendingFoodsTable.rejectionReason
 }
 
 fun PendingFoodDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
     id = this.id.value,
-    base = FoodInformation(
+    information = FoodInformation(
         base = FoodBase(
             name = this.name,
             brand = this.brand,
@@ -48,7 +48,7 @@ fun PendingFoodDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
         ),
         nutrients = nutrients
     ),
-    submittedBy = this.submittedBy.value,
+    createdBy = this.createdBy.value,
     status = this.status,
     reviewedBy = this.reviewedBy?.value,
     reviewedAt = this.reviewedAt?.toKotlinInstant(),

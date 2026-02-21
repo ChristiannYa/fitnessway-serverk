@@ -12,5 +12,8 @@ fun <T : Enum<T>> enumContainsIgnoreCaseWrong(name: String): Boolean =
     enumValues<T>().any {  it.name.equals(name, ignoreCase = true) }
  */
 
+inline fun <reified T : Enum<T>> String.asEnum(): T =
+    enumValues<T>().first { it.name.equals(this, ignoreCase = true) }
+
 inline fun <reified T : Enum<T>> listEnumValues() =
     enumValues<T>().toList().joinToString()

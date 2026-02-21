@@ -2,7 +2,6 @@ package com.example.repository.user
 
 import com.example.domain.User
 import com.example.domain.UserCreate
-import com.example.domain.UserType
 import com.example.mapping.UserDao
 import com.example.mapping.UsersTable
 import com.example.mapping.toDomain
@@ -31,7 +30,7 @@ class UserRepository : IUserRepository {
                 name = user.name
                 email = user.email
                 passwordHash = user.passwordHash
-                userType = UserType.USER
+                userType = user.userType
                 isPremium = false
                 createdAt = Instant.now()
                 updatedAt = null

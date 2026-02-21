@@ -7,6 +7,7 @@ import com.example.exception.UserAlreadyExistsException
 import com.example.exception.UserNotFoundException
 import com.example.repository.refresh.IRefreshRepository
 import com.example.repository.user.IUserRepository
+import com.example.repository.user.wallets.UserWalletRepository
 import com.example.utils.hashPassword
 import com.example.utils.hashToken
 import com.example.utils.suspendTransaction
@@ -20,7 +21,8 @@ private val logger = KotlinLogging.logger {}
 class AuthService(
     private val userRepository: IUserRepository,
     private val refreshRepository: IRefreshRepository,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val userWalletRepository: UserWalletRepository
 ) {
     suspend fun login(userLoginData: UserLoginData, deviceName: String): TokenStrings {
         // Find user by email
@@ -55,9 +57,13 @@ class AuthService(
                 UserCreate(
                     userRegisterData.name,
                     userRegisterData.email,
-                    passwordHash
+                    passwordHash,
+                    userRegisterData.userType
                 )
             )
+
+            // Create user wallet
+            userWalletRepository.createWallet(user.id)
 
             // Generate tokens
             val tokens = generateTokens(user.toPrincipal())

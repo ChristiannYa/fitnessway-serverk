@@ -21,7 +21,7 @@ fun Route.addPendingFood() {
 
         val pendingFoodSubmitted = pendingFoodService.add(
             PendingFoodCreate(
-                information = FoodInformation(
+                foodInformation = FoodInformation(
                     base = req.base,
                     nutrients = req.nutrients
                 ),
