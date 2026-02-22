@@ -1,7 +1,6 @@
 package com.example.repository.foods.pending
 
 import com.example.domain.*
-import com.example.exception.PendingFoodNotFoundException
 import com.example.mapping.AppFoodDao
 import com.example.mapping.PendingFoodDao
 import com.example.mapping.UsersTable
@@ -60,13 +59,13 @@ class PendingFoodRepository : IPendingFoodRepository {
                 ?: return@suspendTransaction null
 
             pendingFoodDao.apply {
-                status = it.getApprovalStatus()
-                reviewedBy = EntityID(it.reviewerId, UsersTable)
+                status = it.approvalStatus
+                reviewedBy = EntityID(it.reviewerPrincipal.id, UsersTable)
                 reviewedAt = Instant.now()
                 it.rejectionReason?.let { reason -> rejectionReason = reason }
             }
 
-            val nutrients = queryNutrientsForPendingFood(pendingFoodDao.id.value, pendingFoodDao.createdBy.value)
+            val nutrients = queryNutrientsForPendingFood(pendingFoodDao.id.value, it.reviewerPrincipal.id)
 
             pendingFoodDao.toDomain(nutrients)
         }
@@ -83,27 +82,21 @@ class PendingFoodRepository : IPendingFoodRepository {
         }.count().toInt()
     }
 
-    override suspend fun moveToAppFoods(pendingFoodId: Int): Int = suspendTransaction {
-        val pendingFoodDao = PendingFoodDao.findById(pendingFoodId)
-            ?: throw PendingFoodNotFoundException(
-                "pending food with id $pendingFoodId not found attempting to move pending food to app's schema"
-            )
-
-        val appFoodDao = AppFoodDao.new {
-            this.name = pendingFoodDao.name
-            this.brand = pendingFoodDao.brand
-            this.amountPerServing = pendingFoodDao.amountPerServing
-            this.servingUnit = pendingFoodDao.servingUnit
-            this.createdBy = pendingFoodDao.createdBy
+    override suspend fun moveToAppFoods(pendingFoodMoveData: PendingFoodMove): Int = suspendTransaction {
+        val appFoodDao = pendingFoodMoveData.foodInformation.base.let {
+            AppFoodDao.new {
+                this.name = it.name
+                this.brand = it.brand.toString()
+                this.amountPerServing = it.amountPerServing.toBigDecimal()
+                this.servingUnit = it.servingUnit
+                this.createdBy = EntityID(pendingFoodMoveData.authorId, U)
+            }
         }
 
-        val nutrients = queryNutrientsForPendingFood(pendingFoodDao.id.value, pendingFoodDao.createdBy.value)
-            .map { it.nutrientData.base.id to it.amount }
-
-        AFN.batchInsert(nutrients) { (nutrientId, amount) ->
+        AFN.batchInsert(pendingFoodMoveData.foodInformation.nutrients) { nutrientInFood ->
             this[AFN.appFoodId] = appFoodDao.id.value
-            this[AFN.nutrientId] = nutrientId
-            this[AFN.amount] = amount.toBigDecimal()
+            this[AFN.nutrientId] = nutrientInFood.nutrientData.base.id
+            this[AFN.amount] = nutrientInFood.amount.toBigDecimal()
         }
 
         appFoodDao.id.value

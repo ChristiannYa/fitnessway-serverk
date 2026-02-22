@@ -20,7 +20,7 @@
     <logger name="org.flywaydb" level="WARN"/>
 
     <!-- Reduce Exposed logging -->
-    <logger name="Exposed" level="WARN"/>
+    <logger name="Exposed" level="OFF"/>
 
     <!-- Keep application logs visible -->
     <logger name="com.example" level="DEBUG"/>

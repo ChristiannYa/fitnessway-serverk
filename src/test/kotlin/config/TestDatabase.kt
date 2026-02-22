@@ -2,6 +2,7 @@ package config
 
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.testcontainers.containers.PostgreSQLContainer
 
 object TestDatabase {
@@ -19,6 +20,8 @@ object TestDatabase {
             user = pgContainer!!.username,
             password = pgContainer!!.password
         )
+
+        TransactionManager.manager.defaultMaxAttempts = 1
 
         // Run Flyway migrations
         pgContainer!!.configureFlyWay().load().migrate()

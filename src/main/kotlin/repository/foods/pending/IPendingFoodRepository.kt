@@ -1,9 +1,6 @@
 package com.example.repository.foods.pending
 
-import com.example.domain.FoodBase
-import com.example.domain.PendingFood
-import com.example.domain.PendingFoodCreate
-import com.example.domain.PendingFoodReview
+import com.example.domain.*
 import java.time.LocalDate
 import java.util.*
 
@@ -24,7 +21,7 @@ interface IPendingFoodRepository {
      * Moves approved pending food to app_foods table
      * @return The newly created app food `id`
      */
-    suspend fun moveToAppFoods(pendingFoodId: Int): Int
+    suspend fun moveToAppFoods(pendingFoodMoveData: PendingFoodMove): Int
 
     suspend fun isDuplicateSubmission(userId: UUID, foodBase: FoodBase): Boolean
 

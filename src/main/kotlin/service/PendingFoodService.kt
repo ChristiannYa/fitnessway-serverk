@@ -31,15 +31,24 @@ class PendingFoodService(
         pendingFoodRepository.create(foodToCreate)
     }
 
+    /**
+     * @throws NonAdministratorCannotReviewException
+     * @throws PendingFoodNotFoundException
+     * @throws PendingFoodAlreadyReviewedException
+     * @throws UserNotFoundException
+     */
     suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = pendingFoodReview.let {
+        // Check if reviewer is an administrator
+        if (!pendingFoodReview.canReview) throw NonAdministratorCannotReviewException()
+
         // Get the pending food to check if it exists
-        val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerId)
+        val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerPrincipal.id)
             ?: throw PendingFoodNotFoundException(
                 "pending food with id ${it.pendingFoodId} not found during revision"
             )
 
         // Check if already reviewed
-        if (pendingFood.status.isReviewed()) {
+        if (pendingFood.status.isReviewed) {
             throw PendingFoodAlreadyReviewedException(
                 "pending food with id ${pendingFood.id} has already been reviewed"
             )
@@ -52,13 +61,23 @@ class PendingFoodService(
                     "pending food with id ${pendingFood.id} not found when updating review status"
                 )
 
-            if (it.isApproved()) {
-                // Move pending food to app's foods
-                pendingFoodRepository.moveToAppFoods(pendingFood.id)
+            if (it.isApproved) {
+                // Gather information needed to move pending food to `app_foods` table
+                val pendingFoodMoveData = pendingFood.toMove()
+                    ?: throw UserNotFoundException(
+                        "pending food author not found when mapping move data" +
+                        " from pending food"
+                    )
 
-                // Obtain user type for potential multiplier
-                val pendingFoodAuthor = userRepository.findById(reviewedFood.createdBy)
-                    ?: throw UserNotFoundException("pending food author not found when reviewing food")
+                // Move pending food to app's foods
+                pendingFoodRepository.moveToAppFoods(pendingFoodMoveData)
+
+                // Obtain author type for potential multiplier
+                val pendingFoodAuthor = userRepository.findById(pendingFoodMoveData.authorId)
+                    ?: throw UserNotFoundException(
+                        "pending food author not found when querying" +
+                        "for pending food author data"
+                    )
 
                 // Apply multiplier if user is a contributor
                 val userCurrency = if (pendingFoodAuthor.type == UserType.CONTRIBUTOR) {
@@ -68,7 +87,7 @@ class PendingFoodService(
                 // Reward user for food approval
                 userWalletRepository.addCurrency(
                     UserAddCurrency(
-                        userId = reviewedFood.createdBy,
+                        userId = pendingFoodAuthor.id,
                         amount = userCurrency,
                         transactionType = UserTransactionType.FOOD_APPROVAL
                     )

@@ -25,9 +25,7 @@ enum class PendingFoodStatus {
     APPROVED,
     REJECTED;
 
-    fun isReviewed() = this != PENDING
-    fun isApproved() = this == APPROVED
-    fun isRejected() = this == REJECTED
+    val isReviewed by lazy { this != PENDING }
 }
 
 @Serializable
@@ -48,7 +46,7 @@ data class FoodInformation<N : NutrientGeneric>(
 data class AppFood(
     val id: Int,
     val information: FoodInformation<NutrientInFood>,
-    val createdBy: UUID?, // User could delete their account
+    val createdBy: UUID?,
     val createdAt: Instant,
     val updatedAt: Instant? = null
 )
@@ -57,8 +55,8 @@ data class AppFood(
 data class PendingFood(
     val id: Int,
     val information: FoodInformation<NutrientInFood>,
-    val createdBy: UUID,
     val status: PendingFoodStatus,
+    val createdBy: UUID?,
     val reviewedBy: UUID? = null,
     val reviewedAt: Instant? = null,
     val createdAt: Instant,
@@ -72,12 +70,31 @@ data class PendingFoodCreate(
 
 data class PendingFoodReview(
     val pendingFoodId: Int,
-    val reviewerId: UUID,
+    val reviewerPrincipal: UserPrincipal,
     val rejectionReason: String?
 ) {
-    fun isApproved() = this.rejectionReason == null
+    val isApproved = this.rejectionReason == null
 
-    fun getApprovalStatus() = if (this.isApproved()) {
+    val approvalStatus = if (this.isApproved) {
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
+
+    val canReview = reviewerPrincipal.type == UserType.ADMIN
+}
+
+data class PendingFoodMove(
+    val id: Int,
+    val foodInformation: FoodInformation<NutrientInFood>,
+    val authorId: UUID
+)
+
+/**
+ * @return `PendingFoodMove` if the pending food has an author
+ */
+fun PendingFood.toMove(): PendingFoodMove? = createdBy?.let {
+    PendingFoodMove(
+        id = this.id,
+        foodInformation = this.information,
+        authorId = it
+    )
 }

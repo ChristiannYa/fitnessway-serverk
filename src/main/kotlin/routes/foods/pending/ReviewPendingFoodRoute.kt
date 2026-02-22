@@ -20,7 +20,7 @@ fun Route.reviewPendingFood() {
         val reviewedPendingFood = pendingFoodService.review(
             PendingFoodReview(
                 pendingFoodId = req.pendingFoodId,
-                reviewerId = userPrincipal.id,
+                reviewerPrincipal = userPrincipal,
                 rejectionReason = req.rejectionReason
             )
         )

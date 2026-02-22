@@ -120,6 +120,9 @@ fun Application.configureStatusPages() {
 
                 is PendingFoodAlreadyReviewedException
                     -> ex.message.toString() to HttpStatusCode.Conflict
+
+                is NonAdministratorCannotReviewException
+                    -> ex.message.toString() to HttpStatusCode.Conflict
             }
         }
     }

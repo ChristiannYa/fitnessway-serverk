@@ -16,6 +16,13 @@ class PendingFoodNotFoundException(
     cause: Throwable? = null
 ) : PendingFoodsException(message, cause)
 
+/**
+ * Thrown when a non-administrator user tries to review a pending food
+ */
+class NonAdministratorCannotReviewException(
+    message: String = "only administrators are able to review foods",
+    cause: Throwable? = null
+) : PendingFoodsException(message, cause)
 
 /**
  * Thrown when user exceeds daily submission limit

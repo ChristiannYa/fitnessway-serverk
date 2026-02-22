@@ -5,12 +5,16 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.experimental.withSuspendTransaction
 import org.postgresql.util.PGobject
 
 suspend fun <T> suspendTransaction(
     block: suspend Transaction.() -> T
-): T = newSuspendedTransaction(Dispatchers.IO, statement = block)
+): T = TransactionManager
+    .currentOrNull()?.withSuspendTransaction(statement = block)
+    ?: newSuspendedTransaction(Dispatchers.IO, statement = block)
 
 class PgEnum<T : Enum<T>>(
     private val enumClass: Class<T>,

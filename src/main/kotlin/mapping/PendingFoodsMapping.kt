@@ -15,7 +15,7 @@ object PendingFoodsTable : IntIdTable("user_pending_foods") {
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
     val status = pgEnum<PendingFoodStatus>("status", "app_food_pending_status")
-    val createdBy = reference("created_by", UsersTable)
+    val createdBy = reference("created_by", UsersTable).nullable()
     val reviewedBy = reference("reviewed_by", UsersTable).nullable()
     val reviewedAt = timestamp("reviewed_at").nullable()
     val createdAt = timestamp("created_at")
@@ -48,7 +48,7 @@ fun PendingFoodDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
         ),
         nutrients = nutrients
     ),
-    createdBy = this.createdBy.value,
+    createdBy = this.createdBy?.value,
     status = this.status,
     reviewedBy = this.reviewedBy?.value,
     reviewedAt = this.reviewedAt?.toKotlinInstant(),
