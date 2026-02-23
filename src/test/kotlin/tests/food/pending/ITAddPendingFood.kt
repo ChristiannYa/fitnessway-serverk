@@ -1,11 +1,16 @@
 package tests.food.pending
 
+import com.example.domain.PendingFoodReview
+import com.example.domain.UserType
+import com.example.domain.toPrincipal
 import com.example.exception.DailySubmissionLimitExceededException
+import com.example.exception.FoodAlreadyInAppException
 import com.example.exception.FoodAlreadyPendingException
 import com.example.mapping.PendingFoodDao
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
 import mock.food.buildPendingFoodCreateData
+import mock.user.buildUserRegisterData
 import org.junit.Test
 import utils.createUserAndGetData
 import kotlin.test.assertFailsWith
@@ -75,6 +80,39 @@ class ITAddPendingFood : TPendingFoodService() {
 
         assertFailsWith<FoodAlreadyPendingException> {
             pendingFoodService.add(userCRequest)
+        }
+    }
+
+    @Test
+    fun `submitting an already app food throws FoodAlreadyInAppException`() = runTest {
+        // Arrange - create user and reviewer
+        val (user, _) = createUserAndGetData(authService, userRepository)
+        val (reviewer, _) = createUserAndGetData(
+            authService,
+            userRepository,
+            buildUserRegisterData(userType = UserType.ADMIN)
+        )
+
+        // Arrange - build user food register requests
+        val userFoodRequestA = buildPendingFoodCreateData(user.id, "Doritos")
+        val userFoodRequestB = buildPendingFoodCreateData(user.id, "Doritos")
+
+        // Arrange - submit user app food request A
+        val createdPendingFoodA = pendingFoodService.add(userFoodRequestA)
+
+        // Arrange - build review object
+        val reviewA = PendingFoodReview(
+            pendingFoodId = createdPendingFoodA.id,
+            reviewerPrincipal = reviewer.toPrincipal(),
+            rejectionReason = null
+        )
+
+        // Arrange - review pending food A
+        pendingFoodService.review(reviewA)
+
+        // Act & Assert
+        assertFailsWith<FoodAlreadyInAppException> {
+            pendingFoodService.add(userFoodRequestB)
         }
     }
 }

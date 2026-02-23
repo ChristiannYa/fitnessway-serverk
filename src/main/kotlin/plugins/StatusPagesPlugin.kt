@@ -123,6 +123,9 @@ fun Application.configureStatusPages() {
 
                 is NonAdministratorCannotReviewException
                     -> ex.message.toString() to HttpStatusCode.Conflict
+
+                is FoodAlreadyInAppException
+                    -> ex.message.toString() to HttpStatusCode.Conflict
             }
         }
     }

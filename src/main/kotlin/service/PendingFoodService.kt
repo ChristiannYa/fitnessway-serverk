@@ -3,6 +3,7 @@ package com.example.service
 import com.example.config.RewardConfig
 import com.example.domain.*
 import com.example.exception.*
+import com.example.repository.foods.app.IAppFoodRepository
 import com.example.repository.foods.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
@@ -11,7 +12,8 @@ import com.example.utils.suspendTransaction
 class PendingFoodService(
     private val pendingFoodRepository: IPendingFoodRepository,
     private val userWalletRepository: IUserWalletRepository,
-    private val userRepository: IUserRepository
+    private val userRepository: IUserRepository,
+    private val appFoodRepository: IAppFoodRepository
 ) {
     companion object {
         const val MAX_DAILY_SUBMISSIONS = 5
@@ -20,13 +22,14 @@ class PendingFoodService(
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = foodToCreate.let {
         // Check daily submission limit
         val submissionCount = pendingFoodRepository.countUserSubmissionsOfDay(it.author)
+        if (submissionCount >= MAX_DAILY_SUBMISSIONS) throw DailySubmissionLimitExceededException()
 
-        if (submissionCount >= MAX_DAILY_SUBMISSIONS) {
-            throw DailySubmissionLimitExceededException()
-        }
+        // Check if food is already in app
+        val isAlreadyInApp = appFoodRepository.isDuplicate(it.foodInformation)
+        if (isAlreadyInApp) throw FoodAlreadyInAppException()
 
         // Check if food is already pending
-        val isAlreadyPending = pendingFoodRepository.isAlreadyPending(it.foodInformation)
+        val isAlreadyPending = pendingFoodRepository.isDuplicate(it.foodInformation)
         if (isAlreadyPending) throw FoodAlreadyPendingException()
 
         pendingFoodRepository.create(foodToCreate)

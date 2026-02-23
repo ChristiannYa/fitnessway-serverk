@@ -102,7 +102,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         appFoodDao.id.value
     }
 
-    override suspend fun isAlreadyPending(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
+    override suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
         val pendingFoodBaseDaos = PendingFoodDao.find {
             (PF.name eq food.base.name) and
             (PF.brand eq food.base.brand.toString()) and
@@ -121,7 +121,7 @@ class PendingFoodRepository : IPendingFoodRepository {
                     )
                 }
 
-            foodBaseDaoNutrients == food.nutrients
+            food.nutrients == foodBaseDaoNutrients
         }
     }
 

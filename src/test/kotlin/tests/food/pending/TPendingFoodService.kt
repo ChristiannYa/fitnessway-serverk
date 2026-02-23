@@ -1,6 +1,7 @@
 package tests.food.pending
 
 import com.example.domain.PendingFood
+import com.example.repository.foods.app.AppFoodRepository
 import com.example.repository.foods.pending.PendingFoodRepository
 import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
@@ -24,6 +25,7 @@ abstract class TPendingFoodService {
     protected lateinit var userRepository: UserRepository
     protected lateinit var userWalletRepository: UserWalletRepository
     protected lateinit var pendingFoodRepository: PendingFoodRepository
+    protected lateinit var appFoodRepository: AppFoodRepository
     protected lateinit var jwtService: JwtService
     protected lateinit var authService: AuthService
     protected lateinit var pendingFoodService: PendingFoodService
@@ -43,9 +45,15 @@ abstract class TPendingFoodService {
         userRepository = UserRepository()
         userWalletRepository = UserWalletRepository()
         pendingFoodRepository = PendingFoodRepository()
+        appFoodRepository = AppFoodRepository()
         jwtService = createJwtService()
         authService = AuthService(userRepository, refreshRepository, jwtService, userWalletRepository)
-        pendingFoodService = PendingFoodService(pendingFoodRepository, userWalletRepository, userRepository)
+        pendingFoodService = PendingFoodService(
+            pendingFoodRepository,
+            userWalletRepository,
+            userRepository,
+            appFoodRepository
+        )
     }
 
     @After

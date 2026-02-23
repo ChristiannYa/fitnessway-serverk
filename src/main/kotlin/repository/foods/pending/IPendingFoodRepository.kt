@@ -9,7 +9,7 @@ interface IPendingFoodRepository {
 
     suspend fun create(foodToCreate: PendingFoodCreate): PendingFood
 
-    /**
+    /**`
      * Updates the status of a pending food (approve/reject)
      * @return The updated pending food
      */
@@ -18,12 +18,14 @@ interface IPendingFoodRepository {
     suspend fun countUserSubmissionsOfDay(userId: UUID, date: LocalDate = LocalDate.now()): Int
 
     /**
+     * TODO: Remove and replace with app food repo's `create()`.
+     *
      * Moves approved pending food to app_foods table
      * @return The newly created app food `id`
      */
     suspend fun moveToAppFoods(pendingFoodMoveData: PendingFoodMove): Int
 
-    suspend fun isAlreadyPending(food: FoodInformation<NutrientIdWithAmount>): Boolean
+    suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean
 
     suspend fun delete(pendingFoodId: Int)
 }
