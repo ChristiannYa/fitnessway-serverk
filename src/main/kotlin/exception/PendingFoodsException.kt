@@ -33,10 +33,10 @@ class DailySubmissionLimitExceededException(
 ) : PendingFoodsException(message, cause)
 
 /**
- * Thrown when user tries to submit a duplicate food
+ * Thrown when user tries to submit a food that is already pending
  */
-class DuplicateFoodSubmissionException(
-    message: String = "you have already submitted this exact food",
+class FoodAlreadyPendingException(
+    message: String = "this food is already pending",
     cause: Throwable? = null
 ) : PendingFoodsException(message, cause)
 

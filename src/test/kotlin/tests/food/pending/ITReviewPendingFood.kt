@@ -16,7 +16,6 @@ import com.example.repository.UCT
 import com.example.repository.UW
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
-import mock.food.pendingFoodCreateData
 import mock.user.buildUser
 import mock.user.buildUserRegisterData
 import org.jetbrains.exposed.dao.id.EntityID
@@ -25,7 +24,6 @@ import org.junit.Test
 import utils.createUserAndGetData
 import utils.notNullMessage
 import utils.nullMessage
-import java.util.*
 import kotlin.test.*
 
 
@@ -43,12 +41,6 @@ class ITReviewPendingFood : TPendingFoodService() {
         return author to reviewer
     }
 
-    private suspend fun createPendingFood(
-        authorId: UUID
-    ): PendingFood = pendingFoodCreateData.copy(
-        submittedBy = authorId
-    ).let { pendingFoodService.add(it) }
-
     /**
      * - Creates an author and a reviewer
      * - Builds a pending food review object
@@ -56,7 +48,7 @@ class ITReviewPendingFood : TPendingFoodService() {
      */
     private suspend fun arrangeTest(data: PendingFoodArrangeIn): PendingFoodArrangeOut = data.let {
         val (author, reviewer) = createAuthorAndReviewer(it.author.type, it.reviewer.type)
-        val createdPendingFood = createPendingFood(author.id)
+        val createdPendingFood = submitPendingFood(author.id)
 
         val review = PendingFoodReview(
             pendingFoodId = createdPendingFood.id,
@@ -92,7 +84,7 @@ class ITReviewPendingFood : TPendingFoodService() {
         assertNotNull(pendingFoodReviewed, notNullMessage("pendingFoodReviewed"))
 
         // Assert - pending food status is set to APPROVED by reviewer
-        assertEquals(pendingFoodReviewed.status, PendingFoodStatus.APPROVED)
+        assertEquals(PendingFoodStatus.APPROVED, pendingFoodReviewed.status)
 
         suspendTransaction {
             // Assert - pending food is found in database
@@ -138,6 +130,9 @@ class ITReviewPendingFood : TPendingFoodService() {
 
             //  Assert - base reward was applied (no multiplier)
             assertEquals(RewardConfig.FOOD_APPROVAL_REWARD.toBigDecimal().setScale(4), userTransactionDao.amount)
+
+            // Assert - transaction type is FOOD APPROVAL
+            assertEquals(UserTransactionType.FOOD_APPROVAL, userTransactionDao.transactionType)
 
             // Assert - wallet is present
             val wallet = UW
@@ -343,7 +338,7 @@ class ITReviewPendingFood : TPendingFoodService() {
     fun `pending food not found during revision should throws PendingFoodNotFoundException`() = runTest {
         // Arrange
         val (author, reviewer) = createAuthorAndReviewer()
-        val createdPendingFood = createPendingFood(author.id)
+        val createdPendingFood = submitPendingFood(author.id)
 
         val review = PendingFoodReview(
             pendingFoodId = createdPendingFood.id + (1..10).random(),

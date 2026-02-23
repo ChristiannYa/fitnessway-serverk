@@ -19,24 +19,19 @@ class PendingFoodService(
 
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = foodToCreate.let {
         // Check daily submission limit
-        val submissionCount = pendingFoodRepository.countUserSubmissionsOfDay(it.submittedBy)
+        val submissionCount = pendingFoodRepository.countUserSubmissionsOfDay(it.author)
+
         if (submissionCount >= MAX_DAILY_SUBMISSIONS) {
             throw DailySubmissionLimitExceededException()
         }
 
-        // Check for duplicate submission
-        val isDuplicate = pendingFoodRepository.isDuplicateSubmission(it.submittedBy, it.foodInformation.base)
-        if (isDuplicate) throw DuplicateFoodSubmissionException()
+        // Check if food is already pending
+        val isAlreadyPending = pendingFoodRepository.isAlreadyPending(it.foodInformation)
+        if (isAlreadyPending) throw FoodAlreadyPendingException()
 
         pendingFoodRepository.create(foodToCreate)
     }
 
-    /**
-     * @throws NonAdministratorCannotReviewException
-     * @throws PendingFoodNotFoundException
-     * @throws PendingFoodAlreadyReviewedException
-     * @throws UserNotFoundException
-     */
     suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = pendingFoodReview.let {
         // Check if reviewer is an administrator
         if (!pendingFoodReview.canReview) throw NonAdministratorCannotReviewException()

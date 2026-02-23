@@ -36,7 +36,7 @@ class PendingFoodRepository : IPendingFoodRepository {
                 this.amountPerServing = foodInformation.amountPerServing.toBigDecimal()
                 this.servingUnit = foodInformation.servingUnit
                 this.status = PendingFoodStatus.PENDING
-                this.createdBy = EntityID(foodToCreate.submittedBy, UsersTable)
+                this.createdBy = EntityID(foodToCreate.author, UsersTable)
                 this.createdAt = Instant.now()
             }
 
@@ -47,7 +47,7 @@ class PendingFoodRepository : IPendingFoodRepository {
                 this[PFN.amount] = d.amount.toBigDecimal()
             }
 
-            val nutrients = queryNutrientsForPendingFood(pendingFoodDao.id.value, foodToCreate.submittedBy)
+            val nutrients = queryNutrientsForPendingFood(pendingFoodDao.id.value, foodToCreate.author)
 
             pendingFoodDao.toDomain(nutrients)
         }
@@ -102,14 +102,27 @@ class PendingFoodRepository : IPendingFoodRepository {
         appFoodDao.id.value
     }
 
-    override suspend fun isDuplicateSubmission(userId: UUID, foodBase: FoodBase): Boolean = suspendTransaction {
-        PendingFoodDao.find {
-            (PF.createdBy eq userId) and
-            (PF.name eq foodBase.name) and
-            (PF.brand eq foodBase.brand.toString()) and
-            (PF.amountPerServing eq foodBase.amountPerServing.toBigDecimal()) and
-            (PF.servingUnit eq foodBase.servingUnit)
-        }.count() > 0
+    override suspend fun isAlreadyPending(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
+        val pendingFoodBaseDaos = PendingFoodDao.find {
+            (PF.name eq food.base.name) and
+            (PF.brand eq food.base.brand.toString()) and
+            (PF.amountPerServing eq food.base.amountPerServing.toBigDecimal()) and
+            (PF.servingUnit eq food.base.servingUnit)
+        }
+
+        pendingFoodBaseDaos.any { foodBaseDao ->
+            val foodBaseDaoNutrients = PFN
+                .select(PFN.nutrientId, PFN.amount)
+                .where { PFN.pendingFoodId eq foodBaseDao.id }
+                .map { row ->
+                    NutrientIdWithAmount(
+                        nutrientId = row[PFN.nutrientId].value,
+                        amount = row[PFN.amount].toDouble()
+                    )
+                }
+
+            foodBaseDaoNutrients == food.nutrients
+        }
     }
 
     private fun queryNutrientsForPendingFood(

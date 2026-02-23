@@ -4,11 +4,15 @@ import java.time.Instant
 import java.util.*
 
 enum class UserType {
-    USER, CONTRIBUTOR, ADMIN
+    ADMIN,
+    CONTRIBUTOR,
+    USER
 }
 
 enum class UserTransactionType {
-    FOOD_APPROVAL, REDEEM, FOOD_LOGGED
+    FOOD_APPROVAL,
+    REDEEM,
+    FOOD_LOGGED
 }
 
 data class User(

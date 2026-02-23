@@ -3,10 +3,13 @@ package mock.food
 import com.example.domain.*
 import java.util.*
 
-val pendingFoodCreateData = PendingFoodCreate(
+fun buildPendingFoodCreateData(
+    author: UUID = UUID.randomUUID(),
+    name: String = "food number ${(1000..9999).random()}"
+) = PendingFoodCreate(
     foodInformation = FoodInformation(
         base = FoodBase(
-            name = "food number ${(1000..9999).random()}",
+            name = name,
             brand = "kotlinized",
             amountPerServing = 42.0,
             servingUnit = ServingUnit.G
@@ -34,5 +37,5 @@ val pendingFoodCreateData = PendingFoodCreate(
             )
         )
     ),
-    submittedBy = UUID.randomUUID()
+    author = author
 )

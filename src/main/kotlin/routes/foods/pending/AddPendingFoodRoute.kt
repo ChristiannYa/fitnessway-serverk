@@ -25,7 +25,7 @@ fun Route.addPendingFood() {
                     base = req.base,
                     nutrients = req.nutrients
                 ),
-                submittedBy = userPrincipal.id
+                author = userPrincipal.id
             )
         )
 

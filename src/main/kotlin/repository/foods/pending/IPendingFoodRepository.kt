@@ -23,7 +23,7 @@ interface IPendingFoodRepository {
      */
     suspend fun moveToAppFoods(pendingFoodMoveData: PendingFoodMove): Int
 
-    suspend fun isDuplicateSubmission(userId: UUID, foodBase: FoodBase): Boolean
+    suspend fun isAlreadyPending(food: FoodInformation<NutrientIdWithAmount>): Boolean
 
     suspend fun delete(pendingFoodId: Int)
 }

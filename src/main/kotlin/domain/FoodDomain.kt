@@ -65,7 +65,7 @@ data class PendingFood(
 
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
-    val submittedBy: UUID
+    val author: UUID
 )
 
 data class PendingFoodReview(

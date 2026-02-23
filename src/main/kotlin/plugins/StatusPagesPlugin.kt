@@ -115,7 +115,7 @@ fun Application.configureStatusPages() {
                 is DailySubmissionLimitExceededException
                     -> ex.message.toString() to HttpStatusCode.TooManyRequests
 
-                is DuplicateFoodSubmissionException
+                is FoodAlreadyPendingException
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
                 is PendingFoodAlreadyReviewedException
