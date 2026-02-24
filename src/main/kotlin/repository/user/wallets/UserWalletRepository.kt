@@ -1,9 +1,9 @@
 package com.example.repository.user.wallets
 
 import com.example.domain.UserAddCurrency
-import com.example.mapping.UserCurrencyTransactionDao
-import com.example.mapping.UsersTable
-import com.example.repository.UW
+import com.example.mapping.U
+import com.example.mapping.UCTDao
+import com.example.mapping.UW
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
@@ -36,8 +36,8 @@ class UserWalletRepository : IUserWalletRepository {
             }
 
             // Record the transaction
-            UserCurrencyTransactionDao.new {
-                this.userId = EntityID(it.userId, UsersTable)
+            UCTDao.new {
+                this.userId = EntityID(it.userId, U)
                 this.amount = it.amount.toBigDecimal()
                 this.transactionType = it.transactionType
                 this.createdAt = Instant.now()

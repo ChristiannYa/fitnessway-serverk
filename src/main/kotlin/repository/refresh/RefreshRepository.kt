@@ -3,9 +3,9 @@ package com.example.repository.refresh
 import com.example.domain.RefreshToken
 import com.example.domain.RefreshTokenCreate
 import com.example.domain.TokenValidationResult
-import com.example.mapping.RefreshTokenDao
-import com.example.mapping.RefreshTokensTable
-import com.example.mapping.UsersTable
+import com.example.mapping.RT
+import com.example.mapping.RTDao
+import com.example.mapping.U
 import com.example.mapping.toDomain
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
@@ -17,9 +17,9 @@ import java.util.*
 
 class RefreshRepository : IRefreshRepository {
     override suspend fun save(refreshTokenCreate: RefreshTokenCreate): RefreshToken = suspendTransaction {
-        RefreshTokenDao.Companion
+        RTDao.Companion
             .new {
-                userId = EntityID(refreshTokenCreate.userId, UsersTable)
+                userId = EntityID(refreshTokenCreate.userId, U)
                 deviceName = refreshTokenCreate.deviceName
                 hash = refreshTokenCreate.hash
                 expiresAt = refreshTokenCreate.expiresAt
@@ -31,10 +31,10 @@ class RefreshRepository : IRefreshRepository {
     }
 
     override suspend fun validate(tokenHash: String, userId: UUID): TokenValidationResult = suspendTransaction {
-        val token = RefreshTokenDao.Companion
+        val token = RTDao.Companion
             .find {
-                (RefreshTokensTable.hash eq tokenHash) and
-                        (RefreshTokensTable.userId eq userId)
+                (RT.hash eq tokenHash) and
+                (RT.userId eq userId)
             }
             .firstOrNull()
             ?.toDomain()
@@ -48,15 +48,15 @@ class RefreshRepository : IRefreshRepository {
     }
 
     override suspend fun findByHash(tokenHash: String): RefreshToken? = suspendTransaction {
-        RefreshTokenDao.Companion
-            .find { RefreshTokensTable.hash eq tokenHash }
+        RTDao.Companion
+            .find { RT.hash eq tokenHash }
             .firstOrNull()
             ?.toDomain()
     }
 
     override suspend fun revokeByHash(tokenHash: String): Boolean = suspendTransaction {
-        RefreshTokenDao.Companion
-            .find { RefreshTokensTable.hash eq tokenHash }
+        RTDao.Companion
+            .find { RT.hash eq tokenHash }
             .firstOrNull()?.let { token ->
                 token.revokedAt = Instant.now()
                 true
@@ -64,10 +64,10 @@ class RefreshRepository : IRefreshRepository {
     }
 
     override suspend fun revokeByUserId(userId: UUID): Int = suspendTransaction {
-        val tokens = RefreshTokenDao.Companion
+        val tokens = RTDao.Companion
             .find {
-                (RefreshTokensTable.userId eq userId) and
-                        (RefreshTokensTable.revokedAt.isNull())
+                (RT.userId eq userId) and
+                (RT.revokedAt.isNull())
             }
 
         val now = Instant.now()
@@ -77,13 +77,13 @@ class RefreshRepository : IRefreshRepository {
     }
 
     override suspend fun updateLastUsedTime(tokenHash: String): Unit = suspendTransaction {
-        RefreshTokenDao.Companion
-            .find { RefreshTokensTable.hash eq tokenHash }
+        RTDao.Companion
+            .find { RT.hash eq tokenHash }
             .firstOrNull()?.let { it.lastUsedAt = Instant.now() }
     }
 
     override suspend fun deleteExpired(): Int = suspendTransaction {
-        RefreshTokensTable.deleteWhere {
+        RT.deleteWhere {
             expiresAt less Instant.now()
         }
     }

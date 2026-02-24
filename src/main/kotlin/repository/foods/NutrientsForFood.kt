@@ -5,8 +5,8 @@ import com.example.domain.NutrientData
 import com.example.domain.NutrientInFood
 import com.example.domain.NutrientPreferences
 import com.example.mapping.FoodNutrientTable
-import com.example.repository.N
-import com.example.repository.NP
+import com.example.mapping.N
+import com.example.mapping.UNP
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.selectAll
@@ -23,10 +23,10 @@ fun <T> queryNutrientsForFood(
         // AND user_nutrient_preferences.user_id = ?
         .join(
             joinType = JoinType.LEFT,
-            otherTable = NP,
+            otherTable = UNP,
             onColumn = N.id,
-            otherColumn = NP.nutrientId,
-            additionalConstraint = { NP.userId eq userId }
+            otherColumn = UNP.nutrientId,
+            additionalConstraint = { UNP.userId eq userId }
         )
         .selectAll()
         .where { foodNutrientTable.foodId eq foodId }
@@ -42,8 +42,8 @@ fun <T> queryNutrientsForFood(
                         isPremium = row[N.isPremium]
                     ),
                     preferences = NutrientPreferences(
-                        hexColor = row.getOrNull(NP.hexColor),
-                        goal = row.getOrNull(NP.goal)?.toDouble()
+                        hexColor = row.getOrNull(UNP.hexColor),
+                        goal = row.getOrNull(UNP.goal)?.toDouble()
                     )
                 ),
                 amount = row[foodNutrientTable.amount].toDouble()

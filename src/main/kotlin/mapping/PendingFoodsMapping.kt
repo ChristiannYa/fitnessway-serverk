@@ -9,35 +9,35 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import kotlin.time.toKotlinInstant
 
-object PendingFoodsTable : IntIdTable("user_pending_foods") {
+object PF : IntIdTable("user_pending_foods") {
     val name = varchar("name", 50)
     val brand = varchar("brand", 50)
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
     val status = pgEnum<PendingFoodStatus>("status", "app_food_pending_status")
-    val createdBy = reference("created_by", UsersTable).nullable()
-    val reviewedBy = reference("reviewed_by", UsersTable).nullable()
+    val createdBy = reference("created_by", U).nullable()
+    val reviewedBy = reference("reviewed_by", U).nullable()
     val reviewedAt = timestamp("reviewed_at").nullable()
     val createdAt = timestamp("created_at")
     val rejectionReason = text("rejection_reason").nullable()
 }
 
-class PendingFoodDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<PendingFoodDao>(PendingFoodsTable)
+class PFDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<PFDao>(PF)
 
-    var name by PendingFoodsTable.name
-    var brand by PendingFoodsTable.brand
-    var amountPerServing by PendingFoodsTable.amountPerServing
-    var servingUnit by PendingFoodsTable.servingUnit
-    var status by PendingFoodsTable.status
-    var createdBy by PendingFoodsTable.createdBy
-    var reviewedBy by PendingFoodsTable.reviewedBy
-    var reviewedAt by PendingFoodsTable.reviewedAt
-    var createdAt by PendingFoodsTable.createdAt
-    var rejectionReason by PendingFoodsTable.rejectionReason
+    var name by PF.name
+    var brand by PF.brand
+    var amountPerServing by PF.amountPerServing
+    var servingUnit by PF.servingUnit
+    var status by PF.status
+    var createdBy by PF.createdBy
+    var reviewedBy by PF.reviewedBy
+    var reviewedAt by PF.reviewedAt
+    var createdAt by PF.createdAt
+    var rejectionReason by PF.rejectionReason
 }
 
-fun PendingFoodDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
+fun PFDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
     id = this.id.value,
     information = FoodInformation(
         base = FoodBase(

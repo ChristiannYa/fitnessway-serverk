@@ -6,14 +6,7 @@ import com.example.exception.NonAdministratorCannotReviewException
 import com.example.exception.PendingFoodAlreadyReviewedException
 import com.example.exception.PendingFoodNotFoundException
 import com.example.exception.UserNotFoundException
-import com.example.mapping.AppFoodDao
-import com.example.mapping.PendingFoodDao
-import com.example.mapping.UserCurrencyTransactionDao
-import com.example.mapping.UserDao
-import com.example.repository.AFN
-import com.example.repository.U
-import com.example.repository.UCT
-import com.example.repository.UW
+import com.example.mapping.*
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
 import mock.user.buildUser
@@ -88,28 +81,28 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - pending food is found in database
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status is APPROVED
-            assertEquals(PendingFoodStatus.APPROVED, pendingFoodDao.status)
+            assertEquals(PendingFoodStatus.APPROVED, pfDao.status)
 
             // Assert - reviewed by is present in database
-            val reviewedBy = pendingFoodDao.reviewedBy?.value
+            val reviewedBy = pfDao.reviewedBy?.value
             assertNotNull(reviewedBy, notNullMessage("reviewedBy"))
 
             // Assert - reviewer id is correctly set
             assertEquals(arrange.reviewer.id, reviewedBy)
 
             // Assert - reviewed at is present
-            assertNotNull(pendingFoodDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
+            assertNotNull(pfDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food moved to database
-            val appFoodDao = AppFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(appFoodDao, notNullMessage("appFoodDao"))
+            val afDao = AFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(afDao, notNullMessage("appFoodDao"))
 
             // Assert - food created by value is present
-            val appFoodAuthor = appFoodDao.createdBy?.value
+            val appFoodAuthor = afDao.createdBy?.value
             assertNotNull(appFoodAuthor, notNullMessage("appFoodAuthor"))
 
             // Assert - author id is correctly set
@@ -118,21 +111,21 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AFN
                 .selectAll()
-                .where { AFN.foodId eq appFoodDao.id }
+                .where { AFN.foodId eq afDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 
             // Assert - user transaction was created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNotNull(userTransactionDao, notNullMessage("userTransactionDao"))
+            assertNotNull(uctDao, notNullMessage("uctDao"))
 
             //  Assert - base reward was applied (no multiplier)
-            assertEquals(RewardConfig.FOOD_APPROVAL_REWARD.toBigDecimal().setScale(4), userTransactionDao.amount)
+            assertEquals(RewardConfig.FOOD_APPROVAL_REWARD.toBigDecimal().setScale(4), uctDao.amount)
 
             // Assert - transaction type is FOOD APPROVAL
-            assertEquals(UserTransactionType.FOOD_APPROVAL, userTransactionDao.transactionType)
+            assertEquals(UserTransactionType.FOOD_APPROVAL, uctDao.transactionType)
 
             // Assert - wallet is present
             val wallet = UW
@@ -167,28 +160,28 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - pending food is found in database
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status is set to APPROVED
-            assertEquals(PendingFoodStatus.APPROVED, pendingFoodDao.status)
+            assertEquals(PendingFoodStatus.APPROVED, pfDao.status)
 
             // Assert - reviewed by is present in database
-            val reviewedBy = pendingFoodDao.reviewedBy?.value
+            val reviewedBy = pfDao.reviewedBy?.value
             assertNotNull(reviewedBy, notNullMessage("reviewedBy"))
 
             // Assert - reviewer id is correctly set
             assertEquals(arrange.reviewer.id, reviewedBy)
 
             // Assert - reviewed at is present
-            assertNotNull(pendingFoodDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
+            assertNotNull(pfDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food moved to database
-            val appFoodDao = AppFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(appFoodDao, notNullMessage("appFoodDao"))
+            val afDao = AFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(afDao, notNullMessage("appFoodDao"))
 
             // Assert - food created by value is present
-            val appFoodAuthor = appFoodDao.createdBy?.value
+            val appFoodAuthor = afDao.createdBy?.value
             assertNotNull(appFoodAuthor, notNullMessage("appFoodAuthor"))
 
             // Assert - author id is correctly set
@@ -197,15 +190,15 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AFN
                 .selectAll()
-                .where { AFN.foodId eq appFoodDao.id }
+                .where { AFN.foodId eq afDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 
             // Assert - user transaction was created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNotNull(userTransactionDao, notNullMessage("userTransactionDao"))
+            assertNotNull(uctDao, notNullMessage("uctDao"))
 
             // Assert - wallet is present
             val wallet = UW
@@ -242,31 +235,31 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - pending food is found in database
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status is set to REJECTED
-            assertEquals(PendingFoodStatus.REJECTED, pendingFoodDao.status)
+            assertEquals(PendingFoodStatus.REJECTED, pfDao.status)
 
             // Assert - reviewed by is present in database
-            val reviewedBy = pendingFoodDao.reviewedBy?.value
+            val reviewedBy = pfDao.reviewedBy?.value
             assertNotNull(reviewedBy, notNullMessage("reviewedBy"))
 
             // Assert - reviewer id is correctly set
             assertEquals(arrange.reviewer.id, reviewedBy)
 
             // Assert - reviewed at is present
-            assertNotNull(pendingFoodDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
+            assertNotNull(pfDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food is NOT moved to database
-            val appFoodDao = AppFoodDao.findById(arrange.createdPendingFood.id)
-            assertNull(appFoodDao, nullMessage("appFoodDao"))
+            val afDao = AFDao.findById(arrange.createdPendingFood.id)
+            assertNull(afDao, nullMessage("afDao"))
 
             // Assert - NO user transaction was created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNull(userTransactionDao, nullMessage("userTransactionDao"))
+            assertNull(uctDao, nullMessage("uctDao"))
 
             // Assert - wallet is present
             val wallet = UW
@@ -288,27 +281,27 @@ class ITReviewPendingFood : TPendingFoodService() {
     private suspend fun assertUntouchedDataBeforeServiceTransaction(arrange: PendingFoodArrangeOut) =
         suspendTransaction {
             // Assert - pending food status is present
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status remains PENDING
-            assertEquals(pendingFoodDao.status, PendingFoodStatus.PENDING)
+            assertEquals(pfDao.status, PendingFoodStatus.PENDING)
 
             // Assert - pending food status reviewer is not set
-            assertNull(pendingFoodDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
+            assertNull(pfDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
 
             // Assert - pending food reviewedAt is not set
-            assertNull(pendingFoodDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
+            assertNull(pfDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food was NOT moved to the database
-            val appFoodDao = AppFoodDao.findById(arrange.createdPendingFood.id)
-            assertNull(appFoodDao, nullMessage("appFoodDao"))
+            val afDao = AFDao.findById(arrange.createdPendingFood.id)
+            assertNull(afDao, nullMessage("afDao"))
 
             // Assert - user transaction was NOT created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNull(userTransactionDao, nullMessage("userTransactionDao"))
+            assertNull(uctDao, nullMessage("uctDao"))
 
             // Assert - wallet is present
             val wallet = UW
@@ -398,7 +391,7 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Preemptively insert app food data, so that when we call `review()`, it fails
             // because of a duplicate constraint
             arrange.createdPendingFood.information.base.let {
-                AppFoodDao.new {
+                AFDao.new {
                     name = it.name
                     brand = it.brand.toString()
                     amountPerServing = it.amountPerServing.toBigDecimal()
@@ -415,21 +408,21 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - pending food DAO is found
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status remains PENDING (transaction was rolled back)
-            assertEquals(PendingFoodStatus.PENDING, pendingFoodDao.status)
+            assertEquals(PendingFoodStatus.PENDING, pfDao.status)
 
             // Assert - pendingFoodDao's `reviewedBy` and `reviewedAt` are not set
-            assertNull(pendingFoodDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
-            assertNull(pendingFoodDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
+            assertNull(pfDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
+            assertNull(pfDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - no user transaction was created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNull(userTransactionDao, nullMessage("userTransactionDao"))
+            assertNull(uctDao, nullMessage("userTransactionDao"))
 
             // Assert - wallet is present
             val wallet = UW
@@ -455,7 +448,7 @@ class ITReviewPendingFood : TPendingFoodService() {
         suspendTransaction {
             // Delete author - SET NULL cascade sets pending food's created_by to NULL
             // causing toMove() to return null inside the transaction
-            UserDao.findById(arrange.author.id)?.delete()
+            UDao.findById(arrange.author.id)?.delete()
         }
 
         // Act & Assert
@@ -465,25 +458,25 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - pending food is still present
-            val pendingFoodDao = PendingFoodDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pendingFoodDao, notNullMessage("pendingFoodDao"))
+            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
 
             // Assert - pending food status remains PENDING (transaction was rolled back)
-            assertEquals(PendingFoodStatus.PENDING, pendingFoodDao.status)
+            assertEquals(PendingFoodStatus.PENDING, pfDao.status)
 
             // Assert - pendingFoodDao's `reviewedBy` and `reviewedAt` are not set
-            assertNull(pendingFoodDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
-            assertNull(pendingFoodDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
+            assertNull(pfDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
+            assertNull(pfDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food was NOT moved to app_foods (toMove() failed before moveToAppFoods() was called)
-            val appFoodDao = AppFoodDao.findById(arrange.createdPendingFood.id)
-            assertNull(appFoodDao, nullMessage("appFoodDao"))
+            val afDao = AFDao.findById(arrange.createdPendingFood.id)
+            assertNull(afDao, nullMessage("appFoodDao"))
 
             // Assert - no user transaction was created
-            val userTransactionDao = UserCurrencyTransactionDao.find {
+            val uctDao = UCTDao.find {
                 UCT.userId eq arrange.author.id
             }.firstOrNull()
-            assertNull(userTransactionDao, nullMessage("userTransactionDao"))
+            assertNull(uctDao, nullMessage("userTransactionDao"))
         }
     }
 }

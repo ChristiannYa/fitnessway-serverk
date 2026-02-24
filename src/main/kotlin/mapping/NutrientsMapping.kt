@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
-object NutrientsTable : IntIdTable("nutrients") {
+object N : IntIdTable("nutrients") {
     val name = varchar("name", 50)
     val symbol = varchar("symbol", 4).nullable()
     val unit = pgEnum<ServingUnit>("unit", "serving_unit")
@@ -16,12 +16,12 @@ object NutrientsTable : IntIdTable("nutrients") {
     val isPremium = bool("is_premium")
 }
 
-class NutrientDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<NutrientDao>(NutrientsTable)
+class NDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<NDao>(N)
 
-    var name by NutrientsTable.name
-    var symbol by NutrientsTable.symbol
-    var unit by NutrientsTable.unit
-    var type by NutrientsTable.type
-    var isPremium by NutrientsTable.isPremium
+    var name by N.name
+    var symbol by N.symbol
+    var unit by N.unit
+    var type by N.type
+    var isPremium by N.isPremium
 }

@@ -6,7 +6,7 @@ import com.example.domain.toPrincipal
 import com.example.exception.DailySubmissionLimitExceededException
 import com.example.exception.FoodAlreadyInAppException
 import com.example.exception.FoodAlreadyPendingException
-import com.example.mapping.PendingFoodDao
+import com.example.mapping.PFDao
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
 import mock.food.buildPendingFoodCreateData
@@ -32,8 +32,8 @@ class ITAddPendingFood : TPendingFoodService() {
 
         suspendTransaction {
             // Assert - food is found in database
-            val pendingFoodDao = PendingFoodDao.findById(createdPendingFood.id)
-            assertNotNull(pendingFoodDao, "pendingFoodDao")
+            val pfDao = PFDao.findById(createdPendingFood.id)
+            assertNotNull(pfDao, "pendingFoodDao")
         }
     }
 

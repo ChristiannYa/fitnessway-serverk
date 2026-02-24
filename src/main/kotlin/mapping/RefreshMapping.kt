@@ -8,8 +8,8 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.util.*
 
-object RefreshTokensTable : UUIDTable("refresh_tokens") {
-    val userId = reference("user_id", UsersTable)
+object RT : UUIDTable("refresh_tokens") {
+    val userId = reference("user_id", U)
     val deviceName = varchar("device_name", 255)
     val hash = varchar("hash", 255)
     val createdAt = timestamp("created_at")
@@ -18,19 +18,19 @@ object RefreshTokensTable : UUIDTable("refresh_tokens") {
     val revokedAt = timestamp("revoked_at").nullable()
 }
 
-class RefreshTokenDao(id: EntityID<UUID>) : UUIDEntity(id) {
-    companion object : UUIDEntityClass<RefreshTokenDao>(RefreshTokensTable)
+class RTDao(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<RTDao>(RT)
 
-    var userId by RefreshTokensTable.userId
-    var deviceName by RefreshTokensTable.deviceName
-    var hash by RefreshTokensTable.hash
-    var createdAt by RefreshTokensTable.createdAt
-    var expiresAt by RefreshTokensTable.expiresAt
-    var lastUsedAt by RefreshTokensTable.lastUsedAt
-    var revokedAt by RefreshTokensTable.revokedAt
+    var userId by RT.userId
+    var deviceName by RT.deviceName
+    var hash by RT.hash
+    var createdAt by RT.createdAt
+    var expiresAt by RT.expiresAt
+    var lastUsedAt by RT.lastUsedAt
+    var revokedAt by RT.revokedAt
 }
 
-fun RefreshTokenDao.toDomain() = RefreshToken(
+fun RTDao.toDomain() = RefreshToken(
     this.id.value,
     this.userId.value,
     this.hash,

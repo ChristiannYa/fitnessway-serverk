@@ -10,29 +10,29 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 import kotlin.time.toKotlinInstant
 
-object AppFoodsTable : IntIdTable("app_foods") {
+object AF : IntIdTable("app_foods") {
     val name = varchar("name", 50)
     val brand = varchar("brand", 50)
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
-    val createdBy = reference("created_by", UsersTable).nullable()
+    val createdBy = reference("created_by", U).nullable()
     val createdAt = timestamp("created_at").clientDefault { Instant.now() }
     val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
 }
 
-class AppFoodDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<AppFoodDao>(AppFoodsTable)
+class AFDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<AFDao>(AF)
 
-    var name by AppFoodsTable.name
-    var brand by AppFoodsTable.brand
-    var amountPerServing by AppFoodsTable.amountPerServing
-    var servingUnit by AppFoodsTable.servingUnit
-    var createdBy by AppFoodsTable.createdBy
-    var createdAt by AppFoodsTable.createdAt
-    var updatedAt by AppFoodsTable.updatedAt
+    var name by AF.name
+    var brand by AF.brand
+    var amountPerServing by AF.amountPerServing
+    var servingUnit by AF.servingUnit
+    var createdBy by AF.createdBy
+    var createdAt by AF.createdAt
+    var updatedAt by AF.updatedAt
 }
 
-fun AppFoodDao.toDomain(nutrients: List<NutrientInFood>) = AppFood(
+fun AFDao.toDomain(nutrients: List<NutrientInFood>) = AppFood(
     id = this.id.value,
     information = FoodInformation(
         base = FoodBase(

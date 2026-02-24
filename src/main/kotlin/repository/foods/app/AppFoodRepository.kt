@@ -3,10 +3,10 @@ package com.example.repository.foods.app
 import com.example.domain.AppFoodCreate
 import com.example.domain.FoodInformation
 import com.example.domain.NutrientIdWithAmount
-import com.example.mapping.AppFoodDao
-import com.example.repository.AF
-import com.example.repository.AFN
-import com.example.repository.U
+import com.example.mapping.AF
+import com.example.mapping.AFDao
+import com.example.mapping.AFN
+import com.example.mapping.U
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.and
@@ -14,8 +14,8 @@ import org.jetbrains.exposed.sql.batchInsert
 
 class AppFoodRepository : IAppFoodRepository {
     override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {
-        val appFoodDao = foodToCreate.food.base.let { foodBase ->
-            AppFoodDao.new {
+        val afDao = foodToCreate.food.base.let { foodBase ->
+            AFDao.new {
                 this.name = foodBase.name
                 this.brand = foodBase.brand.toString()
                 this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
@@ -25,16 +25,16 @@ class AppFoodRepository : IAppFoodRepository {
         }
 
         AFN.batchInsert(foodToCreate.food.nutrients) { nutrient ->
-            this[AFN.foodId] = appFoodDao.id.value
+            this[AFN.foodId] = afDao.id.value
             this[AFN.nutrientId] = nutrient.nutrientId
             this[AFN.amount] = nutrient.amount.toBigDecimal()
         }
 
-        appFoodDao.id.value
+        afDao.id.value
     }
 
     override suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
-        val appFoodBaseDaos = AppFoodDao.find {
+        val appFoodBaseDaos = AFDao.find {
             (AF.name eq food.base.name) and
             (AF.brand eq food.base.brand.toString()) and
             (AF.amountPerServing eq food.base.amountPerServing.toBigDecimal()) and

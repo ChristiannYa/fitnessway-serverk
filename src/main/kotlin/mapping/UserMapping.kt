@@ -10,7 +10,7 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.util.*
 
-object UsersTable : UUIDTable("users") {
+object U : UUIDTable("users") {
     val name = varchar("name", 50)
     val email = varchar("email", 120)
     val passwordHash = varchar("password_hash", 64)
@@ -20,19 +20,19 @@ object UsersTable : UUIDTable("users") {
     val updatedAt = timestamp("updated_at").nullable()
 }
 
-class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
-    companion object : UUIDEntityClass<UserDao>(UsersTable)
+class UDao(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<UDao>(U)
 
-    var name by UsersTable.name
-    var email by UsersTable.email
-    var passwordHash by UsersTable.passwordHash
-    var userType by UsersTable.userType
-    var isPremium by UsersTable.isPremium
-    var createdAt by UsersTable.createdAt
-    var updatedAt by UsersTable.updatedAt
+    var name by U.name
+    var email by U.email
+    var passwordHash by U.passwordHash
+    var userType by U.userType
+    var isPremium by U.isPremium
+    var createdAt by U.createdAt
+    var updatedAt by U.updatedAt
 }
 
-fun UserDao.toDomain() = User(
+fun UDao.toDomain() = User(
     this.id.value,
     this.name,
     this.email,
