@@ -60,18 +60,17 @@ class PendingFoodService(
                 )
 
             if (it.isApproved) {
-                // Gather information needed to move pending food to `app_foods` table
-                val pendingFoodMoveData = pendingFood.toMove()
+                // Gather information needed to create app food
+                val appFoodCreateData = pendingFood.toCreate()
                     ?: throw UserNotFoundException(
-                        "pending food author not found when mapping move data" +
-                        " from pending food"
+                        "pending food author not found when mapping data to create app food"
                     )
 
-                // Move pending food to app's foods
-                pendingFoodRepository.moveToAppFoods(pendingFoodMoveData)
+                // Create app food based off of request
+                appFoodRepository.create(appFoodCreateData)
 
                 // Obtain author type for potential multiplier
-                val pendingFoodAuthor = userRepository.findById(pendingFoodMoveData.authorId)
+                val pendingFoodAuthor = userRepository.findById(appFoodCreateData.createdBy)
                     ?: throw UserNotFoundException(
                         "pending food author not found when querying" +
                         "for pending food author data"

@@ -63,6 +63,11 @@ data class PendingFood(
     val rejectionReason: String? = null,
 )
 
+data class AppFoodCreate(
+    val food: FoodInformation<NutrientIdWithAmount>,
+    val createdBy: UUID
+)
+
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
     val author: UUID
@@ -82,19 +87,19 @@ data class PendingFoodReview(
     val canReview = reviewerPrincipal.type == UserType.ADMIN
 }
 
-data class PendingFoodMove(
-    val id: Int,
-    val foodInformation: FoodInformation<NutrientInFood>,
-    val authorId: UUID
-)
-
 /**
- * @return `PendingFoodMove` if the pending food has an author
+ * @return `AppFoodCreate` if the pending food has an author
  */
-fun PendingFood.toMove(): PendingFoodMove? = createdBy?.let {
-    PendingFoodMove(
-        id = this.id,
-        foodInformation = this.information,
-        authorId = it
+fun PendingFood.toCreate() = this.createdBy?.let {
+    val food = FoodInformation(
+        base = this.information.base,
+        nutrients = this.information.nutrients.map {
+            NutrientIdWithAmount(it.nutrientData.base.id, it.amount)
+        }
+    )
+
+    AppFoodCreate(
+        food = food,
+        createdBy = this.createdBy
     )
 }
