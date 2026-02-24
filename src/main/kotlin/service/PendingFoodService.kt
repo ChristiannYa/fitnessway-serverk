@@ -20,9 +20,11 @@ class PendingFoodService(
         const val MAX_DAILY_SUBMISSIONS = 5
     }
 
+    suspend fun findByUserId(userId: UUID) = pendingFoodRepository.findByUserId(userId)
+
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = foodToCreate.let {
         // Check daily submission limit
-        val submissionCount = pendingFoodRepository.countUserSubmissionsOfDay(it.author)
+        val submissionCount = this.countUserSubmissionsOfDay(it.author)
         if (submissionCount >= MAX_DAILY_SUBMISSIONS) throw DailySubmissionLimitExceededException()
 
         // Check if food is already in app
@@ -95,6 +97,9 @@ class PendingFoodService(
             reviewedFood
         }
     }
+
+    suspend fun countUserSubmissionsOfDay(userId: UUID) = pendingFoodRepository
+        .countUserSubmissionsOfDay(userId)
 
     suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) {
         // Check pending food `id` is not null or <= 0

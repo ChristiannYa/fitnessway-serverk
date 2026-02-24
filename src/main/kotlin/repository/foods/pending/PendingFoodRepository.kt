@@ -19,12 +19,19 @@ import java.time.ZoneOffset
 import java.util.*
 
 class PendingFoodRepository : IPendingFoodRepository {
+    override suspend fun findByUserId(userId: UUID): List<PendingFood> = suspendTransaction {
+        PendingFoodDao.find { PF.createdBy eq userId }
+            .map { pendingFoodDao ->
+                val nutrients = queryNutrientsForFood(PFN, pendingFoodDao.id.value, userId)
+                pendingFoodDao.toDomain(nutrients)
+            }
+    }
+
     override suspend fun findById(id: Int, userId: UUID): PendingFood? = suspendTransaction {
         val pendingFoodDao = PendingFoodDao.findById(id)
             ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(PFN, pendingFoodDao.id.value, userId)
-
         pendingFoodDao.toDomain(nutrients)
     }
 
