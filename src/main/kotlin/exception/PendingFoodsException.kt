@@ -9,6 +9,14 @@ sealed class PendingFoodsException(
 ) : Exception(message, cause)
 
 /**
+ *
+ */
+class InvalidPendingFoodIdException(
+    message: String = "invalid pending food id",
+    cause: Throwable? = null
+) : PendingFoodsException(message, cause)
+
+/**
  * Thrown when a pending food is not found
  */
 class PendingFoodNotFoundException(
@@ -53,6 +61,15 @@ class FoodAlreadyInAppException(
  * reviewed
  */
 class PendingFoodAlreadyReviewedException(
-    message: String = "This pending food has already been reviewed",
+    message: String = "this pending food has already been reviewed",
+    cause: Throwable? = null
+) : PendingFoodsException(message, cause)
+
+/**
+ * Thrown when a user tries to dismiss (delete) a pending food with a PENDING
+ * status
+ */
+class CannotDismissPendingFoodException(
+    message: String = "you cannot dismiss a pending food",
     cause: Throwable? = null
 ) : PendingFoodsException(message, cause)

@@ -8,6 +8,7 @@ import com.example.repository.foods.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
 import com.example.utils.suspendTransaction
+import java.util.*
 
 class PendingFoodService(
     private val pendingFoodRepository: IPendingFoodRepository,
@@ -93,5 +94,24 @@ class PendingFoodService(
 
             reviewedFood
         }
+    }
+
+    suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) {
+        // Check pending food `id` is not null or <= 0
+        if (pendingFoodId == null || pendingFoodId <= 0) {
+            throw InvalidPendingFoodIdException()
+        }
+
+        // Obtain pending food data
+        val pendingFood = pendingFoodRepository.findById(pendingFoodId, userId)
+            ?: throw PendingFoodNotFoundException()
+
+        // Throw error if the review still has a PENDING status
+        if (pendingFood.status == PendingFoodStatus.PENDING) {
+            throw CannotDismissPendingFoodException()
+        }
+
+        // Delete review
+        pendingFoodRepository.delete(pendingFoodId)
     }
 }

@@ -6,5 +6,6 @@ fun Route.pendingFoodRoutes() {
     route("/pending") {
         addPendingFood()
         reviewPendingFood()
+        dismissReview()
     }
 }

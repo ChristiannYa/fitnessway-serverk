@@ -109,6 +109,9 @@ fun Application.configureStatusPages() {
         // ------------------------
         handleExceptions<PendingFoodsException> { ex ->
             when (ex) {
+                is InvalidPendingFoodIdException
+                    -> ex.message.toString() to HttpStatusCode.BadRequest
+
                 is PendingFoodNotFoundException
                     -> ex.message.toString() to HttpStatusCode.NotFound
 
@@ -125,6 +128,9 @@ fun Application.configureStatusPages() {
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
                 is FoodAlreadyInAppException
+                    -> ex.message.toString() to HttpStatusCode.Conflict
+
+                is CannotDismissPendingFoodException
                     -> ex.message.toString() to HttpStatusCode.Conflict
             }
         }
