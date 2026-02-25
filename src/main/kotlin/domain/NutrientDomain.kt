@@ -9,6 +9,10 @@ enum class NutrientType {
     MINERAL,
 }
 
+/**
+ * Represents the type of the nutrient object that will be used on a
+ * food object
+ */
 sealed interface NutrientGeneric
 
 @Serializable

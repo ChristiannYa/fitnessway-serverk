@@ -63,19 +63,25 @@ data class PendingFood(
     val rejectionReason: String? = null,
 )
 
-// TODO: Add KDoc comment
+/**
+ * Holds the data needed to create an app food
+ */
 data class AppFoodCreate(
     val food: FoodInformation<NutrientIdWithAmount>,
     val createdBy: UUID
 )
 
-// TODO: Add KDoc comment
+/**
+ * Holds the data needed to create a pending food/app food request
+ */
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
     val author: UUID
 )
 
-// TODO: Add KDoc comment
+/**
+ * Holds the data needed to review a pending food
+ */
 data class PendingFoodReview(
     val pendingFoodId: Int,
     val reviewerPrincipal: UserPrincipal,

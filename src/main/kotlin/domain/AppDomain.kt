@@ -1,7 +1,22 @@
 package com.example.domain
 
+import kotlinx.serialization.Serializable
+
 /**
- * Wraps the criteria and pagination parameters needed to perform a paginated query.
+ * Represents the final pagination result returned to the client,
+ * including computed page metadata.
+ * @param T the type of the result items
+ */
+@Serializable
+data class PaginationResult<T>(
+    val data: List<T>,
+    val totalCount: Long,
+    val pageCount: Int,
+    val currentPage: Int
+)
+
+/**
+ * Holds the criteria and pagination parameters needed to perform a paginated query.
  * @param T the type of the filter/criteria data
  */
 data class PaginationCriteria<T>(
@@ -17,17 +32,5 @@ data class PaginationCriteria<T>(
 data class PaginationQuery<T>(
     val data: List<T>,
     val totalCount: Long
-)
-
-/**
- * Represents the final pagination result returned to the client,
- * including computed page metadata.
- * @param T the type of the result items
- */
-data class PaginationResult<T>(
-    val data: List<T>,
-    val totalCount: Long,
-    val pageCount: Int,
-    val currentPage: Int
 )
 
