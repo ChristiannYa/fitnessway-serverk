@@ -7,8 +7,8 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.getAllByUserId() {
-    get("/all-by-userId") {
+fun Route.findByUserId() {
+    get("/user-id") {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
 

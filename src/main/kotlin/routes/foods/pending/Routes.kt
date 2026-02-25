@@ -4,7 +4,11 @@ import io.ktor.server.routing.*
 
 fun Route.pendingFoodRoutes() {
     route("/pending") {
-        getAllByUserId()
+        route("/find-by") {
+            findByUserId()
+            findByUserType()
+        }
+
         addPendingFood()
         reviewPendingFood()
         dismissReview()

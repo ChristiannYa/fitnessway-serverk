@@ -9,9 +9,9 @@ import io.ktor.server.routing.*
 
 fun Route.dismissReview() {
     delete("/dismiss-review/{pendingFoodId}") {
-        val pendingFoodId = call.parameters["pendingFoodId"]?.toIntOrNull()
         val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
+        val pendingFoodId = call.parameters["pendingFoodId"]?.toIntOrNull()
 
         pendingFoodService.dismissReview(pendingFoodId, userPrincipal.id)
 

@@ -9,6 +9,7 @@ import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
 import com.example.utils.suspendTransaction
 import java.util.*
+import kotlin.math.ceil
 
 class PendingFoodService(
     private val pendingFoodRepository: IPendingFoodRepository,
@@ -21,6 +22,26 @@ class PendingFoodService(
     }
 
     suspend fun findByUserId(userId: UUID) = pendingFoodRepository.findByUserId(userId)
+
+    suspend fun findByUserType(
+        paginationCriteria: PendingFoodsPaginationCriteria,
+        limit: Int?,
+        offset: Long?
+    ): PaginationResult<PendingFood> {
+        if (limit == null || limit <= 0) throw InvalidPaginationLimitException()
+        if (offset == null || offset < 0) throw InvalidPaginationOffsetException()
+
+        val queryResult = pendingFoodRepository.findByUserType(
+            PaginationCriteria(paginationCriteria, limit, offset)
+        )
+
+        return PaginationResult(
+            data = queryResult.data,
+            totalCount = queryResult.totalCount,
+            pageCount = ceil(queryResult.totalCount.toDouble() / limit).toInt(),
+            currentPage = (offset / limit).toInt() + 1
+        )
+    }
 
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = foodToCreate.let {
         // Check daily submission limit

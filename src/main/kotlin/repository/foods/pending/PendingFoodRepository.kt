@@ -9,12 +9,21 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.*
 
 class PendingFoodRepository : IPendingFoodRepository {
+    override suspend fun findById(id: Int, userId: UUID): PendingFood? = suspendTransaction {
+        val pfDao = PFDao.findById(id)
+            ?: return@suspendTransaction null
+
+        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
+        pfDao.toDomain(nutrients)
+    }
+
     override suspend fun findByUserId(userId: UUID): List<PendingFood> = suspendTransaction {
         PFDao.find { PF.createdBy eq userId }
             .map { pendingFoodDao ->
@@ -23,12 +32,25 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
     }
 
-    override suspend fun findById(id: Int, userId: UUID): PendingFood? = suspendTransaction {
-        val pfDao = PFDao.findById(id)
-            ?: return@suspendTransaction null
+    override suspend fun findByUserType(
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
+    ): PaginationQuery<PendingFood> = suspendTransaction {
+        val query = (PF innerJoin U)
+            .selectAll()
+            .where { U.userType eq paginationCriteria.data.userType }
 
-        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
-        pfDao.toDomain(nutrients)
+        val totalCount = query.count()
+
+        val data = query
+            .limit(paginationCriteria.limit)
+            .offset(paginationCriteria.offset)
+            .map { row ->
+                val pfDao = PFDao.wrapRow(row)
+                val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, row[U.id].value)
+                pfDao.toDomain(nutrients)
+            }
+
+        PaginationQuery(data, totalCount)
     }
 
     override suspend fun create(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {

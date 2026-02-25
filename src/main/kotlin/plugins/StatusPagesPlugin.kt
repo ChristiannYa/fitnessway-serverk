@@ -59,6 +59,19 @@ fun Application.configureStatusPages() {
             HttpStatusCode.BadRequest
         )
 
+        // --------------
+        // APP EXCEPTIONS
+        // --------------
+        handleExceptions<AppException> { ex ->
+            when (ex) {
+                is InvalidPaginationOffsetException
+                    -> ex.message.toString() to HttpStatusCode.BadRequest
+
+                is InvalidPaginationLimitException
+                    -> ex.message.toString() to HttpStatusCode.BadRequest
+            }
+        }
+
         // -----------------
         // TOKEN EXCEPTIONS
         // ----------------

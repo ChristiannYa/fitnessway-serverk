@@ -63,16 +63,19 @@ data class PendingFood(
     val rejectionReason: String? = null,
 )
 
+// TODO: Add KDoc comment
 data class AppFoodCreate(
     val food: FoodInformation<NutrientIdWithAmount>,
     val createdBy: UUID
 )
 
+// TODO: Add KDoc comment
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
     val author: UUID
 )
 
+// TODO: Add KDoc comment
 data class PendingFoodReview(
     val pendingFoodId: Int,
     val reviewerPrincipal: UserPrincipal,
@@ -98,8 +101,10 @@ fun PendingFood.toCreate() = this.createdBy?.let {
         }
     )
 
-    AppFoodCreate(
-        food = food,
-        createdBy = this.createdBy
-    )
+    AppFoodCreate(food, this.createdBy)
 }
+
+/**
+ * Holds the criteria needed to perform the paginated query
+ */
+data class PendingFoodsPaginationCriteria(val userType: UserType)
