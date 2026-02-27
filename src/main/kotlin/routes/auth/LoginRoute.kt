@@ -4,7 +4,6 @@ import com.example.config.AuthServiceKey
 import com.example.domain.UserLoginData
 import com.example.dto.DtoRes
 import com.example.dto.LoginRequest
-import com.example.service.AuthService
 import com.example.validation.isValidEmail
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -15,7 +14,7 @@ import io.ktor.server.routing.*
 fun Route.login() {
     post("/login") {
         val req = call.receive<LoginRequest>()
-        val authService: AuthService = application.attributes[AuthServiceKey]
+        val authService = application.attributes[AuthServiceKey]
 
         // Login and obtain tokens
         val tokens = authService.login(

@@ -9,6 +9,7 @@ data class LoginRequest(
     val deviceName: String
 )
 
+// TODO: Consider removing userType
 @Serializable
 data class RegisterRequest(
     val name: String,

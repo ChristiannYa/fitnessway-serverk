@@ -8,6 +8,7 @@ import com.example.repository.user.wallets.UserWalletRepository
 import com.example.service.AuthService
 import com.example.service.JwtService
 import com.example.service.PendingFoodService
+import com.example.service.UserService
 import io.ktor.server.application.*
 
 fun Application.configureDependencies() {
@@ -27,9 +28,11 @@ fun Application.configureDependencies() {
         userRepository,
         appFoodRepository
     )
+    val userService = UserService(userRepository)
 
     // Register needed application attributes
     this.attributes.put(JwtServiceKey, jwtService)
     this.attributes.put(AuthServiceKey, authService)
     this.attributes.put(PendingFoodServiceKey, pendingFoodService)
+    this.attributes.put(UserServiceKey, userService)
 }

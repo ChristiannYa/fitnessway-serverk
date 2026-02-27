@@ -104,7 +104,7 @@ CREATE TABLE public.refresh_tokens (
                                        last_used_at timestamp with time zone,
                                        revoked_at timestamp without time zone,
                                        PRIMARY KEY (id),
-                                       FOREIGN KEY (user_id) REFERENCES public.users(id)
+                                       FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.password_reset_tokens (
@@ -115,14 +115,14 @@ CREATE TABLE public.password_reset_tokens (
                                               expires_at timestamp with time zone NOT NULL,
                                               created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
                                               PRIMARY KEY (id),
-                                              FOREIGN KEY (user_id) REFERENCES public.users(id)
+                                              FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.user_wallets (
                                      user_id uuid NOT NULL,
                                      amount numeric(12,2) DEFAULT 0.00 NOT NULL,
                                      PRIMARY KEY (user_id),
-                                     FOREIGN KEY (user_id) REFERENCES public.users(id)
+                                     FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.user_currency_transactions (
@@ -312,7 +312,7 @@ CREATE TABLE public.user_pending_foods (
                                            created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
                                            rejection_reason text,
                                            PRIMARY KEY (id),
-                                           FOREIGN KEY (created_by) REFERENCES public.users(id),
+                                           FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL,
                                            FOREIGN KEY (reviewed_by) REFERENCES public.users(id),
                                            CONSTRAINT user_pending_foods_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
                                            CONSTRAINT user_pending_foods_rejection_reason_check CHECK (((rejection_reason IS NULL) OR (length(rejection_reason) <= 250)))
