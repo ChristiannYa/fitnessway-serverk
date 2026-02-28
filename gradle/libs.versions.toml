@@ -14,6 +14,7 @@ jbcrypt = "0.4"
 mockk = "1.13.8"
 testContainers = "1.21.4"
 junit = "4.13.2"
+hikari = "5.1.0"
 
 
 [libraries]
@@ -45,6 +46,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
 junit = { module = "junit:junit", version.ref = "junit" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

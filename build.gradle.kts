@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.jbcrypt)
     implementation(libs.h2)
     implementation(libs.logback.classic)
+    implementation(libs.hikari)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlinx.coroutines.test)

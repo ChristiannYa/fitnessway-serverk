@@ -24,7 +24,7 @@ class AuthService(
     private val jwtService: JwtService,
     private val userWalletRepository: UserWalletRepository
 ) {
-    suspend fun login(userLoginData: UserLoginData, deviceName: String): TokenStrings {
+    suspend fun login(userLoginData: UserLoginData, deviceName: String): TokenStrings = suspendTransaction {
         // Find user by email
         val user = userRepository.findByEmail(userLoginData.email)
             ?: throw InvalidCredentialsException()
@@ -40,7 +40,7 @@ class AuthService(
         saveRefreshTokenInDb(user.id, tokens.refreshToken, deviceName)
 
         // Return token pair
-        return tokens
+        tokens
     }
 
     suspend fun register(userRegisterData: UserRegisterData, deviceName: String): TokenStrings {
