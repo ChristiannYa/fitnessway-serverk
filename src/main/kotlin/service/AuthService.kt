@@ -43,7 +43,7 @@ class AuthService(
         tokens
     }
 
-    suspend fun register(userRegisterData: UserRegisterData, deviceName: String): TokenStrings {
+    suspend fun register(userRegisterData: UserRegisterData, deviceName: String): TokenStrings = suspendTransaction {
         // Check if user exists
         if (userRepository.findByEmail(userRegisterData.email) != null)
             throw UserAlreadyExistsException()
@@ -51,32 +51,30 @@ class AuthService(
         // Hash password for secure database storage
         val passwordHash = hashPassword(userRegisterData.password)
 
-        return suspendTransaction {
-            // Create user
-            val user = userRepository.create(
-                UserCreate(
-                    userRegisterData.name,
-                    userRegisterData.email,
-                    passwordHash,
-                    userRegisterData.userType
-                )
+        // Create user
+        val user = userRepository.create(
+            UserCreate(
+                userRegisterData.name,
+                userRegisterData.email,
+                passwordHash,
+                userRegisterData.userType
             )
+        )
 
-            // Create user wallet
-            userWalletRepository.createWallet(user.id)
+        // Create user wallet
+        userWalletRepository.createWallet(user.id)
 
-            // Generate tokens
-            val tokens = generateTokens(user.toPrincipal())
+        // Generate tokens
+        val tokens = generateTokens(user.toPrincipal())
 
-            // Save refresh token in database
-            saveRefreshTokenInDb(user.id, tokens.refreshToken, deviceName)
+        // Save refresh token in database
+        saveRefreshTokenInDb(user.id, tokens.refreshToken, deviceName)
 
-            // Return token pair
-            tokens
-        }
+        // Return token pair
+        tokens
     }
 
-    suspend fun refreshAccessToken(refreshTokenString: String): String {
+    suspend fun refreshAccessToken(refreshTokenString: String): String = suspendTransaction {
         // Verify JWT signature
         val decodedJwt = jwtService.verifyToken(refreshTokenString, TokenType.REFRESH)
 
@@ -101,7 +99,7 @@ class AuthService(
         refreshRepository.updateLastUsedTime(refreshToken.hash)
 
         // Generate new access token
-        return jwtService.generateAccessToken(user.toPrincipal())
+        jwtService.generateAccessToken(user.toPrincipal())
     }
 
     private fun generateTokens(userPrincipal: UserPrincipal): TokenStrings {
