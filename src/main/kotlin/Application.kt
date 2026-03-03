@@ -22,6 +22,7 @@ fun Application.module() {
     configureDatabase()
     configureSerialization()
     configureStatusPages()
+    configureCors()
     configureJwt(this.attributes[JwtServiceKey])
 
     // Configure routes' request validation

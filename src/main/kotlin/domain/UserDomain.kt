@@ -1,20 +1,29 @@
+// Apply serializer to all usages of UUID
+@file:UseSerializers(UUIDSerializer::class)
+
 package com.example.domain
 
-import java.time.Instant
+import com.example.utils.UUIDSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import java.util.*
+import kotlin.time.Instant
 
+@Serializable
 enum class UserType {
     ADMIN,
     CONTRIBUTOR,
     USER
 }
 
+@Serializable
 enum class UserTransactionType {
     FOOD_APPROVAL,
     REDEEM,
     FOOD_LOGGED
 }
 
+@Serializable
 data class User(
     val id: UUID,
     val name: String,

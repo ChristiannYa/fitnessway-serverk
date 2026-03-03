@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.h2)
     implementation(libs.logback.classic)
     implementation(libs.hikari)
+    implementation("io.ktor:ktor-server-cors:3.4.0")
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -9,6 +9,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.util.*
+import kotlin.time.toKotlinInstant
 
 object U : UUIDTable("users") {
     val name = varchar("name", 50)
@@ -38,7 +39,7 @@ fun UDao.toDomain() = User(
     this.email,
     this.passwordHash,
     this.isPremium,
-    this.createdAt,
-    this.updatedAt,
+    this.createdAt.toKotlinInstant(),
+    this.updatedAt?.toKotlinInstant(),
     this.userType
 )
