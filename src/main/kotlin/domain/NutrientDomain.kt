@@ -10,10 +10,10 @@ enum class NutrientType {
 }
 
 /**
- * Represents the type of the nutrient object that will be used on a
- * food object
+ * Represents a nutrient entry, either as a full [NutrientInFood] or
+ * as a [NutrientIdWithAmount].
  */
-sealed interface NutrientGeneric
+sealed class NutrientEntry
 
 @Serializable
 data class NutrientBase(
@@ -41,10 +41,10 @@ data class NutrientData(
 data class NutrientInFood(
     val nutrientData: NutrientData,
     val amount: Double
-) : NutrientGeneric
+) : NutrientEntry()
 
 @Serializable
 data class NutrientIdWithAmount(
     val nutrientId: Int,
     val amount: Double
-) : NutrientGeneric
+) : NutrientEntry()

@@ -5,11 +5,8 @@ import com.example.mapping.*
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.batchInsert
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -24,26 +21,32 @@ class PendingFoodRepository : IPendingFoodRepository {
         pfDao.toDomain(nutrients)
     }
 
-    override suspend fun findByUserId(userId: UUID): List<PendingFood> = suspendTransaction {
-        PFDao.find { PF.createdBy eq userId }
-            .map { pendingFoodDao ->
-                val nutrients = queryNutrientsForFood(UPFN, pendingFoodDao.id.value, userId)
-                pendingFoodDao.toDomain(nutrients)
-            }
+    override suspend fun findPaginated(
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
+    ): PaginationQuery<PendingFood> = paginatedPendingFoodsQuery(
+        paginationCriteria.limit,
+        paginationCriteria.offset
+    ) {
+        when (val criteria = paginationCriteria.data) {
+            is PendingFoodsPaginationCriteria.ByUserType -> U.userType eq criteria.userType
+            is PendingFoodsPaginationCriteria.ByUserId -> U.id eq criteria.userId
+        }
     }
 
-    override suspend fun findByUserType(
-        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
+    private suspend fun paginatedPendingFoodsQuery(
+        limit: Int,
+        offset: Long,
+        where: SqlExpressionBuilder.() -> Op<Boolean>
     ): PaginationQuery<PendingFood> = suspendTransaction {
         val query = (PF innerJoin U)
             .selectAll()
-            .where { U.userType eq paginationCriteria.data.userType }
+            .where(where)
 
         val totalCount = query.count()
 
         val data = query
-            .limit(paginationCriteria.limit)
-            .offset(paginationCriteria.offset)
+            .limit(limit)
+            .offset(offset)
             .map { row ->
                 val pfDao = PFDao.wrapRow(row)
                 val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, row[U.id].value)

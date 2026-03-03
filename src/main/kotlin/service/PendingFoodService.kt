@@ -21,25 +21,16 @@ class PendingFoodService(
         const val MAX_DAILY_SUBMISSIONS = 5
     }
 
-    suspend fun findByUserId(userId: UUID) = pendingFoodRepository.findByUserId(userId)
-
-    suspend fun findByUserType(
-        paginationCriteria: PendingFoodsPaginationCriteria,
-        limit: Int?,
-        offset: Long?
+    suspend fun findPaginated(
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
     ): PaginationResult<PendingFood> {
-        if (limit == null || limit <= 0) throw InvalidPaginationLimitException()
-        if (offset == null || offset < 0) throw InvalidPaginationOffsetException()
-
-        val queryResult = pendingFoodRepository.findByUserType(
-            PaginationCriteria(paginationCriteria, limit, offset)
-        )
+        val paginationResult = pendingFoodRepository.findPaginated(paginationCriteria)
 
         return PaginationResult(
-            data = queryResult.data,
-            totalCount = queryResult.totalCount,
-            pageCount = ceil(queryResult.totalCount.toDouble() / limit).toInt(),
-            currentPage = (offset / limit).toInt() + 1
+            data = paginationResult.data,
+            totalCount = paginationResult.totalCount,
+            pageCount = ceil(paginationResult.totalCount.toDouble() / paginationCriteria.limit).toInt(),
+            currentPage = (paginationCriteria.offset / paginationCriteria.limit).toInt() + 1
         )
     }
 

@@ -37,7 +37,7 @@ data class FoodBase(
 )
 
 @Serializable
-data class FoodInformation<N : NutrientGeneric>(
+data class FoodInformation<N : NutrientEntry>(
     val base: FoodBase,
     val nutrients: List<N>
 )
@@ -97,7 +97,9 @@ data class PendingFoodReview(
 }
 
 /**
- * @return `AppFoodCreate` if the pending food has an author
+ * Maps a [PendingFood] to an [AppFoodCreate] object
+ *
+ * @return [AppFoodCreate] if the pending food has an author, `null` otherwise
  */
 fun PendingFood.toCreate() = this.createdBy?.let {
     val food = FoodInformation(
@@ -111,6 +113,9 @@ fun PendingFood.toCreate() = this.createdBy?.let {
 }
 
 /**
- * Holds the criteria needed to perform the paginated query
+ * Represents the criteria by which [PendingFood] paginated queries can be filtered
  */
-data class PendingFoodsPaginationCriteria(val userType: UserType)
+sealed class PendingFoodsPaginationCriteria {
+    data class ByUserType(val userType: UserType) : PendingFoodsPaginationCriteria()
+    data class ByUserId(val userId: UUID) : PendingFoodsPaginationCriteria()
+}

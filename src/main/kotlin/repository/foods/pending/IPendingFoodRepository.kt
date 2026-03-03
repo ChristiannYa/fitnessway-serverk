@@ -6,11 +6,9 @@ import java.time.ZoneOffset
 import java.util.*
 
 interface IPendingFoodRepository {
-    suspend fun findByUserType(
+    suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
     ): PaginationQuery<PendingFood>
-
-    suspend fun findByUserId(userId: UUID): List<PendingFood>
 
     suspend fun findById(id: Int, userId: UUID): PendingFood?
 
