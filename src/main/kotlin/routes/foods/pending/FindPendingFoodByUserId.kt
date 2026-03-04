@@ -5,7 +5,7 @@ import com.example.domain.PaginationCriteria
 import com.example.domain.PendingFoodsPaginationCriteria
 import com.example.domain.extractPaginationOrThrow
 import com.example.dto.DtoRes
-import com.example.exception.UserIdInvalidException
+import com.example.exception.InvalidUserIdException
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,7 +19,7 @@ fun Route.findByUserId() {
 
         val userId = call.request.queryParameters["userId"]?.let {
             UUID.fromString(it)
-        } ?: throw UserIdInvalidException()
+        } ?: throw InvalidUserIdException()
 
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(

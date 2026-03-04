@@ -115,7 +115,10 @@ fun Application.configureStatusPages() {
                 is UserAlreadyExistsException ->
                     ex.message.toString() to HttpStatusCode.Conflict
 
-                is UserIdInvalidException ->
+                is InvalidUserIdException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
+
+                is InvalidUserTypeException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
