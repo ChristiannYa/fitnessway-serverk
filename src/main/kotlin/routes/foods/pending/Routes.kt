@@ -5,12 +5,13 @@ import io.ktor.server.routing.*
 
 fun Route.pendingFoodRoutes() {
     route("/pending") {
-        route("/find-by") {
-            withAdmin {
+        withAdmin {
+            route("/find-by") {
                 findByUserId()
                 findByUserType()
-                reviewPendingFood()
             }
+
+            reviewPendingFood()
         }
 
         findMyOwn()
