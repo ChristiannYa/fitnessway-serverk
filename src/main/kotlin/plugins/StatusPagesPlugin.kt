@@ -109,11 +109,14 @@ fun Application.configureStatusPages() {
         // ---------------
         handleExceptions<UserException> { ex ->
             when (ex) {
-                is UserNotFoundException
-                    -> ex.message.toString() to HttpStatusCode.NotFound
+                is UserNotFoundException ->
+                    ex.message.toString() to HttpStatusCode.NotFound
 
-                is UserAlreadyExistsException
-                    -> ex.message.toString() to HttpStatusCode.Conflict
+                is UserAlreadyExistsException ->
+                    ex.message.toString() to HttpStatusCode.Conflict
+
+                is UserIdInvalidException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 
@@ -135,9 +138,6 @@ fun Application.configureStatusPages() {
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
                 is PendingFoodAlreadyReviewedException
-                    -> ex.message.toString() to HttpStatusCode.Conflict
-
-                is NonAdministratorCannotReviewException
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
                 is FoodAlreadyInAppException

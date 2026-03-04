@@ -2,7 +2,6 @@ package tests.food.pending
 
 import com.example.config.RewardConfig
 import com.example.domain.*
-import com.example.exception.NonAdministratorCannotReviewException
 import com.example.exception.PendingFoodAlreadyReviewedException
 import com.example.exception.PendingFoodNotFoundException
 import com.example.exception.UserNotFoundException
@@ -277,55 +276,6 @@ class ITReviewPendingFood : TPendingFoodService() {
     // ----------
     // FAIL CASES
     // ----------
-
-    private suspend fun assertUntouchedDataBeforeServiceTransaction(arrange: PendingFoodArrangeOut) =
-        suspendTransaction {
-            // Assert - pending food status is present
-            val pfDao = PFDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(pfDao, notNullMessage("pendingFoodDao"))
-
-            // Assert - pending food status remains PENDING
-            assertEquals(pfDao.status, PendingFoodStatus.PENDING)
-
-            // Assert - pending food status reviewer is not set
-            assertNull(pfDao.reviewedBy, nullMessage("pendingFoodDao.reviewedBy"))
-
-            // Assert - pending food reviewedAt is not set
-            assertNull(pfDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
-
-            // Assert - food was NOT moved to the database
-            val afDao = AFDao.findById(arrange.createdPendingFood.id)
-            assertNull(afDao, nullMessage("afDao"))
-
-            // Assert - user transaction was NOT created
-            val uctDao = UCTDao.find {
-                UCT.userId eq arrange.author.id
-            }.firstOrNull()
-            assertNull(uctDao, nullMessage("uctDao"))
-
-            // Assert - wallet is present
-            val wallet = UW
-                .selectAll()
-                .where { UW.userId eq arrange.author.id }
-                .firstOrNull()
-            assertNotNull(wallet, notNullMessage("wallet"))
-
-            // Assert - wallet is still at 0
-            assertEquals(0.toBigDecimal().setScale(2), wallet[UW.amount])
-        }
-
-    @Test
-    fun `reviewing a pending food as non-ADMIN should throw NonAdministratorCannotReviewException`() = runTest {
-        // Arrange
-        val arrange = arrangeTest(PendingFoodArrangeIn())
-
-        // Act & Assert
-        assertFailsWith<NonAdministratorCannotReviewException> {
-            pendingFoodService.review(arrange.review)
-        }
-
-        assertUntouchedDataBeforeServiceTransaction(arrange)
-    }
 
     @Test
     fun `pending food not found during revision should throws PendingFoodNotFoundException`() = runTest {

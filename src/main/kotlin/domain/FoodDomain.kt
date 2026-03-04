@@ -92,8 +92,6 @@ data class PendingFoodReview(
     val approvalStatus = if (this.isApproved) {
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
-
-    val canReview = reviewerPrincipal.type == UserType.ADMIN
 }
 
 /**

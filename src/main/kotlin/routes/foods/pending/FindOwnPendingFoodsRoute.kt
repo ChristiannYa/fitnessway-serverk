@@ -1,29 +1,25 @@
 package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
+import com.example.config.UserPrincipalKey
 import com.example.domain.PaginationCriteria
 import com.example.domain.PendingFoodsPaginationCriteria
 import com.example.domain.extractPaginationOrThrow
 import com.example.dto.DtoRes
-import com.example.exception.UserIdInvalidException
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.util.*
 
-fun Route.findByUserId() {
-    get("/user-id") {
-        val pendingFoodService = application.attributes[PendingFoodServiceKey]
+fun Route.findMyOwn() {
+    get("/my-own") {
+        val userPrincipal = call.attributes[UserPrincipalKey]
+        val pendingFoodsService = application.attributes[PendingFoodServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
 
-        val userId = call.request.queryParameters["userId"]?.let {
-            UUID.fromString(it)
-        } ?: throw UserIdInvalidException()
-
-        val pendingFoodsPagination = pendingFoodService.findPaginated(
+        val pendingFoodsPagination = pendingFoodsService.findPaginated(
             PaginationCriteria(
-                data = PendingFoodsPaginationCriteria.ByUserId(userId),
+                data = PendingFoodsPaginationCriteria.ByUserId(userPrincipal.id),
                 limit = limit,
                 offset = offset
             )
@@ -32,7 +28,7 @@ fun Route.findByUserId() {
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success(
-                "pending foods pagination by user id retrieved successfully",
+                "my own pending foods pagination retrieved successfully",
                 mapOf("pending_foods_pagination" to pendingFoodsPagination)
             )
         )

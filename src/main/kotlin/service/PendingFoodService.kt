@@ -51,9 +51,6 @@ class PendingFoodService(
     }
 
     suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = pendingFoodReview.let {
-        // Check if reviewer is an administrator
-        if (!pendingFoodReview.canReview) throw NonAdministratorCannotReviewException()
-
         // Get the pending food to check if it exists
         val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerPrincipal.id)
             ?: throw PendingFoodNotFoundException(

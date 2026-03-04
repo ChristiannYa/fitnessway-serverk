@@ -23,3 +23,11 @@ class UserAlreadyExistsException(
     message: String = "User with this email already exists",
     cause: Throwable? = null
 ) : UserException(message, cause)
+
+/**
+ * Thrown when a user's ID is invalid
+ */
+class UserIdInvalidException(
+    message: String = "User id is invalid",
+    cause: Throwable? = null
+) : UserException(message, cause)

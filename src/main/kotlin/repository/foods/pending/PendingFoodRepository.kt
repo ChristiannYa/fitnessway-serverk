@@ -23,30 +23,33 @@ class PendingFoodRepository : IPendingFoodRepository {
 
     override suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): PaginationQuery<PendingFood> = paginatedPendingFoodsQuery(
-        paginationCriteria.limit,
-        paginationCriteria.offset
-    ) {
-        when (val criteria = paginationCriteria.data) {
-            is PendingFoodsPaginationCriteria.ByUserType -> U.userType eq criteria.userType
-            is PendingFoodsPaginationCriteria.ByUserId -> U.id eq criteria.userId
-        }
-    }
-
-    private suspend fun paginatedPendingFoodsQuery(
-        limit: Int,
-        offset: Long,
-        where: SqlExpressionBuilder.() -> Op<Boolean>
     ): PaginationQuery<PendingFood> = suspendTransaction {
-        val query = (PF innerJoin U)
-            .selectAll()
-            .where(where)
+        val query = run {
+            val pfJoin: Join = PF.join(
+                joinType = JoinType.INNER,
+                otherTable = U,
+                onColumn = PF.createdBy,
+                otherColumn = U.id
+            )
+
+            when (val criteria = paginationCriteria.data) {
+                is PendingFoodsPaginationCriteria.ByUserType ->
+                    pfJoin
+                        .selectAll()
+                        .where { U.userType eq criteria.userType }
+
+                is PendingFoodsPaginationCriteria.ByUserId ->
+                    pfJoin
+                        .selectAll()
+                        .where { PF.createdBy eq criteria.userId }
+            }
+        }
 
         val totalCount = query.count()
 
         val data = query
-            .limit(limit)
-            .offset(offset)
+            .limit(paginationCriteria.limit)
+            .offset(paginationCriteria.offset)
             .map { row ->
                 val pfDao = PFDao.wrapRow(row)
                 val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, row[U.id].value)
