@@ -34,37 +34,39 @@ class PendingFoodService(
         )
     }
 
-    suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = foodToCreate.let {
-        // Check daily submission limit
-        val submissionCount = this.countUserSubmissionsOfDay(it.author)
-        if (submissionCount >= MAX_DAILY_SUBMISSIONS) throw DailySubmissionLimitExceededException()
+    suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
+        foodToCreate.let {
+            // Check daily submission limit
+            val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(it.author)
+            if (submissionCount >= MAX_DAILY_SUBMISSIONS) throw DailySubmissionLimitExceededException()
 
-        // Check if food is already in app
-        val isAlreadyInApp = appFoodRepository.isDuplicate(it.foodInformation)
-        if (isAlreadyInApp) throw FoodAlreadyInAppException()
+            // Check if food is already in app
+            val isAlreadyInApp = appFoodRepository.isDuplicate(it.foodInformation)
+            if (isAlreadyInApp) throw FoodAlreadyInAppException()
 
-        // Check if food is already pending
-        val isAlreadyPending = pendingFoodRepository.isDuplicate(it.foodInformation)
-        if (isAlreadyPending) throw FoodAlreadyPendingException()
+            // Check if food is already pending
+            val isAlreadyPending = pendingFoodRepository.isDuplicate(it.foodInformation)
+            if (isAlreadyPending) throw FoodAlreadyPendingException()
 
-        pendingFoodRepository.create(foodToCreate)
+            pendingFoodRepository.create(foodToCreate)
+        }
     }
 
-    suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = pendingFoodReview.let {
-        // Get the pending food to check if it exists
-        val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerPrincipal.id)
-            ?: throw PendingFoodNotFoundException(
-                "pending food with id ${it.pendingFoodId} not found during revision"
-            )
+    suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = suspendTransaction {
+        pendingFoodReview.let {
+            // Get the pending food to check if it exists
+            val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerPrincipal.id)
+                ?: throw PendingFoodNotFoundException(
+                    "pending food with id ${it.pendingFoodId} not found during revision"
+                )
 
-        // Check if already reviewed
-        if (pendingFood.status.isReviewed) {
-            throw PendingFoodAlreadyReviewedException(
-                "pending food with id ${pendingFood.id} has already been reviewed"
-            )
-        }
+            // Check if already reviewed
+            if (pendingFood.status.isReviewed) {
+                throw PendingFoodAlreadyReviewedException(
+                    "pending food with id ${pendingFood.id} has already been reviewed"
+                )
+            }
 
-        suspendTransaction {
             // Update status
             val reviewedFood = pendingFoodRepository.updateStatus(it)
                 ?: throw PendingFoodNotFoundException(
@@ -110,7 +112,7 @@ class PendingFoodService(
     suspend fun countUserSubmissionsOfDay(userId: UUID) = pendingFoodRepository
         .countUserSubmissionsOfDay(userId)
 
-    suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) {
+    suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) = suspendTransaction {
         // Check pending food `id` is not null or <= 0
         if (pendingFoodId == null || pendingFoodId <= 0) {
             throw InvalidPendingFoodIdException()

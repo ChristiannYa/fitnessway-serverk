@@ -45,7 +45,6 @@ data class UserCreate(
     val name: String,
     val email: String,
     val passwordHash: String,
-    val userType: UserType = UserType.USER
 )
 
 data class UserAddCurrency(

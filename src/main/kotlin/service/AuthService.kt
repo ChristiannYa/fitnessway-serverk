@@ -57,7 +57,6 @@ class AuthService(
                 userRegisterData.name,
                 userRegisterData.email,
                 passwordHash,
-                userRegisterData.userType
             )
         )
 
