@@ -50,7 +50,7 @@ class ValidationScope(private val fieldName: String, private val value: String) 
 
     fun String.hasNoSpecialChar(): Result<Unit> =
         runCatching {
-            require(this.all { it.isLetter() || it.isDigit() || it.isWhitespace() || it in "-'.&" }) {
+            require(this.all { it.isLetter() || it.isDigit() || it.isWhitespace() || it in "-'.&,%" }) {
                 "$fieldName $ERR_NO_SPECIAL"
             }
         }

@@ -18,7 +18,8 @@ class PendingFoodService(
     private val appFoodRepository: IAppFoodRepository
 ) {
     companion object {
-        const val MAX_DAILY_SUBMISSIONS = 5
+        // @TODO: Must change to 5 in production!
+        const val MAX_DAILY_SUBMISSIONS = 20
     }
 
     suspend fun findPaginated(
