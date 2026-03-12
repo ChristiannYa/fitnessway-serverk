@@ -23,7 +23,7 @@ class PendingFoodService(
     }
 
     suspend fun findPaginated(
-        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteriaNew>
     ): PaginationResult<PendingFood> {
         val paginationResult = pendingFoodRepository.findPaginated(paginationCriteria)
 

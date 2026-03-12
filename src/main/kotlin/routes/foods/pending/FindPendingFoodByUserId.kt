@@ -1,11 +1,11 @@
 package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
-import com.example.domain.PaginationCriteria
-import com.example.domain.PendingFoodsPaginationCriteria
-import com.example.domain.extractPaginationOrThrow
+import com.example.domain.*
 import com.example.dto.DtoRes
+import com.example.exception.InvalidPendingFoodStatusException
 import com.example.exception.InvalidUserIdException
+import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -21,9 +21,15 @@ fun Route.findByUserId() {
             UUID.fromString(it)
         } ?: throw InvalidUserIdException()
 
+        val pendingStatus = call.request.queryParameters["pendingStatus"]
+            ?.toEnumOrThrow<PendingFoodStatus> { InvalidPendingFoodStatusException() }
+
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(
-                data = PendingFoodsPaginationCriteria.ByUserId(userId),
+                data = PendingFoodsPaginationCriteriaNew(
+                    userScope = UserScope.Id(userId),
+                    status = pendingStatus
+                ),
                 limit = limit,
                 offset = offset
             )

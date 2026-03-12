@@ -53,6 +53,11 @@ data class UserAddCurrency(
     val transactionType: UserTransactionType
 )
 
+sealed class UserScope {
+    data class Id(val id: UUID) : UserScope()
+    data class Type(val type: UserType) : UserScope()
+}
+
 fun User.toPrincipal() = UserPrincipal(
     this.id,
     this.type,

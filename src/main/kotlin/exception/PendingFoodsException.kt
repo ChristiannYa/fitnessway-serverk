@@ -65,3 +65,11 @@ class CannotDismissPendingFoodException(
     message: String = "you cannot dismiss a pending food",
     cause: Throwable? = null
 ) : PendingFoodsException(message, cause)
+
+/**
+ * Thrown when a user tries to submit an invalid pending food status
+ */
+class InvalidPendingFoodStatusException(
+    message: String = "invalid pending food status",
+    cause: Throwable? = null
+) : PendingFoodsException(message, cause)

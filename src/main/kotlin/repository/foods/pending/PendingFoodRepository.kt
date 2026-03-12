@@ -22,8 +22,10 @@ class PendingFoodRepository : IPendingFoodRepository {
     }
 
     override suspend fun findPaginated(
-        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteriaNew>
     ): PaginationQuery<PendingFood> = suspendTransaction {
+        val criteria = paginationCriteria.data
+
         val query = run {
             val pfJoin: Join = PF.join(
                 joinType = JoinType.INNER,
@@ -32,17 +34,19 @@ class PendingFoodRepository : IPendingFoodRepository {
                 otherColumn = U.id
             )
 
-            when (val criteria = paginationCriteria.data) {
-                is PendingFoodsPaginationCriteria.ByUserType ->
+            when (val userScope = criteria.userScope) {
+                is UserScope.Type ->
                     pfJoin
                         .selectAll()
-                        .where { U.userType eq criteria.userType }
+                        .where { U.userType eq userScope.type }
 
-                is PendingFoodsPaginationCriteria.ByUserId ->
+                is UserScope.Id ->
                     pfJoin
                         .selectAll()
-                        .where { PF.createdBy eq criteria.userId }
+                        .where { PF.createdBy eq userScope.id }
             }
+        }.apply {
+            criteria.status?.let { andWhere { PF.status eq it } }
         }
 
         val totalCount = query.count()

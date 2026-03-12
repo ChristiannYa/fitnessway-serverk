@@ -148,6 +148,9 @@ fun Application.configureStatusPages() {
 
                 is CannotDismissPendingFoodException
                     -> ex.message.toString() to HttpStatusCode.Conflict
+
+                is InvalidPendingFoodStatusException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
     }
@@ -189,6 +192,4 @@ private fun Throwable.logDetails() {
     println("> $exceptionName")
     println("> Message: ${this.message}")
     println("> Cause: ${this.cause}")
-
-    this.printStackTrace()
 }
