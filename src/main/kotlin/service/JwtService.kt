@@ -9,9 +9,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.example.config.JwtPayload
 import com.example.config.TokenDuration
-import com.example.domain.TokenType
-import com.example.domain.UserPrincipal
-import com.example.domain.UserType
+import com.example.domain.*
 import com.example.exception.InvalidTokenException
 import com.example.exception.TokenGenerationException
 import com.example.exception.TokenVerificationException
@@ -39,11 +37,14 @@ class JwtService(application: Application) {
 
     fun validate(credential: JWTCredential): UserPrincipal? {
         return try {
+            val sessionId = credential.payload.getClaim("sessionId").asString()
             val userId = credential.payload.getClaim("userId").asString()
             val userType = credential.payload.getClaim("type").asString()
             val isPremium = credential.payload.getClaim("isPremium").asBoolean()
 
-            if (userId != null && userType != null && isPremium != null) {
+            val payloadList = listOf(sessionId, userId, userType, isPremium)
+
+            if (!payloadList.any { it === null }) {
                 UserPrincipal(
                     id = UUID.fromString(userId),
                     type = UserType.valueOf(userType),
@@ -84,29 +85,17 @@ class JwtService(application: Application) {
         }
     }
 
-    fun generateAccessToken(userPrincipal: UserPrincipal): String {
-        val claims = mapOf(
-            "userId" to userPrincipal.id.toString(),
-            "type" to userPrincipal.type.name,
-            "isPremium" to userPrincipal.isPremium
-        )
+    fun generateAccessToken(claims: AccessTokenClaims): String = generateJwtToken(
+        tokenType = TokenType.ACCESS,
+        claims = claims.toMap(),
+        duration = TokenDuration.ACCESS_TOKEN
+    )
 
-        return generateJwtToken(
-            tokenType = TokenType.ACCESS,
-            claims = claims,
-            duration = TokenDuration.ACCESS_TOKEN
-        )
-    }
-
-    fun generateRefreshToken(userId: UUID): String {
-        val claims = mapOf("userId" to userId.toString())
-
-        return generateJwtToken(
-            tokenType = TokenType.REFRESH,
-            claims = claims,
-            duration = TokenDuration.REFRESH_TOKEN
-        )
-    }
+    fun generateRefreshToken(claims: RefreshTokenClaims) = generateJwtToken(
+        tokenType = TokenType.REFRESH,
+        claims = claims.toMap(),
+        duration = TokenDuration.REFRESH_TOKEN
+    )
 
     private fun generateJwtToken(
         tokenType: TokenType,

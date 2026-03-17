@@ -25,33 +25,21 @@ class AuthService(
     private val userWalletRepository: UserWalletRepository
 ) {
     suspend fun login(userLoginData: UserLoginData, deviceName: String): TokenStrings = suspendTransaction {
-        // Find user by email
         val user = userRepository.findByEmail(userLoginData.email)
             ?: throw InvalidCredentialsException()
 
-        // Verify raw password matches user's password
         if (!verifyPassword(userLoginData.password, user.passwordHash))
             throw InvalidCredentialsException()
 
-        // Generate tokens
-        val tokens = generateTokens(user.toPrincipal())
-
-        // Save refresh token in database
-        saveRefreshTokenInDb(user.id, tokens.refreshToken, deviceName)
-
-        // Return token pair
-        tokens
+        handleTokens(user.toPrincipal(), deviceName)
     }
 
     suspend fun register(userRegisterData: UserRegisterData, deviceName: String): TokenStrings = suspendTransaction {
-        // Check if user exists
         if (userRepository.findByEmail(userRegisterData.email) != null)
             throw UserAlreadyExistsException()
 
-        // Hash password for secure database storage
         val passwordHash = hashPassword(userRegisterData.password)
 
-        // Create user
         val user = userRepository.create(
             UserCreate(
                 userRegisterData.name,
@@ -60,63 +48,69 @@ class AuthService(
             )
         )
 
-        // Create user wallet
         userWalletRepository.createWallet(user.id)
 
-        // Generate tokens
-        val tokens = generateTokens(user.toPrincipal())
-
-        // Save refresh token in database
-        saveRefreshTokenInDb(user.id, tokens.refreshToken, deviceName)
-
-        // Return token pair
-        tokens
+        handleTokens(user.toPrincipal(), deviceName)
     }
 
     suspend fun refreshAccessToken(refreshTokenString: String): String = suspendTransaction {
-        // Verify JWT signature
-        val decodedJwt = jwtService.verifyToken(refreshTokenString, TokenType.REFRESH)
-
         // Extract user id from the decoded JWT
+        val decodedJwt = jwtService.verifyToken(refreshTokenString, TokenType.REFRESH)
         val userId = jwtService.extractUserId(decodedJwt, TokenType.REFRESH)
 
-        // Hash refresh token
+        // Obtain refresh token
         val refreshTokenHash = hashToken(refreshTokenString)
-
-        // Obtain token validation result
         val validationResult = refreshRepository.validate(refreshTokenHash, userId)
-
-        // Obtain refresh token if validation result passed
         val refreshToken = validationResult.getTokenOrThrow()
-
-        // Get current user data
-        val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException("user not found while refreshing access token")
 
         // Update last used time before generating access token, that way if generation
         // fails the timestamps will show that an attempt was made
         refreshRepository.updateLastUsedTime(refreshToken.hash)
 
-        // Generate new access token
-        jwtService.generateAccessToken(user.toPrincipal())
-    }
+        val user = userRepository.findById(userId)
+            ?: throw UserNotFoundException("user not found while refreshing access token")
 
-    private fun generateTokens(userPrincipal: UserPrincipal): TokenStrings {
-        val accessToken = jwtService.generateAccessToken(userPrincipal)
-        val refreshToken = jwtService.generateRefreshToken(userPrincipal.id)
+        // Generate new access token
+        jwtService.generateAccessToken(
+            AccessTokenClaims(
+                sessionId = refreshToken.id.toString(),
+                userPrincipal = user.toPrincipal()
+            )
+        )
+    }
+    
+    private suspend fun handleTokens(userPrincipal: UserPrincipal, deviceName: String): TokenStrings {
+        val refreshToken = jwtService.generateRefreshToken(
+            RefreshTokenClaims(
+                userId = userPrincipal.id.toString()
+            )
+        )
+
+        val refreshTokenDb = saveRefreshTokenInDb(
+            userId = userPrincipal.id,
+            refreshToken = refreshToken,
+            deviceName = deviceName
+        )
+
+        val accessToken = jwtService.generateAccessToken(
+            AccessTokenClaims(
+                sessionId = refreshTokenDb.id.toString(),
+                userPrincipal = userPrincipal
+            )
+        )
 
         return TokenStrings(accessToken, refreshToken)
     }
 
-    private suspend fun saveRefreshTokenInDb(userId: UUID, refreshToken: String, deviceName: String) {
-        // Hash the token for secure database storage
+    private suspend fun saveRefreshTokenInDb(
+        userId: UUID,
+        refreshToken: String,
+        deviceName: String
+    ): RefreshToken {
         val refreshTokenHash = hashToken(refreshToken)
-
-        // Set refresh token expiration date
         val expiresAt = Instant.now().plus(TokenDuration.REFRESH_TOKEN)
 
-        // Save refresh token in the database
-        refreshRepository.save(
+        return refreshRepository.save(
             RefreshTokenCreate(
                 hash = refreshTokenHash,
                 userId = userId,
