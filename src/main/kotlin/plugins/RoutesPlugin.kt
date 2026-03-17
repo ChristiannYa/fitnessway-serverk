@@ -9,7 +9,7 @@ import io.ktor.server.routing.*
 
 fun Application.configureApiRoues() {
     routing {
-        route("/api/k") {
+        route("/api/kt") {
             get {
                 call.respondText("Hello from Fitnessway's API Kotlin version. This is the main api route!")
             }

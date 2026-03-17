@@ -3,7 +3,7 @@ package com.example.routes.foods.pending
 import com.example.config.PendingFoodServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.PaginationCriteria
-import com.example.domain.PendingFoodsPaginationCriteriaNew
+import com.example.domain.PendingFoodsPaginationCriteria
 import com.example.domain.UserScope
 import com.example.domain.extractPaginationOrThrow
 import com.example.dto.DtoRes
@@ -20,7 +20,7 @@ fun Route.findMyOwn() {
 
         val pendingFoodsPagination = pendingFoodsService.findPaginated(
             PaginationCriteria(
-                data = PendingFoodsPaginationCriteriaNew(
+                data = PendingFoodsPaginationCriteria(
                     userScope = UserScope.Id(userPrincipal.id)
                 ),
                 limit = limit,

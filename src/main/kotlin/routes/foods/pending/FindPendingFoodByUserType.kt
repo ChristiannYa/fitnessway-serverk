@@ -24,7 +24,7 @@ fun Route.findByUserType() {
 
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(
-                data = PendingFoodsPaginationCriteriaNew(
+                data = PendingFoodsPaginationCriteria(
                     userScope = UserScope.Type(userType),
                     status = pendingStatus
                 ),

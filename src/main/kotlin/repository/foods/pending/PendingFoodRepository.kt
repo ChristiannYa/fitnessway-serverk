@@ -22,7 +22,7 @@ class PendingFoodRepository : IPendingFoodRepository {
     }
 
     override suspend fun findPaginated(
-        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteriaNew>
+        paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
     ): PaginationQuery<PendingFood> = suspendTransaction {
         val criteria = paginationCriteria.data
 

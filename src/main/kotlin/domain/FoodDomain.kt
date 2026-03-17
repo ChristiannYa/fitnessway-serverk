@@ -113,7 +113,7 @@ fun PendingFood.toCreate() = this.createdBy?.let {
 /**
  * Represents the criteria by which [PendingFood] paginated queries can be filtered
  */
-data class PendingFoodsPaginationCriteriaNew(
+data class PendingFoodsPaginationCriteria(
     val userScope: UserScope,
     val status: PendingFoodStatus? = null
 )
