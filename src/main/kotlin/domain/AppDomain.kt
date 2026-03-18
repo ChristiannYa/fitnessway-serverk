@@ -4,6 +4,7 @@ import com.example.exception.InvalidPaginationLimitException
 import com.example.exception.InvalidPaginationOffsetException
 import io.ktor.server.application.*
 import kotlinx.serialization.Serializable
+import kotlin.math.ceil
 
 /**
  * Represents the final pagination result returned to the client,
@@ -28,7 +29,10 @@ data class PaginationCriteria<T>(
     val data: T,
     val limit: Int,
     val offset: Long
-)
+) {
+    fun calcPageCount(totalCount: Double) = ceil(totalCount / this.limit).toInt()
+    fun calcCurrentPage() = (this.offset / this.limit).toInt() + 1
+}
 
 /**
  * Represents the raw result of a paginated database query.

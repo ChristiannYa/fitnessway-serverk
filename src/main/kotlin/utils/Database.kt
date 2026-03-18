@@ -1,10 +1,7 @@
 package com.example.utils
 
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnType
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.withSuspendTransaction
@@ -55,8 +52,8 @@ class PgEnum<T : Enum<T>>(
 }
 
 /**
- * `pgEnum` allows to use Kotlin enums in code while storing
- * them as Postgres enum types in the database
+ * Allows to use Kotlin `Enum`s in code while storing
+ * them as **Postgres Enum** types in the database
  *
  * - `T`: Kotlin enum class
  * - `columnName`: Column name from the Postgres table
@@ -66,3 +63,19 @@ inline fun <reified T : Enum<T>> Table.pgEnum(
     columnName: String,
     pgTypeName: String
 ): Column<T> = registerColumn(columnName, PgEnum(T::class.java, pgTypeName))
+
+/**
+ * Creates a custom SQL expression for the "similarity" function from the
+ * `pg_trgm` extension.
+ * @return Score between 0.0 and 1.0 indicating how similar the column value is to
+ * the search query.
+ *
+ * @param col The column or expression to compare against
+ * @param value The search query to compare with
+ */
+fun similarity(col: Expression<String>, value: String) = CustomFunction<Double>(
+    functionName = "similarity",
+    columnType = DoubleColumnType(),
+    col.lowerCase(),
+    stringLiteral(value)
+)

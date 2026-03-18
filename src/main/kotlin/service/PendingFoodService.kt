@@ -9,7 +9,6 @@ import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
 import com.example.utils.suspendTransaction
 import java.util.*
-import kotlin.math.ceil
 
 class PendingFoodService(
     private val pendingFoodRepository: IPendingFoodRepository,
@@ -25,13 +24,13 @@ class PendingFoodService(
     suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
     ): PaginationResult<PendingFood> {
-        val paginationResult = pendingFoodRepository.findPaginated(paginationCriteria)
+        val paginationQuery = pendingFoodRepository.findPaginated(paginationCriteria)
 
         return PaginationResult(
-            data = paginationResult.data,
-            totalCount = paginationResult.totalCount,
-            pageCount = ceil(paginationResult.totalCount.toDouble() / paginationCriteria.limit).toInt(),
-            currentPage = (paginationCriteria.offset / paginationCriteria.limit).toInt() + 1
+            data = paginationQuery.data,
+            totalCount = paginationQuery.totalCount,
+            pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
+            currentPage = paginationCriteria.calcCurrentPage()
         )
     }
 

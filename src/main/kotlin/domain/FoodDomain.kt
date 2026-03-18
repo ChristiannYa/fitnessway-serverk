@@ -63,12 +63,24 @@ data class PendingFood(
     val rejectionReason: String? = null,
 )
 
+data class FoodSearchResult(
+    val id: Int,
+    val base: FoodBase
+)
+
 /**
  * Holds the data needed to create an app food
  */
 data class AppFoodCreate(
     val food: FoodInformation<NutrientIdWithAmount>,
     val createdBy: UUID
+)
+
+/**
+ * Represents the criteria by which [AppFoodSearchPaginationCriteria] paginated queries can be filtered
+ */
+data class AppFoodSearchPaginationCriteria(
+    val query: String
 )
 
 /**

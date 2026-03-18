@@ -69,6 +69,9 @@ fun Application.configureStatusPages() {
 
                 is InvalidPaginationLimitException
                     -> ex.message.toString() to HttpStatusCode.BadRequest
+
+                is MissingSearchQueryException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 

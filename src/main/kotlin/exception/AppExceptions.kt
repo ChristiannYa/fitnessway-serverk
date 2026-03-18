@@ -16,7 +16,18 @@ class InvalidPaginationLimitException(
     cause: Throwable? = null
 ) : AppException(message, cause)
 
+/**
+ * Thrown when a user sets an offset less than 0
+ */
 class InvalidPaginationOffsetException(
     message: String = "pagination offset cannot be less than 0",
+    cause: Throwable? = null
+) : AppException(message, cause)
+
+/**
+ * Thrown when a user does not provide a search query
+ */
+class MissingSearchQueryException(
+    message: String = "search query must be provided",
     cause: Throwable? = null
 ) : AppException(message, cause)
