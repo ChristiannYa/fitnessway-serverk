@@ -20,12 +20,33 @@ enum class ServingUnit {
 }
 
 @Serializable
+enum class FoodLogCategory {
+    BREAKFAST,
+    LUNCH,
+    DINNER,
+    SUPPLEMENT
+}
+
+@Serializable
+enum class FoodSource {
+    USER,
+    APP
+}
+
+@Serializable
 enum class PendingFoodStatus {
     PENDING,
     APPROVED,
     REJECTED;
 
     val isReviewed by lazy { this != PENDING }
+}
+
+@Serializable
+enum class UserFoodSnapshotStatus {
+    PRESENT,
+    UPDATED,
+    DELETED
 }
 
 @Serializable
@@ -61,6 +82,16 @@ data class PendingFood(
     val reviewedAt: Instant? = null,
     val createdAt: Instant,
     val rejectionReason: String? = null,
+)
+
+@Serializable
+data class UserFood(
+    val id: Int,
+    val information: FoodInformation<NutrientInFood>,
+    val isFavorite: Boolean,
+    val lastLoggedAt: Instant? = null,
+    val createdAt: Instant,
+    val updatedAt: Instant? = null,
 )
 
 data class FoodSearchResult(
