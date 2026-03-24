@@ -1,6 +1,7 @@
 package com.example.mapping
 
 import com.example.domain.*
+import com.example.dto.FoodInformationDto
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -32,9 +33,9 @@ class AFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by AF.updatedAt
 }
 
-fun AFDao.toDomain(nutrients: List<NutrientInFood>) = AppFood(
+fun AFDao.toDto(nutrients: NutrientsByType<NutrientInFood>) = AppFood(
     id = this.id.value,
-    information = FoodInformation(
+    information = FoodInformationDto(
         base = FoodBase(
             name = this.name,
             brand = this.brand,

@@ -1,6 +1,7 @@
 package com.example.mapping
 
 import com.example.domain.*
+import com.example.dto.FoodInformationDto
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -37,9 +38,9 @@ class PFDao(id: EntityID<Int>) : IntEntity(id) {
     var rejectionReason by PF.rejectionReason
 }
 
-fun PFDao.toDomain(nutrients: List<NutrientInFood>) = PendingFood(
+fun PFDao.toDto(nutrients: NutrientsByType<NutrientInFood>) = PendingFood(
     id = this.id.value,
-    information = FoodInformation(
+    information = FoodInformationDto(
         base = FoodBase(
             name = this.name,
             brand = this.brand,

@@ -3,6 +3,7 @@
 
 package com.example.domain
 
+import com.example.dto.FoodInformationDto
 import com.example.utils.UUIDSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -58,15 +59,9 @@ data class FoodBase(
 )
 
 @Serializable
-data class FoodInformation<N : NutrientEntry>(
-    val base: FoodBase,
-    val nutrients: List<N>
-)
-
-@Serializable
 data class AppFood(
     val id: Int,
-    val information: FoodInformation<NutrientInFood>,
+    val information: FoodInformationDto,
     val createdBy: UUID?,
     val createdAt: Instant,
     val updatedAt: Instant? = null
@@ -75,7 +70,7 @@ data class AppFood(
 @Serializable
 data class PendingFood(
     val id: Int,
-    val information: FoodInformation<NutrientInFood>,
+    val information: FoodInformationDto,
     val status: PendingFoodStatus,
     val createdBy: UUID?,
     val reviewedBy: UUID? = null,
@@ -87,16 +82,22 @@ data class PendingFood(
 @Serializable
 data class UserFood(
     val id: Int,
-    val information: FoodInformation<NutrientInFood>,
+    val information: FoodInformationDto,
     val isFavorite: Boolean,
     val lastLoggedAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant? = null,
 )
 
+@Serializable
 data class FoodSearchResult(
     val id: Int,
     val base: FoodBase
+)
+
+data class FoodInformation<N : NutrientEntry>(
+    val base: FoodBase,
+    val nutrients: List<N>
 )
 
 /**
@@ -135,22 +136,6 @@ data class PendingFoodReview(
     val approvalStatus = if (this.isApproved) {
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
-}
-
-/**
- * Maps a [PendingFood] to an [AppFoodCreate] object
- *
- * @return [AppFoodCreate] if the pending food has an author, `null` otherwise
- */
-fun PendingFood.toCreate() = this.createdBy?.let {
-    val food = FoodInformation(
-        base = this.information.base,
-        nutrients = this.information.nutrients.map {
-            NutrientIdWithAmount(it.nutrientData.base.id, it.amount)
-        }
-    )
-
-    AppFoodCreate(food, this.createdBy)
 }
 
 /**

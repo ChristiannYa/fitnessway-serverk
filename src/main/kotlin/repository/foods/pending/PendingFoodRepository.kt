@@ -1,6 +1,7 @@
 package com.example.repository.foods.pending
 
 import com.example.domain.*
+import com.example.mappers.toType
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.suspendTransaction
@@ -18,7 +19,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
-        pfDao.toDomain(nutrients)
+        pfDao.toDto(nutrients.toType())
     }
 
     override suspend fun findPaginated(
@@ -57,7 +58,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             .map { row ->
                 val pfDao = PFDao.wrapRow(row)
                 val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, row[U.id].value)
-                pfDao.toDomain(nutrients)
+                pfDao.toDto(nutrients.toType())
             }
 
         PaginationQuery(data, totalCount)
@@ -87,7 +88,7 @@ class PendingFoodRepository : IPendingFoodRepository {
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.author)
 
-            pfDao.toDomain(nutrients)
+            pfDao.toDto(nutrients.toType())
         }
     }
 
@@ -104,8 +105,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, it.reviewerPrincipal.id)
-
-            pfDao.toDomain(nutrients)
+            pfDao.toDto(nutrients.toType())
         }
     }
 

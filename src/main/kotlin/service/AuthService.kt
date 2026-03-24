@@ -5,6 +5,7 @@ import com.example.domain.*
 import com.example.exception.InvalidCredentialsException
 import com.example.exception.UserAlreadyExistsException
 import com.example.exception.UserNotFoundException
+import com.example.mappers.toPrincipal
 import com.example.repository.refresh.IRefreshRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.UserWalletRepository
@@ -78,7 +79,7 @@ class AuthService(
             )
         )
     }
-    
+
     private suspend fun handleTokens(userPrincipal: UserPrincipal, deviceName: String): TokenStrings {
         val refreshToken = jwtService.generateRefreshToken(
             RefreshTokenClaims(

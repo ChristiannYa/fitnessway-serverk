@@ -3,8 +3,8 @@ package mock.user
 import com.example.domain.User
 import com.example.domain.UserRegisterData
 import com.example.domain.UserType
-import java.time.Instant
 import java.util.*
+import kotlin.time.Clock
 
 fun randomUUIDAndChop(takeLast: Int = 8): Pair<UUID, String> {
     val userId = UUID.randomUUID()
@@ -16,14 +16,14 @@ fun buildUser(
     userType: UserType = UserType.USER
 ): User {
     val (userId, userIdChop) = randomUUIDAndChop()
-    
+
     return User(
         id = userId,
         name = "user-$userIdChop",
         email = "user.${userIdChop}@example.com",
         passwordHash = "",
         isPremium = isPremium,
-        createdAt = Instant.now(),
+        createdAt = Clock.System.now(),
         updatedAt = null,
         type = userType
     )
@@ -37,5 +37,4 @@ fun buildUserRegisterData(
     name = "user-$userDiv",
     email = "user.${userDiv}@gmail.com",
     password = password,
-    userType = userType
 )

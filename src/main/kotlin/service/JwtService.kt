@@ -14,6 +14,7 @@ import com.example.exception.InvalidTokenException
 import com.example.exception.TokenGenerationException
 import com.example.exception.TokenVerificationException
 import com.example.exception.UnauthorizedException
+import com.example.mappers.toMap
 import com.example.utils.prettify
 import io.ktor.server.application.*
 import io.ktor.server.auth.jwt.*

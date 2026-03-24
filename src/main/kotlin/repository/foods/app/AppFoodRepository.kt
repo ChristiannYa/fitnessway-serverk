@@ -1,6 +1,7 @@
 package com.example.repository.foods.app
 
 import com.example.domain.*
+import com.example.mappers.toType
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.similarity
@@ -18,7 +19,7 @@ class AppFoodRepository : IAppFoodRepository {
             ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(UPFN, afDao.id.value, userId)
-        afDao.toDomain(nutrients)
+        afDao.toDto(nutrients.toType())
     }
 
     override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {

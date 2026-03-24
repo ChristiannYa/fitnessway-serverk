@@ -3,6 +3,7 @@ package com.example.service
 import com.example.config.RewardConfig
 import com.example.domain.*
 import com.example.exception.*
+import com.example.mappers.toCreate
 import com.example.repository.foods.app.IAppFoodRepository
 import com.example.repository.foods.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository

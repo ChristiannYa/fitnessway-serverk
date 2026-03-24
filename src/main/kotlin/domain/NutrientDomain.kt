@@ -2,18 +2,32 @@ package com.example.domain
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents a nutrient entry, either as a full [NutrientInFood] or
+ * as a [NutrientIdWithAmount].
+ */
+sealed class NutrientEntry
+
+/**
+ * Represents nutrient information that can be grouped by [NutrientType]
+ */
+interface NutrientGroupable {
+    val nutrientType: NutrientType
+}
+
+@Serializable
+data class NutrientsByType<N : NutrientGroupable>(
+    val basic: List<N>,
+    val vitamins: List<N>,
+    val minerals: List<N>
+)
+
 @Serializable
 enum class NutrientType {
     BASIC,
     VITAMIN,
     MINERAL,
 }
-
-/**
- * Represents a nutrient entry, either as a full [NutrientInFood] or
- * as a [NutrientIdWithAmount].
- */
-sealed class NutrientEntry
 
 @Serializable
 data class NutrientBase(
@@ -35,13 +49,19 @@ data class NutrientPreferences(
 data class NutrientData(
     val base: NutrientBase,
     val preferences: NutrientPreferences
-)
+) : NutrientGroupable {
+    override val nutrientType: NutrientType
+        get() = this.base.type
+}
 
 @Serializable
 data class NutrientInFood(
     val nutrientData: NutrientData,
     val amount: Double
-) : NutrientEntry()
+) : NutrientEntry(), NutrientGroupable {
+    override val nutrientType: NutrientType
+        get() = this.nutrientData.nutrientType
+}
 
 @Serializable
 data class NutrientIdWithAmount(

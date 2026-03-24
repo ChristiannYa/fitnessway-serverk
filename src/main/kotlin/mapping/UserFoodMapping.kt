@@ -1,6 +1,11 @@
 package com.example.mapping
 
-import com.example.domain.*
+import com.example.domain.FoodBase
+import com.example.domain.NutrientInFood
+import com.example.domain.ServingUnit
+import com.example.domain.UserFood
+import com.example.dto.FoodInformationDto
+import com.example.mappers.toType
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -35,16 +40,16 @@ class UFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by UF.updatedAt
 }
 
-fun UFDao.toDomain(nutrients: List<NutrientInFood>) = UserFood(
+fun UFDao.toDto(nutrients: List<NutrientInFood>) = UserFood(
     id = this.id.value,
-    information = FoodInformation(
+    information = FoodInformationDto(
         base = FoodBase(
             name = this.name,
             brand = this.brand,
             amountPerServing = this.amountPerServing.toDouble(),
             servingUnit = this.servingUnit,
         ),
-        nutrients = nutrients,
+        nutrients = nutrients.toType(),
     ),
     isFavorite = this.isFavorite,
     lastLoggedAt = this.lastLoggedAt?.toKotlinInstant(),

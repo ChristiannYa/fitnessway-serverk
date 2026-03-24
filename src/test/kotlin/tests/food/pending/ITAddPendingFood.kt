@@ -2,10 +2,10 @@ package tests.food.pending
 
 import com.example.domain.PendingFoodReview
 import com.example.domain.UserType
-import com.example.domain.toPrincipal
 import com.example.exception.DailySubmissionLimitExceededException
 import com.example.exception.FoodAlreadyInAppException
 import com.example.exception.FoodAlreadyPendingException
+import com.example.mappers.toPrincipal
 import com.example.mapping.PFDao
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest

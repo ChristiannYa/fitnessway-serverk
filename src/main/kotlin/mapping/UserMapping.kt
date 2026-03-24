@@ -33,7 +33,7 @@ class UDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var updatedAt by U.updatedAt
 }
 
-fun UDao.toDomain() = User(
+fun UDao.toDto() = User(
     this.id.value,
     this.name,
     this.email,

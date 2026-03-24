@@ -54,19 +54,8 @@ data class AccessTokenClaims(
     val userPrincipal: UserPrincipal
 )
 
-fun AccessTokenClaims.toMap() = mapOf(
-    "sessionId" to this.sessionId,
-    "userId" to this.userPrincipal.id.toString(),
-    "type" to this.userPrincipal.type.name,
-    "isPremium" to this.userPrincipal.isPremium
-)
-
 data class RefreshTokenClaims(
     val userId: String
-)
-
-fun RefreshTokenClaims.toMap() = mapOf(
-    "userId" to this.userId
 )
 
 data class TokenStrings(

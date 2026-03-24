@@ -5,7 +5,7 @@ import com.example.domain.UserCreate
 import com.example.domain.UserType
 import com.example.mapping.U
 import com.example.mapping.UDao
-import com.example.mapping.toDomain
+import com.example.mapping.toDto
 import com.example.utils.suspendTransaction
 import java.time.Instant
 import java.util.*
@@ -15,14 +15,14 @@ class UserRepository : IUserRepository {
         UDao.Companion
             .find { U.id eq id }
             .singleOrNull()
-            ?.toDomain()
+            ?.toDto()
     }
 
     override suspend fun findByEmail(email: String): User? = suspendTransaction {
         UDao.Companion
             .find { U.email eq email }
             .singleOrNull()
-            ?.toDomain()
+            ?.toDto()
     }
 
     override suspend fun create(user: UserCreate): User = suspendTransaction {
@@ -36,6 +36,6 @@ class UserRepository : IUserRepository {
                 createdAt = Instant.now()
                 updatedAt = null
             }
-            .toDomain()
+            .toDto()
     }
 }
