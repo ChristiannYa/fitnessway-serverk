@@ -92,7 +92,8 @@ data class UserFood(
 @Serializable
 data class FoodSearchResult(
     val id: Int,
-    val base: FoodBase
+    val base: FoodBase,
+    val nutrientsPreview: NutrientPreview
 )
 
 data class FoodInformation<N : NutrientEntry>(
@@ -106,13 +107,6 @@ data class FoodInformation<N : NutrientEntry>(
 data class AppFoodCreate(
     val food: FoodInformation<NutrientIdWithAmount>,
     val createdBy: UUID
-)
-
-/**
- * Represents the criteria by which [AppFoodSearchPaginationCriteria] paginated queries can be filtered
- */
-data class AppFoodSearchPaginationCriteria(
-    val query: String
 )
 
 /**
@@ -137,6 +131,14 @@ data class PendingFoodReview(
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
 }
+
+/**
+ * Represents the criteria by which [AppFoodSearchPaginationCriteria] paginated queries can be filtered
+ */
+data class AppFoodSearchPaginationCriteria(
+    val query: String,
+    val userId: UUID
+)
 
 /**
  * Represents the criteria by which [PendingFood] paginated queries can be filtered

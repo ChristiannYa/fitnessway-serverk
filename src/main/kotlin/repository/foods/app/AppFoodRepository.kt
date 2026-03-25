@@ -3,6 +3,7 @@ package com.example.repository.foods.app
 import com.example.domain.*
 import com.example.mappers.toType
 import com.example.mapping.*
+import com.example.repository.foods.queryNutrientPreviews
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
@@ -65,25 +66,6 @@ class AppFoodRepository : IAppFoodRepository {
         }
     }
 
-    /*
-    override suspend fun search(query: String): List<FoodSearchResult> = suspendTransaction {
-        AFDao.find { AF.name.lowerCase() like "%${query.lowercase()}%" }
-            .orderBy(similarity(AF.name, query) to SortOrder.DESC)
-            .map { dao ->
-                FoodSearchResult(
-                    id = dao.id.value,
-                    base = FoodBase(
-                        name = dao.name,
-                        brand = dao.brand,
-                        amountPerServing = dao.amountPerServing.toDouble(),
-                        servingUnit = dao.servingUnit
-                    )
-                )
-            }
-    }
-
-     */
-
     override suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
     ): PaginationQuery<FoodSearchResult> = suspendTransaction {
@@ -92,19 +74,27 @@ class AppFoodRepository : IAppFoodRepository {
             AF.name.lowerCase() like "%${query.lowercase()}%"
         }
 
-        val data = matched
+        val afDaos = matched
             .orderBy(similarity(AF.name, query) to SortOrder.DESC)
-            .map { dao ->
-                FoodSearchResult(
-                    id = dao.id.value,
-                    base = FoodBase(
-                        name = dao.name,
-                        brand = dao.brand,
-                        amountPerServing = dao.amountPerServing.toDouble(),
-                        servingUnit = dao.servingUnit
-                    )
-                )
-            }
+            .limit(criteria.limit)
+            .offset(criteria.offset)
+            .toList()
+
+        val foodIds = afDaos.map { it.id.value }
+        val nutrientPreviews = queryNutrientPreviews(AFN, foodIds, criteria.data.userId)
+
+        val data = afDaos.map { afDao ->
+            FoodSearchResult(
+                id = afDao.id.value,
+                base = FoodBase(
+                    name = afDao.name,
+                    brand = afDao.brand.ifEmpty { "~" },
+                    amountPerServing = afDao.amountPerServing.toDouble(),
+                    servingUnit = afDao.servingUnit
+                ),
+                nutrientsPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview()
+            )
+        }
 
         PaginationQuery(data, matched.count())
     }

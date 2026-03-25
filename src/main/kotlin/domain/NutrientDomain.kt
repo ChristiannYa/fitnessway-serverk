@@ -68,3 +68,17 @@ data class NutrientIdWithAmount(
     val nutrientId: Int,
     val amount: Double
 ) : NutrientEntry()
+
+@Serializable
+data class NutrientAmountWithColor(
+    val amount: Double? = null,
+    val color: String? = null
+)
+
+@Serializable
+data class NutrientPreview(
+    val calories: NutrientAmountWithColor = NutrientAmountWithColor(),
+    val carbs: NutrientAmountWithColor = NutrientAmountWithColor(),
+    val fats: NutrientAmountWithColor = NutrientAmountWithColor(),
+    val protein: NutrientAmountWithColor = NutrientAmountWithColor()
+)
