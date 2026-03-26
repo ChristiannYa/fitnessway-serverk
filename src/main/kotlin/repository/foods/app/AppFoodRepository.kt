@@ -75,7 +75,10 @@ class AppFoodRepository : IAppFoodRepository {
         }
 
         val afDaos = matched
-            .orderBy(similarity(AF.name, query) to SortOrder.DESC)
+            .orderBy(
+                similarity(AF.name, query) to SortOrder.DESC,
+                AF.id to SortOrder.ASC
+            )
             .limit(criteria.limit)
             .offset(criteria.offset)
             .toList()
