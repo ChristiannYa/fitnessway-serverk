@@ -24,14 +24,6 @@ class UserAlreadyExistsException(
     cause: Throwable? = null
 ) : UserException(message, cause)
 
-/**
- * Thrown when a user's ID is invalid
- */
-class InvalidUserIdException(
-    message: String = "User id is invalid",
-    cause: Throwable? = null
-) : UserException(message, cause)
-
 class InvalidUserTypeException(
     message: String = "Invalid user type",
     cause: Throwable? = null

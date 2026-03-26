@@ -4,14 +4,14 @@ import com.example.config.AppFoodServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.AppFoodSearchPaginationCriteria
 import com.example.domain.PaginationCriteria
-import com.example.domain.extractPaginationOrThrow
 import com.example.dto.DtoRes
 import com.example.exception.MissingSearchQueryException
+import com.example.utils.extensions.extractPaginationOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.searchAppFood() {
+fun Route.search() {
     get("/search") {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val appFoodService = application.attributes[AppFoodServiceKey]

@@ -70,7 +70,13 @@ fun Application.configureStatusPages() {
                 is InvalidPaginationLimitException
                     -> ex.message.toString() to HttpStatusCode.BadRequest
 
+                is InvalidIdException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
+
                 is MissingSearchQueryException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
+
+                is MissingPathParameterException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
@@ -118,9 +124,6 @@ fun Application.configureStatusPages() {
                 is UserAlreadyExistsException ->
                     ex.message.toString() to HttpStatusCode.Conflict
 
-                is InvalidUserIdException ->
-                    ex.message.toString() to HttpStatusCode.BadRequest
-
                 is InvalidUserTypeException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
             }
@@ -131,9 +134,6 @@ fun Application.configureStatusPages() {
         // ------------------------
         handleExceptions<PendingFoodsException> { ex ->
             when (ex) {
-                is InvalidPendingFoodIdException
-                    -> ex.message.toString() to HttpStatusCode.BadRequest
-
                 is PendingFoodNotFoundException
                     -> ex.message.toString() to HttpStatusCode.NotFound
 

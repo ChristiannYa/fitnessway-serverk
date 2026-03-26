@@ -5,8 +5,8 @@ import com.example.config.UserPrincipalKey
 import com.example.domain.PaginationCriteria
 import com.example.domain.PendingFoodsPaginationCriteria
 import com.example.domain.UserScope
-import com.example.domain.extractPaginationOrThrow
 import com.example.dto.DtoRes
+import com.example.utils.extensions.extractPaginationOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*

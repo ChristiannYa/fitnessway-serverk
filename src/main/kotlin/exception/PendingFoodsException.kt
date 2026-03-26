@@ -9,14 +9,6 @@ sealed class PendingFoodsException(
 ) : Exception(message, cause)
 
 /**
- *
- */
-class InvalidPendingFoodIdException(
-    message: String = "invalid pending food id",
-    cause: Throwable? = null
-) : PendingFoodsException(message, cause)
-
-/**
  * Thrown when a pending food is not found
  */
 class PendingFoodNotFoundException(

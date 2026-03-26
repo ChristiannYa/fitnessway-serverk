@@ -1,8 +1,5 @@
 package com.example.domain
 
-import com.example.exception.InvalidPaginationLimitException
-import com.example.exception.InvalidPaginationOffsetException
-import io.ktor.server.application.*
 import kotlinx.serialization.Serializable
 import kotlin.math.ceil
 
@@ -43,21 +40,4 @@ data class PaginationQuery<T>(
     val data: List<T>,
     val totalCount: Long
 )
-
-/**
- * Extracts and validates the `limit` and `offset` pagination query parameters from the request.
- *
- * @return A [Pair] where the first value is the `limit` and the second is the `offset`
- * @throws InvalidPaginationLimitException if `limit` is missing or <= 0
- * @throws InvalidPaginationOffsetException if `offset` is missing or < 0
- */
-fun ApplicationCall.extractPaginationOrThrow(): Pair<Int, Long> {
-    val limit = request.queryParameters["limit"]?.toIntOrNull()
-    val offset = request.queryParameters["offset"]?.toLongOrNull()
-
-    if (limit == null || limit <= 0) throw InvalidPaginationLimitException()
-    if (offset == null || offset < 0) throw InvalidPaginationOffsetException()
-
-    return limit to offset
-}
 

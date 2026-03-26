@@ -116,7 +116,7 @@ class PendingFoodService(
     suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) = suspendTransaction {
         // Check pending food `id` is not null or <= 0
         if (pendingFoodId == null || pendingFoodId <= 0) {
-            throw InvalidPendingFoodIdException()
+            throw InvalidIdException("pending food")
         }
 
         // Obtain pending food data

@@ -19,7 +19,7 @@ class AppFoodRepository : IAppFoodRepository {
         val afDao = AFDao.findById(id)
             ?: return@suspendTransaction null
 
-        val nutrients = queryNutrientsForFood(UPFN, afDao.id.value, userId)
+        val nutrients = queryNutrientsForFood(AFN, afDao.id.value, userId)
         afDao.toDto(nutrients.toType())
     }
 

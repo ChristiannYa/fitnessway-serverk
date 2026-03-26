@@ -5,6 +5,7 @@ import com.example.domain.*
 import com.example.dto.DtoRes
 import com.example.exception.InvalidPendingFoodStatusException
 import com.example.exception.InvalidUserTypeException
+import com.example.utils.extensions.extractPaginationOrThrow
 import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*

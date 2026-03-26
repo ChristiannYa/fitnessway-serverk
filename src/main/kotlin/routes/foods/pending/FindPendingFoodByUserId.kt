@@ -1,10 +1,15 @@
 package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
-import com.example.domain.*
+import com.example.domain.PaginationCriteria
+import com.example.domain.PendingFoodStatus
+import com.example.domain.PendingFoodsPaginationCriteria
+import com.example.domain.UserScope
 import com.example.dto.DtoRes
+import com.example.exception.InvalidIdException
 import com.example.exception.InvalidPendingFoodStatusException
-import com.example.exception.InvalidUserIdException
+import com.example.utils.extensions.extractPaginationOrThrow
+import com.example.utils.extensions.extractPathParamOrThrow
 import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -17,9 +22,9 @@ fun Route.findByUserId() {
 
         val (limit, offset) = call.extractPaginationOrThrow()
 
-        val userId = call.request.queryParameters["userId"]?.let {
+        val userId = call.extractPathParamOrThrow("userId").let {
             UUID.fromString(it)
-        } ?: throw InvalidUserIdException()
+        } ?: throw InvalidIdException("user")
 
         val pendingStatus = call.request.queryParameters["pendingStatus"]
             ?.toEnumOrThrow<PendingFoodStatus> { InvalidPendingFoodStatusException() }
