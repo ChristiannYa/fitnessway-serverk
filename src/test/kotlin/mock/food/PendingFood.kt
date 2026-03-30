@@ -1,10 +1,9 @@
 package mock.food
 
 import com.example.domain.*
-import java.util.*
 
 fun buildPendingFoodCreateData(
-    author: UUID = UUID.randomUUID(),
+    userPrincipal: UserPrincipal,
     name: String = "food number ${(1000..9999).random()}"
 ) = PendingFoodCreate(
     foodInformation = FoodInformation(
@@ -37,5 +36,5 @@ fun buildPendingFoodCreateData(
             )
         )
     ),
-    author = author
+    userPrincipal = userPrincipal
 )

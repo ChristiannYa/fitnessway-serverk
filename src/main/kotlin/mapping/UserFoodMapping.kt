@@ -40,15 +40,17 @@ class UFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by UF.updatedAt
 }
 
+fun UFDao.toBase() = FoodBase(
+    name = this.name,
+    brand = this.brand,
+    amountPerServing = this.amountPerServing.toDouble(),
+    servingUnit = this.servingUnit
+)
+
 fun UFDao.toDto(nutrients: List<NutrientInFood>) = UserFood(
     id = this.id.value,
     information = FoodInformationDto(
-        base = FoodBase(
-            name = this.name,
-            brand = this.brand,
-            amountPerServing = this.amountPerServing.toDouble(),
-            servingUnit = this.servingUnit,
-        ),
+        base = this.toBase(),
         nutrients = nutrients.toType(),
     ),
     isFavorite = this.isFavorite,

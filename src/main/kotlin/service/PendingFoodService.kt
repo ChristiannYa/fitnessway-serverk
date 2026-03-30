@@ -2,6 +2,7 @@ package com.example.service
 
 import com.example.config.RewardConfig
 import com.example.domain.*
+import com.example.domain.UserType.*
 import com.example.exception.*
 import com.example.mappers.toCreate
 import com.example.repository.foods.app.IAppFoodRepository
@@ -18,8 +19,11 @@ class PendingFoodService(
     private val appFoodRepository: IAppFoodRepository
 ) {
     companion object {
-        // @TODO: Must change to 5 in production!
-        const val MAX_DAILY_SUBMISSIONS = 20
+        fun UserType.getDailyLimit() = when (this) {
+            USER -> 5
+            CONTRIBUTOR -> 15
+            ADMIN -> 20
+        }
     }
 
     suspend fun findPaginated(
@@ -37,9 +41,11 @@ class PendingFoodService(
 
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
         foodToCreate.let {
+            val dailyLimit = foodToCreate.userPrincipal.type.getDailyLimit()
+
             // Check daily submission limit
-            val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(it.author)
-            if (submissionCount >= MAX_DAILY_SUBMISSIONS) throw DailySubmissionLimitExceededException()
+            val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(it.userPrincipal.id)
+            if (submissionCount >= dailyLimit) throw DailySubmissionLimitExceededException(dailyLimit)
 
             // Check if food is already in app
             val isAlreadyInApp = appFoodRepository.isDuplicate(it.foodInformation)
@@ -49,7 +55,7 @@ class PendingFoodService(
             val isAlreadyPending = pendingFoodRepository.isDuplicate(it.foodInformation)
             if (isAlreadyPending) throw FoodAlreadyPendingException()
 
-            pendingFoodRepository.create(foodToCreate)
+            pendingFoodRepository.create(it)
         }
     }
 
@@ -110,8 +116,8 @@ class PendingFoodService(
         }
     }
 
-    suspend fun countUserSubmissionsOfDay(userId: UUID) = pendingFoodRepository
-        .countUserSubmissionsOfDay(userId)
+    suspend fun countUserSubmissionsOfDay(userId: UUID) =
+        pendingFoodRepository.countUserSubmissionsOfDay(userId)
 
     suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) = suspendTransaction {
         // Check pending food `id` is not null or <= 0

@@ -25,7 +25,9 @@ class InvalidPaginationOffsetException(
 ) : AppException(message, cause)
 
 /**
- * Thrown when an invalid id is received
+ * Thrown when an invalid id is received.
+ *
+ * Builds message: "invalid `subject` id"
  *
  * @param subject represents who the invalid id belongs to
  */
@@ -43,9 +45,17 @@ class MissingSearchQueryException(
 ) : AppException(message, cause)
 
 /**
+ * Thrown when a user does not provide a query parameter
+ */
+class MissingQueryParameterException(
+    queryParamName: String,
+    cause: Throwable? = null
+) : AppException("'$queryParamName' query parameter must be provided", cause)
+
+/**
  * Thrown when a user does not provide a path parameter
  */
 class MissingPathParameterException(
-    paramName: String,
+    pathParameterName: String,
     cause: Throwable? = null
-) : AppException("'$paramName' parameter must be provided", cause)
+) : AppException("'$pathParameterName' path parameter must be provided", cause)

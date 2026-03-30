@@ -3,6 +3,7 @@ package com.example.utils.extensions
 import com.example.exception.InvalidPaginationLimitException
 import com.example.exception.InvalidPaginationOffsetException
 import com.example.exception.MissingPathParameterException
+import com.example.exception.MissingQueryParameterException
 import io.ktor.server.application.*
 
 /**
@@ -23,7 +24,25 @@ fun ApplicationCall.extractPaginationOrThrow(): Pair<Int, Long> {
 }
 
 /**
- * Etxracts and validates a path parameter by [name] from the request
+ * Attempts to extract a query parameter by [name] from the request
+ *
+ * @return The query parameter as a nullable [String]
+ */
+fun ApplicationCall.extractQueryParamOrNull(name: String) =
+    this.request.queryParameters[name]
+
+/**
+ * Conditionally extracts a query parameter by [name] from the request.
+ *
+ * @return The query parameter value as a [String]
+ * @throws MissingQueryParameterException if the paramter is missing or blank
+ */
+fun ApplicationCall.extractQueryParamOrThrow(name: String) =
+    this.extractQueryParamOrNull(name)
+        ?: throw MissingQueryParameterException(name)
+
+/**
+ * Conditionally extracts a query parameter by [name] from the request
  *
  * @return The path parameter value as a [String]
  * @throws MissingPathParameterException if the parameter is missing or blank

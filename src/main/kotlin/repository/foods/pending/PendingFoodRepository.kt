@@ -75,7 +75,7 @@ class PendingFoodRepository : IPendingFoodRepository {
                 this.amountPerServing = foodInformation.amountPerServing.toBigDecimal()
                 this.servingUnit = foodInformation.servingUnit
                 this.status = PendingFoodStatus.PENDING
-                this.createdBy = EntityID(foodToCreate.author, U)
+                this.createdBy = EntityID(foodToCreate.userPrincipal.id, U)
                 this.createdAt = Instant.now()
             }
 
@@ -86,7 +86,7 @@ class PendingFoodRepository : IPendingFoodRepository {
                 this[UPFN.amount] = d.amount.toBigDecimal()
             }
 
-            val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.author)
+            val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
 
             pfDao.toDto(nutrients.toType())
         }

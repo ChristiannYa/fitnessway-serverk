@@ -78,6 +78,9 @@ fun Application.configureStatusPages() {
 
                 is MissingPathParameterException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
+
+                is MissingQueryParameterException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 

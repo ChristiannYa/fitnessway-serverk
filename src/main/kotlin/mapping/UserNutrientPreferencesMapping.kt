@@ -1,5 +1,7 @@
 package com.example.mapping
 
+import com.example.domain.NutrientPreferences
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 
 object UNP : Table("user_nutrient_preferences") {
@@ -10,3 +12,8 @@ object UNP : Table("user_nutrient_preferences") {
 
     override val primaryKey = PrimaryKey(userId, nutrientId)
 }
+
+fun UNP.toNutrientPreferences(row: ResultRow) = NutrientPreferences(
+    hexColor = row.getOrNull(this.hexColor),
+    goal = row.getOrNull(UNP.goal)?.toDouble()
+)

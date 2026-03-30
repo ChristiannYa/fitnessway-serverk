@@ -20,9 +20,9 @@ class PendingFoodNotFoundException(
  * Thrown when user exceeds daily submission limit
  */
 class DailySubmissionLimitExceededException(
-    message: String = "you have reached the maximum of 5 food submissions per day",
+    limit: Int,
     cause: Throwable? = null
-) : PendingFoodsException(message, cause)
+) : PendingFoodsException("you have reached the maximum of $limit food submissions per day", cause)
 
 /**
  * Thrown when user tries to submit a food that is already pending

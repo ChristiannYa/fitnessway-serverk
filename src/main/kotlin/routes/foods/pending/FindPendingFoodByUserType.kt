@@ -6,6 +6,8 @@ import com.example.dto.DtoRes
 import com.example.exception.InvalidPendingFoodStatusException
 import com.example.exception.InvalidUserTypeException
 import com.example.utils.extensions.extractPaginationOrThrow
+import com.example.utils.extensions.extractQueryParamOrNull
+import com.example.utils.extensions.extractQueryParamOrThrow
 import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -17,10 +19,10 @@ fun Route.findByUserType() {
 
         val (limit, offset) = call.extractPaginationOrThrow()
 
-        val userType = (call.request.queryParameters["userType"] ?: "")
+        val userType = call.extractQueryParamOrThrow("userType")
             .toEnumOrThrow<UserType> { InvalidUserTypeException() }
 
-        val pendingStatus = call.request.queryParameters["pendingStatus"]
+        val pendingStatus = call.extractQueryParamOrNull("pendingStatus")
             ?.toEnumOrThrow<PendingFoodStatus> { InvalidPendingFoodStatusException() }
 
         val pendingFoodsPagination = pendingFoodService.findPaginated(

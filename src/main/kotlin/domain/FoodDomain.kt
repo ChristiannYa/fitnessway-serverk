@@ -90,6 +90,20 @@ data class UserFood(
 )
 
 @Serializable
+data class FoodLog(
+    val id: Int,
+    val category: FoodLogCategory,
+    val time: Instant,
+    val loggedAt: Instant,
+    val servings: Double,
+    val userFoodSnapshotStatus: UserFoodSnapshotStatus,
+    val userFoodSnapshotId: Int?,
+    val source: FoodSource,
+    val foodId: Int?,
+    val foodInformation: FoodInformationDto
+)
+
+@Serializable
 data class FoodSearchResult(
     val id: Int,
     val base: FoodBase,
@@ -99,6 +113,23 @@ data class FoodSearchResult(
 data class FoodInformation<N : NutrientEntry>(
     val base: FoodBase,
     val nutrients: List<N>
+)
+
+data class FoodLogAdd(
+    val userId: UUID,
+    val foodId: Int,
+    val servings: Double,
+    val category: FoodLogCategory,
+    val time: Instant,
+    val source: FoodSource
+)
+
+data class FoodLogFind(
+    val userId: UUID,
+    val foodLogId: Int,
+    val snapshotStatus: UserFoodSnapshotStatus,
+    val foodId: Int?,
+    val foodInformation: FoodInformationDto
 )
 
 /**
@@ -114,7 +145,7 @@ data class AppFoodCreate(
  */
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
-    val author: UUID
+    val userPrincipal: UserPrincipal
 )
 
 /**

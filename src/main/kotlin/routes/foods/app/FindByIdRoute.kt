@@ -15,7 +15,7 @@ fun Route.findById() {
         val appFoodService = application.attributes[AppFoodServiceKey]
 
         val appFoodId = call.extractPathParamOrThrow("id").toIntOrNull()
-            ?: throw InvalidIdException("app food id")
+            ?: throw InvalidIdException("app food")
 
         val appFood = appFoodService.findById(appFoodId, userPrincipal.id)
 
