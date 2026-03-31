@@ -63,7 +63,7 @@ class PendingFoodService(
         pendingFoodReview.let {
             // Get the pending food to check if it exists
             val pendingFood = pendingFoodRepository.findById(it.pendingFoodId, it.reviewerPrincipal.id)
-                ?: throw PendingFoodNotFoundException(
+                ?: throw FoodNotFoundException(
                     "pending food with id ${it.pendingFoodId} not found during revision"
                 )
 
@@ -76,7 +76,7 @@ class PendingFoodService(
 
             // Update status
             val reviewedFood = pendingFoodRepository.updateStatus(it)
-                ?: throw PendingFoodNotFoundException(
+                ?: throw FoodNotFoundException(
                     "pending food with id ${pendingFood.id} not found when updating review status"
                 )
 
@@ -127,7 +127,7 @@ class PendingFoodService(
 
         // Obtain pending food data
         val pendingFood = pendingFoodRepository.findById(pendingFoodId, userId)
-            ?: throw PendingFoodNotFoundException()
+            ?: throw FoodNotFoundException("pending food [$pendingFoodId] not found when dismissing review")
 
         // Throw error if the review still has a PENDING status
         if (pendingFood.status == PendingFoodStatus.PENDING) {

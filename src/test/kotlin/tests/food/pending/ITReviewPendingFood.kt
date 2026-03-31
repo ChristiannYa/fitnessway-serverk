@@ -2,8 +2,8 @@ package tests.food.pending
 
 import com.example.config.RewardConfig
 import com.example.domain.*
+import com.example.exception.FoodNotFoundException
 import com.example.exception.PendingFoodAlreadyReviewedException
-import com.example.exception.PendingFoodNotFoundException
 import com.example.exception.UserNotFoundException
 import com.example.mapping.*
 import com.example.utils.suspendTransaction
@@ -290,7 +290,7 @@ class ITReviewPendingFood : TPendingFoodService() {
         )
 
         // Act & Assert
-        assertFailsWith<PendingFoodNotFoundException> {
+        assertFailsWith<FoodNotFoundException> {
             pendingFoodService.review(review)
         }
     }

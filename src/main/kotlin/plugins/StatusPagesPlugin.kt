@@ -157,9 +157,6 @@ fun Application.configureStatusPages() {
         // ------------------------
         handleExceptions<PendingFoodsException> { ex ->
             when (ex) {
-                is PendingFoodNotFoundException
-                    -> ex.message.toString() to HttpStatusCode.NotFound
-
                 is DailySubmissionLimitExceededException
                     -> ex.message.toString() to HttpStatusCode.TooManyRequests
 

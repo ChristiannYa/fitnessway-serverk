@@ -8,15 +8,6 @@ sealed class PendingFoodsException(
     cause: Throwable? = null
 ) : Exception(message, cause)
 
-// @TODO: Replace with more general `FoodNotFoundException`
-/**
- * Thrown when a pending food is not found
- */
-class PendingFoodNotFoundException(
-    message: String = "pending food not found",
-    cause: Throwable? = null
-) : PendingFoodsException(message, cause)
-
 /**
  * Thrown when user exceeds daily submission limit
  */
