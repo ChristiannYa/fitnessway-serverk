@@ -15,7 +15,7 @@ import kotlin.time.toKotlinInstant
 
 object UFL : IntIdTable("user_food_logs") {
     val userId = reference("user_id", U)
-    val foodId = reference("food_id", UF).nullable()
+    val foodId = integer("food_id").nullable()
     val foodSnapshotId = reference("food_snapshot_id", UFS).nullable()
     val servings = decimal("servings", 12, 4)
     val category = pgEnum<FoodLogCategory>("category", "food_log_category")
@@ -33,12 +33,12 @@ class UFLDao(id: EntityID<Int>) : IntEntity(id) {
     var servings by UFL.servings
     var category by UFL.category
     var time by UFL.time
-    var loggedAt by UFL.time
+    var loggedAt by UFL.loggedAt
     var foodSource by UFL.foodSource
 }
 
 fun UFLDao.toDto(
-    userFoodSnapshotStatus: UserFoodSnapshotStatus,
+    userFoodSnapshotStatus: UserFoodSnapshotStatus?,
     foodId: Int?,
     foodInformationDto: FoodInformationDto
 ) = FoodLog(

@@ -17,26 +17,38 @@ class FoodLogRepository : IFoodLogRepository {
         val foodLogDao = UFLDao.findById(id) ?: return@suspendTransaction null
 
         val foodLogUserId = foodLogDao.userId
-        val foodLogFoodId = foodLogDao.foodId?.value
+        val foodLogFoodId = foodLogDao.foodId
         val foodLogFoodSnapshotId = foodLogDao.foodSnapshotId?.value
 
-        val (foodSnapshotStatus, foodBase) = when {
-            foodLogFoodSnapshotId == null && foodLogFoodId != null -> {
-                val ufDao = UFDao.findById(foodLogFoodId) ?: return@suspendTransaction null
-                UserFoodSnapshotStatus.PRESENT to ufDao.toBase()
+        val (
+            foodSnapshotStatus: UserFoodSnapshotStatus?,
+            foodBase: FoodBase
+        ) = when (foodLogDao.foodSource) {
+            FoodSource.APP -> {
+                if (foodLogFoodId == null) return@suspendTransaction null
+
+                val afDao = AFDao.findById(foodLogFoodId) ?: return@suspendTransaction null
+                null to afDao.toBase()
             }
 
-            foodLogFoodSnapshotId != null && foodLogFoodId != null -> {
-                val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return@suspendTransaction null
-                UserFoodSnapshotStatus.UPDATED to ufsDao.toBase()
-            }
+            FoodSource.USER -> when {
+                foodLogFoodSnapshotId == null && foodLogFoodId != null -> {
+                    val ufDao = UFDao.findById(foodLogFoodId) ?: return@suspendTransaction null
+                    UserFoodSnapshotStatus.PRESENT to ufDao.toBase()
+                }
 
-            foodLogFoodSnapshotId != null && foodLogFoodId == null -> {
-                val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return@suspendTransaction null
-                UserFoodSnapshotStatus.DELETED to ufsDao.toBase()
-            }
+                foodLogFoodSnapshotId != null && foodLogFoodId != null -> {
+                    val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return@suspendTransaction null
+                    UserFoodSnapshotStatus.UPDATED to ufsDao.toBase()
+                }
 
-            else -> return@suspendTransaction null
+                foodLogFoodSnapshotId != null && foodLogFoodId == null -> {
+                    val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return@suspendTransaction null
+                    UserFoodSnapshotStatus.DELETED to ufsDao.toBase()
+                }
+
+                else -> return@suspendTransaction null
+            }
         }
 
         val nutrients = (UNI innerJoin N)
@@ -48,7 +60,7 @@ class FoodLogRepository : IFoodLogRepository {
                 additionalConstraint = { UNP.userId eq foodLogUserId }
             )
             .selectAll()
-            .where { (UNI.foodLogId eq id) and (UNI.userId eq foodLogUserId) }
+            .where { (UNI.foodLogId eq id) and (UNI.userId eq foodLogUserId.value) }
             .map { row ->
                 NutrientInFood(
                     nutrientData = NutrientData(
@@ -72,7 +84,7 @@ class FoodLogRepository : IFoodLogRepository {
     override suspend fun add(data: FoodLogAdd): Int = suspendTransaction {
         UFLDao.new {
             userId = EntityID(data.userId, U)
-            foodId = EntityID(data.foodId, UF)
+            foodId = data.foodId
             foodSnapshotId = null
             servings = data.servings.toBigDecimal()
             category = data.category

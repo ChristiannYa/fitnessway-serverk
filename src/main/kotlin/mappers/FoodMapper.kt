@@ -1,9 +1,6 @@
 package com.example.mappers
 
-import com.example.domain.AppFoodCreate
-import com.example.domain.FoodInformation
-import com.example.domain.NutrientIdWithAmount
-import com.example.domain.PendingFood
+import com.example.domain.*
 
 /**
  * Maps a [PendingFood] to an [AppFoodCreate] object
@@ -20,3 +17,11 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let {
 
     AppFoodCreate(food, this.createdBy)
 }
+
+fun FoodLogAdd.toNutrientIntakesFromFood(foodLogId: Int) = NutrientIntakesFromFood(
+    userId = this.userId,
+    foodLogId = foodLogId,
+    foodId = this.foodId,
+    servings = this.servings,
+    source = this.source
+)

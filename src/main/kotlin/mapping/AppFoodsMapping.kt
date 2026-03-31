@@ -33,15 +33,17 @@ class AFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by AF.updatedAt
 }
 
+fun AFDao.toBase() = FoodBase(
+    name = this.name,
+    brand = this.brand,
+    amountPerServing = this.amountPerServing.toDouble(),
+    servingUnit = this.servingUnit
+)
+
 fun AFDao.toDto(nutrients: NutrientsByType<NutrientInFood>) = AppFood(
     id = this.id.value,
     information = FoodInformationDto(
-        base = FoodBase(
-            name = this.name,
-            brand = this.brand,
-            amountPerServing = this.amountPerServing.toDouble(),
-            servingUnit = this.servingUnit
-        ),
+        base = this.toBase(),
         nutrients = nutrients
     ),
     createdBy = this.createdBy?.value,

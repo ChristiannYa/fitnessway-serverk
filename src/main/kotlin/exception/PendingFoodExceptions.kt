@@ -8,6 +8,7 @@ sealed class PendingFoodsException(
     cause: Throwable? = null
 ) : Exception(message, cause)
 
+// @TODO: Replace with more general `FoodNotFoundException`
 /**
  * Thrown when a pending food is not found
  */

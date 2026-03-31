@@ -132,6 +132,26 @@ fun Application.configureStatusPages() {
             }
         }
 
+        // -------------------
+        // FOOD LOG EXCEPTIONS
+        // -------------------
+        handleExceptions<FoodLogExceptions> { ex ->
+            when (ex) {
+                is FoodLogNotFoundException ->
+                    ex.message.toString() to HttpStatusCode.NotFound
+            }
+        }
+
+        // ---------------
+        // FOOD EXCEPTIONS
+        // ---------------
+        handleExceptions<FoodExceptions> { ex ->
+            when (ex) {
+                is FoodNotFoundException ->
+                    ex.message.toString() to HttpStatusCode.NotFound
+            }
+        }
+
         // ------------------------
         // PENDING FOOD EXCEPTIONS
         // ------------------------

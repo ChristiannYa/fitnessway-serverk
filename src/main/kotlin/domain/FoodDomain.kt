@@ -96,7 +96,7 @@ data class FoodLog(
     val time: Instant,
     val loggedAt: Instant,
     val servings: Double,
-    val userFoodSnapshotStatus: UserFoodSnapshotStatus,
+    val userFoodSnapshotStatus: UserFoodSnapshotStatus? = null,
     val userFoodSnapshotId: Int?,
     val source: FoodSource,
     val foodId: Int?,
@@ -122,14 +122,6 @@ data class FoodLogAdd(
     val category: FoodLogCategory,
     val time: Instant,
     val source: FoodSource
-)
-
-data class FoodLogFind(
-    val userId: UUID,
-    val foodLogId: Int,
-    val snapshotStatus: UserFoodSnapshotStatus,
-    val foodId: Int?,
-    val foodInformation: FoodInformationDto
 )
 
 /**

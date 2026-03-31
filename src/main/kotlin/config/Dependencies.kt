@@ -3,6 +3,7 @@ package com.example.config
 import com.example.repository.foods.app.AppFoodRepository
 import com.example.repository.foods.log.FoodLogRepository
 import com.example.repository.foods.pending.PendingFoodRepository
+import com.example.repository.nutrient.intake.NutrientIntakeRepository
 import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
 import com.example.repository.user.wallets.UserWalletRepository
@@ -14,6 +15,7 @@ fun Application.configureDependencies() {
     val refreshRepository = RefreshRepository()
     val userRepository = UserRepository()
     val userWalletsRepository = UserWalletRepository()
+    val nutrientIntakeRepository = NutrientIntakeRepository()
     val appFoodRepository = AppFoodRepository()
     val pendingFoodRepository = PendingFoodRepository()
     val foodLogRepository = FoodLogRepository()
@@ -31,7 +33,7 @@ fun Application.configureDependencies() {
         userRepository,
         appFoodRepository
     )
-    val foodLogService = FoodLogService(foodLogRepository)
+    val foodLogService = FoodLogService(foodLogRepository, nutrientIntakeRepository)
 
     // Register needed application attributes
     this.attributes.put(JwtServiceKey, jwtService)

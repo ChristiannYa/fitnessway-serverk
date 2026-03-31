@@ -1,0 +1,2 @@
+ALTER TABLE user_food_logs
+DROP CONSTRAINT user_food_logs_food_id_fkey;

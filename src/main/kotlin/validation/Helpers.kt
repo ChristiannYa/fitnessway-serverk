@@ -1,5 +1,7 @@
 package com.example.validation
 
+import com.example.utils.isValidEnum
+import com.example.utils.listEnumValues
 import io.ktor.server.plugins.requestvalidation.*
 
 private val err_min_len = { len: Int -> "must be at least $len characters long" }
@@ -17,7 +19,12 @@ private const val ERR_NO_SPECIAL = "cannot contain special characters"
 fun Result<Unit>.andThen(next: () -> Result<Unit>): Result<Unit> =
     if (isSuccess) next() else this
 
-class ValidationScope(private val fieldName: String, private val value: String) {
+class ValidationScope(
+    // `@PublishedApi internal` keeps it "private" while allowing public inline
+    // functions to access it
+    @PublishedApi internal val fieldName: String,
+    private val value: String
+) {
     fun String.hasMinLen(len: Int): Result<Unit> =
         this.let { runCatching { require(it.length >= len) { "$fieldName ${err_min_len(len)}" } } }
 
@@ -52,6 +59,19 @@ class ValidationScope(private val fieldName: String, private val value: String) 
         runCatching {
             require(this.all { it.isLetter() || it.isDigit() || it.isWhitespace() || it in "-'.&,%" }) {
                 "$fieldName $ERR_NO_SPECIAL"
+            }
+        }
+
+    fun String.isPositiveInt(): Result<Unit> =
+        runCatching { require(this.toInt() > 0) { "$fieldName must be greater than 0" } }
+
+    fun String.isPositiveDouble(): Result<Unit> =
+        runCatching { require(this.toDouble() > 0.0) { "$fieldName must be greater than 0.0" } }
+
+    inline fun <reified T : Enum<T>> String.isEnumValidated(): Result<Unit> =
+        runCatching {
+            require(this.isValidEnum<T>()) {
+                "$fieldName must be one of ${listEnumValues<T>()}"
             }
         }
 }

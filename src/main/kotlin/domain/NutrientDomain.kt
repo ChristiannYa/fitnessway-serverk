@@ -1,6 +1,7 @@
 package com.example.domain
 
 import kotlinx.serialization.Serializable
+import java.util.*
 
 /**
  * Represents a nutrient entry, either as a full [NutrientInFood] or
@@ -81,4 +82,19 @@ data class NutrientPreview(
     val carbs: NutrientAmountWithColor = NutrientAmountWithColor(),
     val fats: NutrientAmountWithColor = NutrientAmountWithColor(),
     val protein: NutrientAmountWithColor = NutrientAmountWithColor()
+)
+
+data class NutrientIntakesFromFood(
+    val userId: UUID,
+    val foodLogId: Int,
+    val foodId: Int,
+    val servings: Double,
+    val source: FoodSource
+)
+
+data class NutrientIntakeRecalculate(
+    val userId: UUID,
+    val foodLogId: Int,
+    val prevServings: Double,
+    val newServings: Double
 )

@@ -2,8 +2,8 @@ package com.example.routes.foods.log
 
 import io.ktor.server.routing.*
 
-fun Route.getRecentLogs() {
+fun Route.getLatest() {
     get("/recent") {
-        
+
     }
 }

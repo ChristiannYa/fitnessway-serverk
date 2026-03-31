@@ -5,6 +5,7 @@ import io.ktor.server.routing.*
 fun Route.foodLogRoutes() {
     route("/log") {
         findById()
-        getRecentLogs()
+        getLatest()
+        add()
     }
 }
