@@ -2,6 +2,7 @@ package com.example.domain
 
 import kotlinx.serialization.Serializable
 import kotlin.math.ceil
+import kotlin.time.Instant
 
 /**
  * Represents the final pagination result returned to the client,
@@ -41,3 +42,4 @@ data class PaginationQuery<T>(
     val totalCount: Long
 )
 
+data class InstantRange(val start: Instant, val end: Instant)

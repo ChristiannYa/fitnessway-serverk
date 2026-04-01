@@ -8,9 +8,15 @@ import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
 import com.example.repository.user.wallets.UserWalletRepository
 import com.example.service.*
+import com.example.utils.date_time.DateTimeParser
+import com.example.utils.date_time.TimeConverter
 import io.ktor.server.application.*
 
 fun Application.configureDependencies() {
+    // Instantiate utility classes
+    val dateTimeParser = DateTimeParser()
+    val timeConverter = TimeConverter(dateTimeParser)
+
     // Instantiate repositories
     val refreshRepository = RefreshRepository()
     val userRepository = UserRepository()
@@ -33,7 +39,12 @@ fun Application.configureDependencies() {
         userRepository,
         appFoodRepository
     )
-    val foodLogService = FoodLogService(foodLogRepository, nutrientIntakeRepository)
+    val foodLogService = FoodLogService(
+        foodLogRepository,
+        nutrientIntakeRepository,
+        dateTimeParser,
+        timeConverter
+    )
 
     // Register needed application attributes
     this.attributes.put(JwtServiceKey, jwtService)

@@ -2,6 +2,17 @@ package com.example.mappers
 
 import com.example.domain.*
 
+fun List<FoodLog>.toCategory(): FoodLogsCategorized {
+    val grouped = this.groupBy { it.category }
+
+    return FoodLogsCategorized(
+        breakfast = grouped[FoodLogCategory.BREAKFAST] ?: emptyList(),
+        lunch = grouped[FoodLogCategory.LUNCH] ?: emptyList(),
+        dinner = grouped[FoodLogCategory.DINNER] ?: emptyList(),
+        supplement = grouped[FoodLogCategory.SUPPLEMENT] ?: emptyList()
+    )
+}
+
 /**
  * Maps a [PendingFood] to an [AppFoodCreate] object
  *

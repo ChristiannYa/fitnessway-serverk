@@ -19,6 +19,7 @@ object U : UUIDTable("users") {
     val isPremium = bool("is_premium")
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at").nullable()
+    val timezone = varchar("timezone", 50)
 }
 
 class UDao(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -31,6 +32,7 @@ class UDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var isPremium by U.isPremium
     var createdAt by U.createdAt
     var updatedAt by U.updatedAt
+    var timezone by U.timezone
 }
 
 fun UDao.toDto() = User(
@@ -41,5 +43,6 @@ fun UDao.toDto() = User(
     this.isPremium,
     this.createdAt.toKotlinInstant(),
     this.updatedAt?.toKotlinInstant(),
-    this.userType
+    this.userType,
+    this.timezone
 )

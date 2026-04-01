@@ -104,6 +104,14 @@ data class FoodLog(
 )
 
 @Serializable
+data class FoodLogsCategorized(
+    val breakfast: List<FoodLog>,
+    val lunch: List<FoodLog>,
+    val dinner: List<FoodLog>,
+    val supplement: List<FoodLog>
+)
+
+@Serializable
 data class FoodSearchResult(
     val id: Int,
     val base: FoodBase,
@@ -123,6 +131,11 @@ data class FoodLogAdd(
     val time: Instant,
     val source: FoodSource
 )
+
+sealed class FoodLogResult {
+    data class Success(val foodLogs: List<FoodLog>) : FoodLogResult()
+    data class Error(val failedId: Int) : FoodLogResult()
+}
 
 /**
  * Holds the data needed to create an app food

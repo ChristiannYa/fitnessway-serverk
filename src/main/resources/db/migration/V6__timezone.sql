@@ -1,0 +1,6 @@
+ALTER TABLE users
+ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC';
+
+ALTER TABLE user_food_logs
+ALTER COLUMN time TYPE TIMESTAMPTZ USING time AT TIME ZONE 'America/Chicago',
+ALTER COLUMN logged_at TYPE TIMESTAMPTZ USING logged_at AT TIME ZONE 'America/Chicago';
