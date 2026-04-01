@@ -7,7 +7,8 @@ fun AccessTokenClaims.toMap() = mapOf(
     "sessionId" to this.sessionId,
     "userId" to this.userPrincipal.id.toString(),
     "type" to this.userPrincipal.type.name,
-    "isPremium" to this.userPrincipal.isPremium
+    "isPremium" to this.userPrincipal.isPremium,
+    "timezone" to this.userPrincipal.timezone
 )
 
 fun RefreshTokenClaims.toMap() = mapOf(
