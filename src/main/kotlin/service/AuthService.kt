@@ -1,10 +1,10 @@
 package com.example.service
 
-import com.example.config.TokenDuration
 import com.example.domain.*
 import com.example.exception.InvalidCredentialsException
 import com.example.exception.UserAlreadyExistsException
 import com.example.exception.UserNotFoundException
+import com.example.mappers.toMap
 import com.example.mappers.toPrincipal
 import com.example.repository.refresh.IRefreshRepository
 import com.example.repository.user.IUserRepository
@@ -14,6 +14,7 @@ import com.example.utils.hashToken
 import com.example.utils.suspendTransaction
 import com.example.utils.verifyPassword
 import mu.KotlinLogging
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -25,6 +26,11 @@ class AuthService(
     private val jwtService: JwtService,
     private val userWalletRepository: UserWalletRepository
 ) {
+    companion object {
+        val ACCESS_TOKEN_DURATION: Duration = Duration.ofMinutes(15)
+        val REFRESH_TOKEN_DURATION: Duration = Duration.ofDays(90)
+    }
+
     suspend fun login(userLoginData: UserLoginData, deviceName: String): TokenStrings = suspendTransaction {
         val user = userRepository.findByEmail(userLoginData.email)
             ?: throw InvalidCredentialsException()
@@ -72,7 +78,7 @@ class AuthService(
             ?: throw UserNotFoundException("user not found while refreshing access token")
 
         // Generate new access token
-        jwtService.generateAccessToken(
+        generateAccessToken(
             AccessTokenClaims(
                 sessionId = refreshToken.id.toString(),
                 userPrincipal = user.toPrincipal()
@@ -81,7 +87,7 @@ class AuthService(
     }
 
     private suspend fun handleTokens(userPrincipal: UserPrincipal, deviceName: String): TokenStrings {
-        val refreshToken = jwtService.generateRefreshToken(
+        val refreshToken = generateRefreshToken(
             RefreshTokenClaims(
                 userId = userPrincipal.id.toString()
             )
@@ -93,7 +99,7 @@ class AuthService(
             deviceName = deviceName
         )
 
-        val accessToken = jwtService.generateAccessToken(
+        val accessToken = generateAccessToken(
             AccessTokenClaims(
                 sessionId = refreshTokenDb.id.toString(),
                 userPrincipal = userPrincipal
@@ -109,7 +115,7 @@ class AuthService(
         deviceName: String
     ): RefreshToken {
         val refreshTokenHash = hashToken(refreshToken)
-        val expiresAt = Instant.now().plus(TokenDuration.REFRESH_TOKEN)
+        val expiresAt = Instant.now().plus(REFRESH_TOKEN_DURATION)
 
         return refreshRepository.save(
             RefreshTokenCreate(
@@ -129,4 +135,18 @@ class AuthService(
             logger.warn("Attempted to revoke non-existent refresh token")
         }
     }
+
+    private fun generateAccessToken(claims: AccessTokenClaims) =
+        jwtService.generateJwtToken(
+            tokenType = TokenType.ACCESS,
+            claims = claims.toMap(),
+            duration = ACCESS_TOKEN_DURATION
+        )
+
+    private fun generateRefreshToken(claims: RefreshTokenClaims) =
+        jwtService.generateJwtToken(
+            tokenType = TokenType.REFRESH,
+            claims = claims.toMap(),
+            duration = ACCESS_TOKEN_DURATION
+        )
 }

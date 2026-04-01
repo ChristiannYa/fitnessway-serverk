@@ -6,6 +6,7 @@ import com.example.domain.UserPrincipal
 fun User.toPrincipal() = UserPrincipal(
     this.id,
     this.type,
-    this.isPremium
+    this.isPremium,
+    this.timezone
 )
 

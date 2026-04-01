@@ -33,12 +33,14 @@ data class User(
     val createdAt: Instant,
     val updatedAt: Instant? = null,
     val type: UserType,
+    val timezone: String
 )
 
 data class UserPrincipal(
     val id: UUID,
     val type: UserType,
-    val isPremium: Boolean
+    val isPremium: Boolean,
+    val timezone: String
 )
 
 data class UserCreate(

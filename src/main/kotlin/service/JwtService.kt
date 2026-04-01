@@ -8,13 +8,13 @@ import com.auth0.jwt.exceptions.JWTCreationException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.example.config.JwtPayload
-import com.example.config.TokenDuration
-import com.example.domain.*
+import com.example.domain.TokenType
+import com.example.domain.UserPrincipal
+import com.example.domain.UserType
 import com.example.exception.InvalidTokenException
 import com.example.exception.TokenGenerationException
 import com.example.exception.TokenVerificationException
 import com.example.exception.UnauthorizedException
-import com.example.mappers.toMap
 import com.example.utils.prettify
 import io.ktor.server.application.*
 import io.ktor.server.auth.jwt.*
@@ -42,16 +42,19 @@ class JwtService(application: Application) {
             val userId = credential.payload.getClaim("userId").asString()
             val userType = credential.payload.getClaim("type").asString()
             val isPremium = credential.payload.getClaim("isPremium").asBoolean()
+            val timezone = credential.payload.getClaim("timezone").asString()
 
-            val payloadList = listOf(sessionId, userId, userType, isPremium)
+            val payloadList = listOf(sessionId, userId, userType, isPremium, timezone)
 
-            if (!payloadList.any { it === null }) {
+            if (!payloadList.any { it == null }) {
                 UserPrincipal(
                     id = UUID.fromString(userId),
                     type = UserType.valueOf(userType),
-                    isPremium = isPremium
+                    isPremium = isPremium,
+                    timezone = timezone
                 )
             } else null
+
         } catch (_: Exception) { // Triggers the challenge block
             null
         }
@@ -86,19 +89,7 @@ class JwtService(application: Application) {
         }
     }
 
-    fun generateAccessToken(claims: AccessTokenClaims): String = generateJwtToken(
-        tokenType = TokenType.ACCESS,
-        claims = claims.toMap(),
-        duration = TokenDuration.ACCESS_TOKEN
-    )
-
-    fun generateRefreshToken(claims: RefreshTokenClaims) = generateJwtToken(
-        tokenType = TokenType.REFRESH,
-        claims = claims.toMap(),
-        duration = TokenDuration.REFRESH_TOKEN
-    )
-
-    private fun generateJwtToken(
+    fun generateJwtToken(
         tokenType: TokenType,
         claims: Map<String, Any>,
         duration: Duration
