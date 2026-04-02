@@ -28,11 +28,3 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let {
 
     AppFoodCreate(food, this.createdBy)
 }
-
-fun FoodLogAdd.toNutrientIntakesFromFood(foodLogId: Int) = NutrientIntakesFromFood(
-    userId = this.userId,
-    foodLogId = foodLogId,
-    foodId = this.foodId,
-    servings = this.servings,
-    source = this.source
-)

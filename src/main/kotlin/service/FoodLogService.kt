@@ -3,8 +3,8 @@ package com.example.service
 import com.example.domain.*
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.FoodNotFoundException
+import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
-import com.example.mappers.toNutrientIntakesFromFood
 import com.example.repository.foods.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.DateTimeParser
@@ -12,6 +12,7 @@ import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
 import io.ktor.server.plugins.*
 import java.time.format.DateTimeParseException
+import java.util.*
 
 class FoodLogService(
     private val foodLogRepository: IFoodLogRepository,
@@ -19,7 +20,7 @@ class FoodLogService(
     private val dateTimeParser: DateTimeParser,
     private val userTimeConverter: TimeConverter,
 ) {
-    suspend fun findById(id: Int) = foodLogRepository.findById(id)
+    suspend fun findById(userId: UUID, id: Int) = foodLogRepository.findById(userId, id)
 
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): FoodLogsCategorized {
         val range = try {
@@ -34,20 +35,85 @@ class FoodLogService(
         }
     }
 
-    suspend fun add(foodLogAddData: FoodLogAdd): FoodLog = suspendTransaction {
-        val foodLogId = foodLogRepository.add(foodLogAddData)
+    suspend fun add(addData: FoodLogAdd): FoodLog = suspendTransaction {
+        val foodLogId = foodLogRepository.add(addData)
 
         val isNutrientInsertionSuccess = nutrientIntakeRepository.insertFromFood(
-            foodLogAddData.toNutrientIntakesFromFood(foodLogId)
+            NutrientIntakesFromFood(
+                userId = addData.userId,
+                foodLogId = foodLogId,
+                foodId = addData.foodId,
+                servings = addData.servings,
+                source = addData.source
+            )
         )
 
         if (!isNutrientInsertionSuccess) {
-            throw FoodNotFoundException("no nutrient data found for food with id ${foodLogAddData.foodId}")
+            throw FoodNotFoundException(
+                "no nutrient data found for food (${addData.foodId})"
+            )
         }
 
-        val foodLog = foodLogRepository.findById(foodLogId)
-            ?: throw FoodLogNotFoundException()
+        val foodLog = foodLogRepository.findById(addData.userId, foodLogId)
+            ?: throw FoodLogNotFoundException(
+                "food log ($foodLogId) not found after nutrient insertion when logging food"
+            )
 
         foodLog
+    }
+
+    suspend fun update(updateData: FoodLogUpdate): FoodLog = suspendTransaction {
+        val baseData = foodLogRepository.getBaseData(updateData.userId, updateData.foodLogId)
+            ?: throw IllegalStateException(
+                "food log (${updateData.foodLogId}) base data not found"
+            )
+
+        val curIntakes = nutrientIntakeRepository.findByFoodLog(updateData.userId, updateData.foodLogId)
+
+        nutrientIntakeRepository.deleteByFoodLog(updateData.userId, updateData.foodLogId)
+            .takeIf { it }
+            ?: throw FoodLogNotFoundException()
+
+        foodLogRepository.updateServings(updateData.userId, updateData.foodLogId, updateData.servings)
+            .takeIf { it }
+            ?: throw IllegalStateException(
+                "food log (${updateData.foodLogId}) when updating servings"
+            )
+
+        if (updateData.userFoodSnapshotId != null) {
+            if (curIntakes.isEmpty()) throw NutrientIntakesNotFoundException()
+
+            nutrientIntakeRepository.insertFromCurrent(
+                NutrientIntakesFromCurrent(
+                    userId = updateData.userId,
+                    foodLogId = updateData.foodLogId,
+                    curIntakes = curIntakes,
+                    curServings = baseData.servings,
+                    newServings = updateData.servings
+                )
+            )
+        } else {
+            val foodId = baseData.foodId
+                ?: throw IllegalStateException(
+                    "food id not found before attempting to insert intakes from food"
+                )
+
+            nutrientIntakeRepository.insertFromFood(
+                NutrientIntakesFromFood(
+                    userId = updateData.userId,
+                    foodLogId = updateData.foodLogId,
+                    foodId = foodId,
+                    servings = updateData.servings,
+                    source = baseData.source
+                )
+            ).takeIf { it } ?: throw IllegalStateException(
+                "no nutrients found while attempting to insert intakes from food"
+            )
+        }
+
+        foodLogRepository.findById(updateData.userId, updateData.foodLogId)
+            ?: throw FoodLogNotFoundException(
+                "food log (${updateData.foodLogId}) not found after inserting intakes"
+            )
     }
 }

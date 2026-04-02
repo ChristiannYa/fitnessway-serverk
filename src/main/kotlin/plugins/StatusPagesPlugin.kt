@@ -135,7 +135,7 @@ fun Application.configureStatusPages() {
         // -------------------
         // FOOD LOG EXCEPTIONS
         // -------------------
-        handleExceptions<FoodLogExceptions> { ex ->
+        handleExceptions<FoodLogException> { ex ->
             when (ex) {
                 is FoodLogNotFoundException ->
                     ex.message.toString() to HttpStatusCode.NotFound

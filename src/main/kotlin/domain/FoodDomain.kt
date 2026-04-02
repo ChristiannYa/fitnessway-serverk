@@ -123,6 +123,13 @@ data class FoodInformation<N : NutrientEntry>(
     val nutrients: List<N>
 )
 
+data class FoodLogBase(
+    val foodId: Int?,
+    val userFoodSnapshotId: Int?,
+    val servings: Double,
+    val source: FoodSource
+)
+
 data class FoodLogAdd(
     val userId: UUID,
     val foodId: Int,
@@ -132,6 +139,16 @@ data class FoodLogAdd(
     val source: FoodSource
 )
 
+data class FoodLogUpdate(
+    val userId: UUID,
+    val foodLogId: Int,
+    val userFoodSnapshotId: Int?,
+    val servings: Double
+)
+
+/**
+ * Represents the status of the food log search in the repository layer
+ */
 sealed class FoodLogResult {
     data class Success(val foodLogs: List<FoodLog>) : FoodLogResult()
     data class Error(val failedId: Int) : FoodLogResult()

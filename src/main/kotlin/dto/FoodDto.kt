@@ -20,13 +20,20 @@ data class FoodLogAddRequest(
 )
 
 @Serializable
-data class AddPendingFoodRequest(
+data class FoodLogUpdateRequest(
+    val foodLogId: Int,
+    val userFoodSnapshotId: Int?,
+    val servings: Double
+)
+
+@Serializable
+data class PendingFoodAddRequest(
     val base: FoodBase,
     val nutrients: List<NutrientIdWithAmount>
 )
 
 @Serializable
-data class ReviewPendingFoodRequest(
+data class PendingFoodReviewRequest(
     val pendingFoodId: Int,
     val rejectionReason: String?
 )

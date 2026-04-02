@@ -1,6 +1,7 @@
 package com.example.domain
 
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 import java.util.*
 
 /**
@@ -84,6 +85,9 @@ data class NutrientPreview(
     val protein: NutrientAmountWithColor = NutrientAmountWithColor()
 )
 
+/**
+ * Holds data needed in order to set nutrient intakes from food data
+ */
 data class NutrientIntakesFromFood(
     val userId: UUID,
     val foodLogId: Int,
@@ -92,9 +96,19 @@ data class NutrientIntakesFromFood(
     val source: FoodSource
 )
 
-data class NutrientIntakeRecalculate(
+/**
+ * Holds data needed in order to set nutrient intakes based off of its
+ * current nutrient intakes
+ */
+data class NutrientIntakesFromCurrent(
     val userId: UUID,
     val foodLogId: Int,
-    val prevServings: Double,
+    val curIntakes: List<NutrientIntakeRow>,
+    val curServings: Double,
     val newServings: Double
+)
+
+data class NutrientIntakeRow(
+    val nutrientId: Int,
+    val amount: BigDecimal
 )

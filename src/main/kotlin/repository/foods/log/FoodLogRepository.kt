@@ -9,14 +9,17 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.util.*
 import kotlin.time.toJavaInstant
 
+
 class FoodLogRepository : IFoodLogRepository {
-    override suspend fun findById(id: Int): FoodLog? = suspendTransaction {
-        val foodLogDao = UFLDao.findById(id) ?: return@suspendTransaction null
-        foodLogDao.toFoodLogDto()
+    override suspend fun findById(userId: UUID, id: Int): FoodLog? = suspendTransaction {
+        UFLDao.find {
+            (UFL.userId eq userId) and (UFL.id eq id)
+        }.firstOrNull()?.toFoodLogDto()
     }
 
     override suspend fun findByDate(userId: UUID, range: InstantRange): FoodLogResult = suspendTransaction {
@@ -36,6 +39,19 @@ class FoodLogRepository : IFoodLogRepository {
         FoodLogResult.Success(foodLogs)
     }
 
+    override suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {
+        UFLDao.find {
+            (UFL.userId eq userId) and (UFL.id eq foodLogId)
+        }.firstOrNull()?.let { uflDao ->
+            FoodLogBase(
+                foodId = uflDao.foodId,
+                userFoodSnapshotId = uflDao.foodSnapshotId?.value,
+                servings = uflDao.servings.toDouble(),
+                source = uflDao.foodSource
+            )
+        }
+    }
+
     override suspend fun add(data: FoodLogAdd): Int = suspendTransaction {
         UFLDao.new {
             userId = EntityID(data.userId, U)
@@ -47,6 +63,18 @@ class FoodLogRepository : IFoodLogRepository {
             loggedAt = Instant.now()
             foodSource = data.source
         }.id.value
+    }
+
+    override suspend fun updateServings(
+        userId: UUID,
+        foodLogId: Int,
+        servings: Double
+    ): Boolean = suspendTransaction {
+        val updateCount = UFL.update(
+            where = { (UFL.userId eq userId) and (UFL.id eq foodLogId) }
+        ) { it[UFL.servings] = servings.toBigDecimal() }
+
+        updateCount > 0
     }
 
     private fun UFLDao.toFoodLogDto(): FoodLog? {

@@ -31,7 +31,7 @@ fun Route.add() {
                 source = req.source,
             )
         )
-        
+
         call.respond(
             HttpStatusCode.Created,
             DtoRes.success(
@@ -43,6 +43,7 @@ fun Route.add() {
 }
 
 fun FoodLogAddRequest.validate(): ValidationResult {
+
     this.foodId.toString().validate("food id") {
         it.isPositiveDouble()
     }.toValidationResult().let {

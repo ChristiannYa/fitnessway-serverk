@@ -4,7 +4,7 @@ import com.example.config.PendingFoodServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.PendingFoodReview
 import com.example.dto.DtoRes
-import com.example.dto.ReviewPendingFoodRequest
+import com.example.dto.PendingFoodReviewRequest
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 
 fun Route.reviewPendingFood() {
     put("/review") {
-        val req = call.receive<ReviewPendingFoodRequest>()
+        val req = call.receive<PendingFoodReviewRequest>()
         val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
 
@@ -35,7 +35,7 @@ fun Route.reviewPendingFood() {
     }
 }
 
-fun ReviewPendingFoodRequest.validate(): ValidationResult {
+fun PendingFoodReviewRequest.validate(): ValidationResult {
     if (this.pendingFoodId <= 0) {
         return ValidationResult.Invalid("pending food id cannot be less than or equal to 0")
     }

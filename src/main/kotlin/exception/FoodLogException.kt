@@ -1,6 +1,6 @@
 package com.example.exception
 
-sealed class FoodLogExceptions(
+sealed class FoodLogException(
     message: String,
     cause: Throwable? = null
 ) : Exception(message, cause)
@@ -8,4 +8,4 @@ sealed class FoodLogExceptions(
 class FoodLogNotFoundException(
     message: String = "food log not found",
     cause: Throwable? = null
-) : FoodLogExceptions(message, cause)
+) : FoodLogException(message, cause)
