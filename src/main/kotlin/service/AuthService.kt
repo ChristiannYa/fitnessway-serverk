@@ -147,6 +147,6 @@ class AuthService(
         jwtService.generateJwtToken(
             tokenType = TokenType.REFRESH,
             claims = claims.toMap(),
-            duration = ACCESS_TOKEN_DURATION
+            duration = REFRESH_TOKEN_DURATION
         )
 }
