@@ -2,6 +2,8 @@ package com.example.utils.date_time
 
 import com.example.domain.InstantRange
 import java.time.ZoneId
+import java.time.format.DateTimeParseException
+import java.time.zone.ZoneRulesException
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
@@ -31,12 +33,29 @@ class TimeConverter(private val parser: DateTimeParser) {
      * and [InstantRange.end] as exclusive in queries.
      *
      * @param date The date string in the parser's expected format (e.g. "03-31-2026")
-     * @param timeZone The user's IANA timezone
-     * @return An [InstantRange] representing the full day in UTC
+     * @param timezone The user's IANA timezone
+     * @return An [InstantRange] result representing the full day in UTC
      */
-    fun toUtcRange(date: String, timeZone: String): InstantRange {
-        val zoneId = ZoneId.of(timeZone)
-        val localDate = parser.parseDate(date)
+    fun toUtcRangeRes(date: String, timezone: String): Result<InstantRange> {
+        val zoneId = try {
+            ZoneId.of(timezone)
+        } catch (_: ZoneRulesException) {
+            null
+        } catch (_: DateTimeParseException) {
+            null
+        } ?: return Result.failure(
+            IllegalArgumentException("invalid zone id")
+        )
+
+        val localDate = try {
+            parser.parseDate(date)
+        } catch (_: DateTimeParseException) {
+            null
+        } ?: return Result.failure(
+            IllegalArgumentException(
+                "invalid date format, expected ${parser.datePattern}"
+            )
+        )
 
         val start = localDate
             .atStartOfDay(zoneId)
@@ -49,6 +68,6 @@ class TimeConverter(private val parser: DateTimeParser) {
             .toInstant()
             .toKotlinInstant()
 
-        return InstantRange(start, end)
+        return Result.success(InstantRange(start, end))
     }
 }

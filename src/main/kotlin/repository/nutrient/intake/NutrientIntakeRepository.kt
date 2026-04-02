@@ -1,9 +1,7 @@
 package com.example.repository.nutrient.intake
 
-import com.example.domain.FoodSource
-import com.example.domain.NutrientIntakeRow
-import com.example.domain.NutrientIntakesFromCurrent
-import com.example.domain.NutrientIntakesFromFood
+import com.example.domain.*
+import com.example.mappers.toType
 import com.example.mapping.*
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
@@ -11,8 +9,37 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.math.BigDecimal
 import java.util.*
+import kotlin.time.toJavaInstant
 
 class NutrientIntakeRepository : INutrientIntakeRepository {
+    override suspend fun findByDate(
+        userId: UUID,
+        range: InstantRange,
+        nutrientDataList: List<NutrientData>
+    ): NutrientIntakes = suspendTransaction {
+
+        val intakesMap = (UFL innerJoin UNI innerJoin N)
+            .select(N.id, UNI.intakeAmount.sum())
+            .where {
+                (UFL.userId eq userId) and
+                (UFL.time greaterEq range.start.toJavaInstant()) and
+                (UFL.time less range.end.toJavaInstant())
+            }
+            .groupBy(N.id)
+            .associate { row ->
+                row[N.id].value to (row[UNI.intakeAmount.sum()]?.toDouble() ?: 0.0)
+            }
+
+        val nutrientIntakesList = nutrientDataList.map { nutrientData ->
+            NutrientDataAmount(
+                nutrientData = nutrientData,
+                amount = intakesMap[nutrientData.base.id] ?: 0.0
+            )
+        }
+
+        nutrientIntakesList.toType()
+    }
+
     override suspend fun findByFoodLog(
         userId: UUID,
         foodLogId: Int

@@ -7,31 +7,28 @@ import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
 import com.example.repository.foods.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
-import com.example.utils.date_time.DateTimeParser
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
 import io.ktor.server.plugins.*
-import java.time.format.DateTimeParseException
 import java.util.*
 
 class FoodLogService(
     private val foodLogRepository: IFoodLogRepository,
     private val nutrientIntakeRepository: INutrientIntakeRepository,
-    private val dateTimeParser: DateTimeParser,
-    private val userTimeConverter: TimeConverter,
+    private val timeConverter: TimeConverter,
 ) {
     suspend fun findById(userId: UUID, id: Int) = foodLogRepository.findById(userId, id)
 
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): FoodLogsCategorized {
-        val range = try {
-            userTimeConverter.toUtcRange(date, userPrincipal.timezone)
-        } catch (_: DateTimeParseException) {
-            throw BadRequestException("invalid date format, expected ${dateTimeParser.datePattern}")
-        }
+        val range = timeConverter
+            .toUtcRangeRes(date, userPrincipal.timezone)
+            .getOrElse { ex -> throw BadRequestException(ex.message ?: "user time convertion failed") }
 
         return when (val result = foodLogRepository.findByDate(userPrincipal.id, range)) {
             is FoodLogResult.Success -> result.foodLogs.toCategory()
-            is FoodLogResult.Error -> throw IllegalStateException("failed to map food log with id ${result.failedId}")
+            is FoodLogResult.Error -> throw IllegalStateException(
+                "failed to map food log with id ${result.failedId}"
+            )
         }
     }
 

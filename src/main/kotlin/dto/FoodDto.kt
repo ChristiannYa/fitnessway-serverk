@@ -7,7 +7,7 @@ import kotlin.time.Instant
 @Serializable
 data class FoodInformationDto(
     val base: FoodBase,
-    val nutrients: NutrientsByType<NutrientInFood>
+    val nutrients: NutrientsByType<NutrientDataAmount>
 )
 
 @Serializable

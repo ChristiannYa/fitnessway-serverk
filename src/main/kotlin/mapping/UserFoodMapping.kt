@@ -1,7 +1,7 @@
 package com.example.mapping
 
 import com.example.domain.FoodBase
-import com.example.domain.NutrientInFood
+import com.example.domain.NutrientDataAmount
 import com.example.domain.ServingUnit
 import com.example.domain.UserFood
 import com.example.dto.FoodInformationDto
@@ -47,7 +47,7 @@ fun UFDao.toBase() = FoodBase(
     servingUnit = this.servingUnit
 )
 
-fun UFDao.toDto(nutrients: List<NutrientInFood>) = UserFood(
+fun UFDao.toDto(nutrients: List<NutrientDataAmount>) = UserFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),

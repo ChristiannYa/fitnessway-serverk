@@ -7,6 +7,7 @@ import io.ktor.util.*
 val UserPrincipalKey = AttributeKey<UserPrincipal>("UserPrincipal")
 val JwtServiceKey = AttributeKey<JwtService>("JwtService")
 val AuthServiceKey = AttributeKey<AuthService>("AuthService")
+val NutrientIntakeServiceKey = AttributeKey<NutrientIntakeService>("NutrientIntakeServiceKey")
 val AppFoodServiceKey = AttributeKey<AppFoodService>("AppFoodService")
 val FoodLogServiceKey = AttributeKey<FoodLogService>("FoodLogServiceKey")
 val PendingFoodServiceKey = AttributeKey<PendingFoodService>("PendingFoodService")

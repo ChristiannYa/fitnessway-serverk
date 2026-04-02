@@ -4,8 +4,15 @@ import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.util.*
 
+@Serializable
+enum class NutrientType {
+    BASIC,
+    VITAMIN,
+    MINERAL,
+}
+
 /**
- * Represents a nutrient entry, either as a full [NutrientInFood] or
+ * Represents a nutrient entry, either as a full [NutrientDataAmount] or
  * as a [NutrientIdWithAmount].
  */
 sealed class NutrientEntry
@@ -14,8 +21,10 @@ sealed class NutrientEntry
  * Represents nutrient information that can be grouped by [NutrientType]
  */
 interface NutrientGroupable {
-    val nutrientType: NutrientType
+    val iNutrientType: NutrientType
 }
+
+typealias NutrientIntakes = NutrientsByType<NutrientDataAmount>
 
 @Serializable
 data class NutrientsByType<N : NutrientGroupable>(
@@ -23,13 +32,6 @@ data class NutrientsByType<N : NutrientGroupable>(
     val vitamins: List<N>,
     val minerals: List<N>
 )
-
-@Serializable
-enum class NutrientType {
-    BASIC,
-    VITAMIN,
-    MINERAL,
-}
 
 @Serializable
 data class NutrientBase(
@@ -52,17 +54,17 @@ data class NutrientData(
     val base: NutrientBase,
     val preferences: NutrientPreferences
 ) : NutrientGroupable {
-    override val nutrientType: NutrientType
+    override val iNutrientType: NutrientType
         get() = this.base.type
 }
 
 @Serializable
-data class NutrientInFood(
+data class NutrientDataAmount(
     val nutrientData: NutrientData,
     val amount: Double
 ) : NutrientEntry(), NutrientGroupable {
-    override val nutrientType: NutrientType
-        get() = this.nutrientData.nutrientType
+    override val iNutrientType: NutrientType
+        get() = this.nutrientData.base.type
 }
 
 @Serializable

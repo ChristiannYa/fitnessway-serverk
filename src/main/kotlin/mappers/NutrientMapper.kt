@@ -8,7 +8,7 @@ fun <N : NutrientGroupable> NutrientsByType<N>.toList() =
     this.basic + this.vitamins + this.minerals
 
 fun <N : NutrientGroupable> List<N>.toType(): NutrientsByType<N> {
-    val grouped = this.groupBy { it.nutrientType }
+    val grouped = this.groupBy { it.iNutrientType }
 
     return NutrientsByType(
         basic = grouped[NutrientType.BASIC] ?: emptyList(),

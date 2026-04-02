@@ -38,7 +38,7 @@ class PFDao(id: EntityID<Int>) : IntEntity(id) {
     var rejectionReason by PF.rejectionReason
 }
 
-fun PFDao.toDto(nutrients: NutrientsByType<NutrientInFood>) = PendingFood(
+fun PFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = FoodBase(

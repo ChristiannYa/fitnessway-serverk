@@ -40,7 +40,7 @@ fun AFDao.toBase() = FoodBase(
     servingUnit = this.servingUnit
 )
 
-fun AFDao.toDto(nutrients: NutrientsByType<NutrientInFood>) = AppFood(
+fun AFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),

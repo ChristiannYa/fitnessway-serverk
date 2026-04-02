@@ -15,7 +15,7 @@ fun <T> queryNutrientsForFood(
     foodNutrientTable: T,
     foodId: Int,
     userId: UUID
-): List<NutrientInFood> where T : Table, T : FoodNutrientTable {
+): List<NutrientDataAmount> where T : Table, T : FoodNutrientTable {
     return (foodNutrientTable innerJoin N)
         // LEFT JOIN user_nutrient_preferences
         // ON nutrients.id = user_nutrient_preferences.nutrient_id
@@ -30,7 +30,7 @@ fun <T> queryNutrientsForFood(
         .selectAll()
         .where { foodNutrientTable.foodId eq foodId }
         .map { row ->
-            NutrientInFood(
+            NutrientDataAmount(
                 nutrientData = NutrientData(
                     base = NutrientBase(
                         id = row[N.id].value,

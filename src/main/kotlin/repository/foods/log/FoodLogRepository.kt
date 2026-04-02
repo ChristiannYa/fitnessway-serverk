@@ -126,7 +126,7 @@ class FoodLogRepository : IFoodLogRepository {
                 (UNI.userId eq this@toFoodLogDto.userId.value)
             }
             .map { row ->
-                NutrientInFood(
+                NutrientDataAmount(
                     nutrientData = NutrientData(
                         base = N.toBase(row),
                         preferences = UNP.toNutrientPreferences(row)
