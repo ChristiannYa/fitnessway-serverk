@@ -1,6 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.dto.FoodLogAddRequest
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.FoodNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
@@ -32,26 +33,35 @@ class FoodLogService(
         }
     }
 
-    suspend fun add(addData: FoodLogAdd): FoodLog = suspendTransaction {
-        val foodLogId = foodLogRepository.add(addData)
+    suspend fun add(userPrincipal: UserPrincipal, req: FoodLogAddRequest): FoodLog = suspendTransaction {
+        val foodLogId = foodLogRepository.add(
+            FoodLogAdd(
+                userId = userPrincipal.id,
+                foodId = req.foodId,
+                servings = req.servings,
+                category = req.category,
+                time = timeConverter.toUtc(req.time, userPrincipal.timezone),
+                source = req.source
+            )
+        )
 
         val isNutrientInsertionSuccess = nutrientIntakeRepository.insertFromFood(
             NutrientIntakesFromFood(
-                userId = addData.userId,
+                userId = userPrincipal.id,
                 foodLogId = foodLogId,
-                foodId = addData.foodId,
-                servings = addData.servings,
-                source = addData.source
+                foodId = req.foodId,
+                servings = req.servings,
+                source = req.source
             )
         )
 
         if (!isNutrientInsertionSuccess) {
             throw FoodNotFoundException(
-                "no nutrient data found for food (${addData.foodId})"
+                "no nutrient data found for food (${req.foodId})"
             )
         }
 
-        val foodLog = foodLogRepository.findById(addData.userId, foodLogId)
+        val foodLog = foodLogRepository.findById(userPrincipal.id, foodLogId)
             ?: throw FoodLogNotFoundException(
                 "food log ($foodLogId) not found after nutrient insertion when logging food"
             )

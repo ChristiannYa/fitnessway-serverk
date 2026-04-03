@@ -2,7 +2,6 @@ package com.example.routes.foods.log
 
 import com.example.config.FoodLogServiceKey
 import com.example.config.UserPrincipalKey
-import com.example.domain.FoodLogAdd
 import com.example.domain.FoodLogCategory
 import com.example.domain.FoodSource
 import com.example.dto.DtoRes
@@ -21,16 +20,7 @@ fun Route.add() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val foodLogService = application.attributes[FoodLogServiceKey]
 
-        val foodLog = foodLogService.add(
-            FoodLogAdd(
-                userId = userPrincipal.id,
-                foodId = req.foodId,
-                servings = req.servings,
-                category = req.category,
-                time = req.time,
-                source = req.source,
-            )
-        )
+        val foodLog = foodLogService.add(userPrincipal, req)
 
         call.respond(
             HttpStatusCode.Created,

@@ -130,6 +130,9 @@ data class FoodLogBase(
     val source: FoodSource
 )
 
+/**
+ * Holds the data the **repository** needs in order to add a food log
+ */
 data class FoodLogAdd(
     val userId: UUID,
     val foodId: Int,
@@ -139,6 +142,9 @@ data class FoodLogAdd(
     val source: FoodSource
 )
 
+/**
+ * Holds the data the **repository** needs in order to update a food log
+ */
 data class FoodLogUpdate(
     val userId: UUID,
     val foodLogId: Int,

@@ -2,7 +2,6 @@ package com.example.dto
 
 import com.example.domain.*
 import kotlinx.serialization.Serializable
-import kotlin.time.Instant
 
 @Serializable
 data class FoodInformationDto(
@@ -15,7 +14,7 @@ data class FoodLogAddRequest(
     val foodId: Int,
     val servings: Double,
     val category: FoodLogCategory,
-    val time: Instant,
+    val time: String,
     val source: FoodSource
 )
 
