@@ -1,6 +1,7 @@
 package com.example.utils.date_time
 
 import com.example.domain.InstantRange
+import java.time.DateTimeException
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
 import java.time.zone.ZoneRulesException
@@ -8,6 +9,7 @@ import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
 class TimeConverter(private val parser: DateTimeParser) {
+
     /**
      * Converts a user's local date-time string to a UTC [Instant] for storage.
      *
@@ -15,14 +17,26 @@ class TimeConverter(private val parser: DateTimeParser) {
      * @param timeZone The user's IANA timezone
      * @return A UTC [Instant] representing the absolute moment in time
      */
-    fun toUtc(dateTime: String, timeZone: String): Instant {
-        val zoneId = ZoneId.of(timeZone)
-        val localDateTime = parser.parseDateTime(dateTime)
+    fun toUtcResult(dateTime: String, timeZone: String): Result<Instant> {
+        val zoneId = getZoneIdOrNull(timeZone)
+            ?: return Result.failure(IllegalArgumentException("invalid zone id"))
 
-        return localDateTime
-            .atZone(zoneId)
-            .toInstant()
-            .toKotlinInstant()
+        val localDateTime = try {
+            parser.parseDateTime(dateTime)
+        } catch (_: DateTimeParseException) {
+            null
+        } ?: return Result.failure(
+            IllegalArgumentException(
+                "invalid date time format, expected ${parser.datePattern} ${parser.timePattern}"
+            )
+        )
+
+        return Result.success(
+            localDateTime
+                .atZone(zoneId)
+                .toInstant()
+                .toKotlinInstant()
+        )
     }
 
     /**
@@ -36,16 +50,9 @@ class TimeConverter(private val parser: DateTimeParser) {
      * @param timezone The user's IANA timezone
      * @return An [InstantRange] result representing the full day in UTC
      */
-    fun toUtcRangeRes(date: String, timezone: String): Result<InstantRange> {
-        val zoneId = try {
-            ZoneId.of(timezone)
-        } catch (_: ZoneRulesException) {
-            null
-        } catch (_: DateTimeParseException) {
-            null
-        } ?: return Result.failure(
-            IllegalArgumentException("invalid zone id")
-        )
+    fun toUtcRangeResult(date: String, timezone: String): Result<InstantRange> {
+        val zoneId = getZoneIdOrNull(timezone)
+            ?: return Result.failure(IllegalArgumentException("invalid zone id"))
 
         val localDate = try {
             parser.parseDate(date)
@@ -70,4 +77,13 @@ class TimeConverter(private val parser: DateTimeParser) {
 
         return Result.success(InstantRange(start, end))
     }
+
+    private fun getZoneIdOrNull(timezone: String): ZoneId? =
+        try {
+            ZoneId.of(timezone)
+        } catch (_: ZoneRulesException) {
+            null
+        } catch (_: DateTimeException) {
+            null
+        }
 }

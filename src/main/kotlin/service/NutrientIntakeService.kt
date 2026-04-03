@@ -14,7 +14,7 @@ class NutrientIntakeService(
 ) {
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): NutrientIntakes {
         val range = timeConverter
-            .toUtcRangeRes(date, userPrincipal.timezone)
+            .toUtcRangeResult(date, userPrincipal.timezone)
             .getOrElse { ex -> throw BadRequestException(ex.message ?: "user time convertion failed") }
 
         val nutrientDataList = nutrientRepository.findAllWithData(userPrincipal.id)
