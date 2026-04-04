@@ -10,7 +10,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 import kotlin.time.toKotlinInstant
 
 object UFL : IntIdTable("user_food_logs") {
@@ -19,8 +19,8 @@ object UFL : IntIdTable("user_food_logs") {
     val foodSnapshotId = reference("food_snapshot_id", UFS).nullable()
     val servings = decimal("servings", 12, 4)
     val category = pgEnum<FoodLogCategory>("category", "food_log_category")
-    val time = timestamp("time")
-    val loggedAt = timestamp("logged_at")
+    val time = timestampWithTimeZone("time")
+    val loggedAt = timestampWithTimeZone("logged_at")
     val foodSource = pgEnum<FoodSource>("source", "food_source")
 }
 
@@ -44,8 +44,8 @@ fun UFLDao.toDto(
 ) = FoodLog(
     id = this.id.value,
     category = this.category,
-    time = this.time.toKotlinInstant(),
-    loggedAt = this.loggedAt.toKotlinInstant(),
+    time = this.time.toInstant().toKotlinInstant(),
+    loggedAt = this.loggedAt.toInstant().toKotlinInstant(),
     servings = this.servings.toDouble(),
     userFoodSnapshotStatus = userFoodSnapshotStatus,
     userFoodSnapshotId = this.foodSnapshotId?.value,

@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import java.time.Instant
+import java.time.ZoneOffset
 import java.util.*
 import kotlin.time.toJavaInstant
 
@@ -27,8 +28,8 @@ class FoodLogRepository : IFoodLogRepository {
 
         UFLDao.find {
             (UFL.userId eq userId) and
-            (UFL.time greaterEq range.start.toJavaInstant()) and
-            (UFL.time less range.end.toJavaInstant())
+            (UFL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
+            (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
         }.forEach { flDao ->
             val foodLog = flDao.toFoodLogDto()
                 ?: return@suspendTransaction FoodLogResult.Error(flDao.id.value)
@@ -59,8 +60,8 @@ class FoodLogRepository : IFoodLogRepository {
             foodSnapshotId = null
             servings = data.servings.toBigDecimal()
             category = data.category
-            time = data.time.toJavaInstant()
-            loggedAt = Instant.now()
+            time = data.time.toJavaInstant().atOffset(ZoneOffset.UTC)
+            loggedAt = Instant.now().atOffset(ZoneOffset.UTC)
             foodSource = data.source
         }.id.value
     }

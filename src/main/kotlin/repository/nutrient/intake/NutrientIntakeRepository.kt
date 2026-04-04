@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.math.BigDecimal
+import java.time.ZoneOffset
 import java.util.*
 import kotlin.time.toJavaInstant
 
@@ -22,8 +23,8 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
             .select(N.id, UNI.intakeAmount.sum())
             .where {
                 (UFL.userId eq userId) and
-                (UFL.time greaterEq range.start.toJavaInstant()) and
-                (UFL.time less range.end.toJavaInstant())
+                (UFL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
+                (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
             }
             .groupBy(N.id)
             .associate { row ->
