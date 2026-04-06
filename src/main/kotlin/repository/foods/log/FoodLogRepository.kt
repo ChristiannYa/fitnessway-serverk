@@ -23,7 +23,10 @@ class FoodLogRepository : IFoodLogRepository {
         }.firstOrNull()?.toFoodLogDto()
     }
 
-    override suspend fun findByDate(userId: UUID, range: InstantRange): FoodLogResult = suspendTransaction {
+    override suspend fun findByDate(
+        userId: UUID,
+        range: InstantRange
+    ): Result<List<FoodLog>> = suspendTransaction {
         val foodLogs = mutableListOf<FoodLog>()
 
         UFLDao.find {
@@ -32,12 +35,16 @@ class FoodLogRepository : IFoodLogRepository {
             (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
         }.forEach { flDao ->
             val foodLog = flDao.toFoodLogDto()
-                ?: return@suspendTransaction FoodLogResult.Error(flDao.id.value)
+                ?: return@suspendTransaction Result.failure(
+                    IllegalStateException(
+                        "food log dao [${flDao.id.value}] not found"
+                    )
+                )
 
             foodLogs.add(foodLog)
         }
 
-        FoodLogResult.Success(foodLogs)
+        Result.success(foodLogs)
     }
 
     override suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {

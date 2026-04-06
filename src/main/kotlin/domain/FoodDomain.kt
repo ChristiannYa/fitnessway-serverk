@@ -153,14 +153,6 @@ data class FoodLogUpdate(
 )
 
 /**
- * Represents the status of the food log search in the repository layer
- */
-sealed class FoodLogResult {
-    data class Success(val foodLogs: List<FoodLog>) : FoodLogResult()
-    data class Error(val failedId: Int) : FoodLogResult()
-}
-
-/**
  * Holds the data needed to create an app food
  */
 data class AppFoodCreate(

@@ -25,19 +25,16 @@ class FoodLogService(
             .toUtcRangeResult(date, userPrincipal.timezone)
             .getOrElse { ex -> throw BadRequestException(ex.message ?: "user time convertion failed") }
 
-        return when (val result = foodLogRepository.findByDate(userPrincipal.id, range)) {
-            is FoodLogResult.Success -> result.foodLogs.toCategory()
-            is FoodLogResult.Error -> throw IllegalStateException(
-                "failed to map food log with id ${result.failedId}"
-            )
-        }
+        return foodLogRepository
+            .findByDate(userPrincipal.id, range)
+            .getOrElse { throw it }
+            .toCategory()
     }
 
     suspend fun add(userPrincipal: UserPrincipal, req: FoodLogAddRequest): FoodLog = suspendTransaction {
         val time = timeConverter
             .toUtcResult(req.time, userPrincipal.timezone)
             .getOrElse { ex -> throw BadRequestException(ex.message ?: "invalid time") }
-
 
         val foodLogId = foodLogRepository.add(
             FoodLogAdd(
