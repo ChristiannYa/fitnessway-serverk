@@ -1,30 +1,25 @@
-package com.example.routes.foods.app
+package com.example.routes.foods.log
 
-import com.example.config.AppFoodServiceKey
+import com.example.config.FoodLogServiceKey
 import com.example.config.UserPrincipalKey
-import com.example.domain.AppFoodSearchPaginationCriteria
 import com.example.domain.PaginationCriteria
+import com.example.domain.RecentlyLoggedFoodsPaginationCriteria
 import com.example.dto.DtoRes
-import com.example.exception.MissingSearchQueryException
 import com.example.utils.extensions.extractPaginationOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.search() {
-    get("/search") {
+fun Route.findLatest() {
+    get("/latest") {
         val userPrincipal = call.attributes[UserPrincipalKey]
-        val appFoodService = application.attributes[AppFoodServiceKey]
+        val foodLogService = application.attributes[FoodLogServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
 
-        val query = call.request.queryParameters["q"]?.trim()
-            ?: throw MissingSearchQueryException()
-
-        val pagination = appFoodService.search(
+        val pagination = foodLogService.findLatest(
             PaginationCriteria(
-                data = AppFoodSearchPaginationCriteria(
-                    query = query,
+                data = RecentlyLoggedFoodsPaginationCriteria(
                     userId = userPrincipal.id
                 ),
                 limit = limit,
@@ -35,8 +30,8 @@ fun Route.search() {
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success(
-                "app foods pagination retrieved successfully",
-                mapOf("app_foods_pagination" to pagination)
+                "recently logged foods pagination retrieved successfully",
+                mapOf("recent_logged_foods_pagination" to pagination)
             )
         )
     }

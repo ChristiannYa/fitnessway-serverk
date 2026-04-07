@@ -31,6 +31,19 @@ class FoodLogService(
             .toCategory()
     }
 
+    suspend fun findLatest(
+        criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>
+    ): PaginationResult<FoodPreview> {
+        val pagination = foodLogRepository.findLatest(criteria)
+
+        return PaginationResult(
+            data = pagination.data,
+            totalCount = pagination.totalCount,
+            pageCount = criteria.calcPageCount(pagination.totalCount.toDouble()),
+            currentPage = criteria.calcCurrentPage()
+        )
+    }
+
     suspend fun add(userPrincipal: UserPrincipal, req: FoodLogAddRequest): FoodLog = suspendTransaction {
         val time = timeConverter
             .toUtcResult(req.time, userPrincipal.timezone)

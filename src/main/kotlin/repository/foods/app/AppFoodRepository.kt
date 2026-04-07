@@ -68,7 +68,7 @@ class AppFoodRepository : IAppFoodRepository {
 
     override suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
-    ): PaginationQuery<FoodSearchResult> = suspendTransaction {
+    ): PaginationQuery<FoodPreview> = suspendTransaction {
         val query = criteria.data.query
         val matched = AFDao.find {
             AF.name.lowerCase() like "%${query.lowercase()}%"
@@ -87,7 +87,7 @@ class AppFoodRepository : IAppFoodRepository {
         val nutrientPreviews = queryNutrientPreviews(AFN, foodIds, criteria.data.userId)
 
         val data = afDaos.map { afDao ->
-            FoodSearchResult(
+            FoodPreview(
                 id = afDao.id.value,
                 base = FoodBase(
                     name = afDao.name,
@@ -95,7 +95,8 @@ class AppFoodRepository : IAppFoodRepository {
                     amountPerServing = afDao.amountPerServing.toDouble(),
                     servingUnit = afDao.servingUnit
                 ),
-                nutrientsPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview()
+                nutrientsPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview(),
+                source = FoodSource.APP
             )
         }
 

@@ -1,7 +1,7 @@
 package com.example.service
 
 import com.example.domain.AppFoodSearchPaginationCriteria
-import com.example.domain.FoodSearchResult
+import com.example.domain.FoodPreview
 import com.example.domain.PaginationCriteria
 import com.example.domain.PaginationResult
 import com.example.repository.foods.app.AppFoodRepository
@@ -13,15 +13,15 @@ class AppFoodService(
     suspend fun findById(id: Int, userId: UUID) = appFoodRepository.findById(id, userId)
 
     suspend fun search(
-        paginationCriteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
-    ): PaginationResult<FoodSearchResult> {
-        val paginationQuery = appFoodRepository.search(paginationCriteria)
+        criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
+    ): PaginationResult<FoodPreview> {
+        val pagination = appFoodRepository.search(criteria)
 
         return PaginationResult(
-            data = paginationQuery.data,
-            totalCount = paginationQuery.totalCount,
-            pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
-            currentPage = paginationCriteria.calcCurrentPage()
+            data = pagination.data,
+            totalCount = pagination.totalCount,
+            pageCount = criteria.calcPageCount(pagination.totalCount.toDouble()),
+            currentPage = criteria.calcCurrentPage()
         )
     }
 }

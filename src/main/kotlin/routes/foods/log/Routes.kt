@@ -6,6 +6,7 @@ fun Route.foodLogRoutes() {
     route("/log") {
         findById()
         findByDate()
+        findLatest()
         getLatest()
         add()
         update()

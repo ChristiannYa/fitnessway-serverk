@@ -112,10 +112,11 @@ data class FoodLogsCategorized(
 )
 
 @Serializable
-data class FoodSearchResult(
+data class FoodPreview(
     val id: Int,
     val base: FoodBase,
-    val nutrientsPreview: NutrientPreview
+    val nutrientsPreview: NutrientPreview,
+    val source: FoodSource
 )
 
 data class FoodInformation<N : NutrientEntry>(
@@ -184,7 +185,7 @@ data class PendingFoodReview(
 }
 
 /**
- * Represents the criteria by which [AppFoodSearchPaginationCriteria] paginated queries can be filtered
+ * Represents the criteria by which [AppFood] paginated queries can be filtered
  */
 data class AppFoodSearchPaginationCriteria(
     val query: String,
@@ -197,4 +198,12 @@ data class AppFoodSearchPaginationCriteria(
 data class PendingFoodsPaginationCriteria(
     val userScope: UserScope,
     val status: PendingFoodStatus? = null
+)
+
+/**
+ * Represents the criteria by which recently logged foods (as [FoodPreview]) paginated
+ * queries can be filtered
+ */
+data class RecentlyLoggedFoodsPaginationCriteria(
+    val userId: UUID
 )

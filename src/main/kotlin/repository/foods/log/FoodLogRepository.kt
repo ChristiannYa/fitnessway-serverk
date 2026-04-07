@@ -4,12 +4,10 @@ import com.example.domain.*
 import com.example.dto.FoodInformationDto
 import com.example.mappers.toType
 import com.example.mapping.*
+import com.example.repository.foods.queryNutrientPreviews
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.*
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.*
@@ -45,6 +43,62 @@ class FoodLogRepository : IFoodLogRepository {
         }
 
         Result.success(foodLogs)
+    }
+
+    override suspend fun findLatest(
+        criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>
+    ): PaginationQuery<FoodPreview> = suspendTransaction {
+        val recentFoodIds = UFL
+            .select(UFL.foodId, UFL.foodSource, UFL.time.max())
+            .where { UFL.userId eq criteria.data.userId }
+            .groupBy(UFL.foodId, UFL.foodSource)
+            .orderBy(UFL.time.max(), SortOrder.DESC)
+            .mapNotNull { row -> row[UFL.foodId] to row[UFL.foodSource] }
+
+        val recentAppFoodIds = recentFoodIds
+            .filter { it.second == FoodSource.APP }
+            .mapNotNull { it.first }
+
+        val recentUserFoodIds = recentFoodIds
+            .filter { it.second == FoodSource.USER }
+            .mapNotNull { it.first }
+
+        val appNutrientPreviews = queryNutrientPreviews(AFN, recentAppFoodIds, criteria.data.userId)
+        val userNutrientPreviews = queryNutrientPreviews(UFN, recentUserFoodIds, criteria.data.userId)
+
+        val appFoods = AFDao
+            .forIds(recentAppFoodIds)
+            .associateBy { it.id.value }
+
+        val userFoods = UFDao
+            .forIds(recentUserFoodIds)
+            .associateBy { it.id.value }
+
+        val data: List<FoodPreview> = recentFoodIds.mapNotNull { (foodId, source) ->
+            when (source) {
+                FoodSource.APP -> {
+                    val afDao = appFoods[foodId] ?: return@mapNotNull null
+                    FoodPreview(
+                        id = afDao.id.value,
+                        base = afDao.toBase(),
+                        nutrientsPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
+                        source = FoodSource.APP
+                    )
+                }
+
+                FoodSource.USER -> {
+                    val ufDao = userFoods[foodId] ?: return@mapNotNull null
+                    FoodPreview(
+                        id = ufDao.id.value,
+                        base = ufDao.toBase(),
+                        nutrientsPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
+                        source = FoodSource.USER
+                    )
+                }
+            }
+        }
+
+        PaginationQuery(data, recentFoodIds.size.toLong())
     }
 
     override suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {

@@ -7,5 +7,5 @@ interface IAppFoodRepository {
     suspend fun findById(id: Int, userId: UUID): AppFood?
     suspend fun create(foodToCreate: AppFoodCreate): Int
     suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean
-    suspend fun search(criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>): PaginationQuery<FoodSearchResult>
+    suspend fun search(criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>): PaginationQuery<FoodPreview>
 }
