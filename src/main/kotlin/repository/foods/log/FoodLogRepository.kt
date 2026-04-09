@@ -53,6 +53,8 @@ class FoodLogRepository : IFoodLogRepository {
             .where { UFL.userId eq criteria.data.userId }
             .groupBy(UFL.foodId, UFL.foodSource)
             .orderBy(UFL.time.max(), SortOrder.DESC)
+            .limit(criteria.limit)
+            .offset(criteria.offset)
             .mapNotNull { row -> row[UFL.foodId] to row[UFL.foodSource] }
 
         val recentAppFoodIds = recentFoodIds
@@ -81,7 +83,7 @@ class FoodLogRepository : IFoodLogRepository {
                     FoodPreview(
                         id = afDao.id.value,
                         base = afDao.toBase(),
-                        nutrientsPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
+                        nutrientPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
                         source = FoodSource.APP
                     )
                 }
@@ -91,7 +93,7 @@ class FoodLogRepository : IFoodLogRepository {
                     FoodPreview(
                         id = ufDao.id.value,
                         base = ufDao.toBase(),
-                        nutrientsPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
+                        nutrientPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
                         source = FoodSource.USER
                     )
                 }

@@ -115,7 +115,7 @@ data class FoodLogsCategorized(
 data class FoodPreview(
     val id: Int,
     val base: FoodBase,
-    val nutrientsPreview: NutrientPreview,
+    val nutrientPreview: NutrientPreview,
     val source: FoodSource
 )
 

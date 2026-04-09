@@ -31,7 +31,7 @@ fun Route.findLatest() {
             HttpStatusCode.OK,
             DtoRes.success(
                 "recently logged foods pagination retrieved successfully",
-                mapOf("recent_logged_foods_pagination" to pagination)
+                mapOf("recently_logged_foods_pagination" to pagination)
             )
         )
     }

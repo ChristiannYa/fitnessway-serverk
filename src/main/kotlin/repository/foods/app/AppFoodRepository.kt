@@ -95,7 +95,7 @@ class AppFoodRepository : IAppFoodRepository {
                     amountPerServing = afDao.amountPerServing.toDouble(),
                     servingUnit = afDao.servingUnit
                 ),
-                nutrientsPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview(),
+                nutrientPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview(),
                 source = FoodSource.APP
             )
         }

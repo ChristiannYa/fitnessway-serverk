@@ -7,7 +7,6 @@ fun Route.foodLogRoutes() {
         findById()
         findByDate()
         findLatest()
-        getLatest()
         add()
         update()
     }
