@@ -147,6 +147,7 @@ data class FoodLogAdd(
  */
 data class FoodLogUpdate(
     val userId: UUID,
+    val isUserPremium: Boolean,
     val foodLogId: Int,
     val userFoodSnapshotId: Int?,
     val servings: Double

@@ -4,8 +4,8 @@ import com.example.domain.*
 import java.util.*
 
 interface IFoodLogRepository {
-    suspend fun findById(userId: UUID, id: Int): FoodLog?
-    suspend fun findByDate(userId: UUID, range: InstantRange): Result<List<FoodLog>>
+    suspend fun findById(userId: UUID, id: Int, isUserPremium: Boolean): FoodLog?
+    suspend fun findByDate(userId: UUID, isUserPremium: Boolean, range: InstantRange): Result<List<FoodLog>>
     suspend fun findLatest(criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>): PaginationQuery<FoodPreview>
     suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase?
     suspend fun add(data: FoodLogAdd): Int

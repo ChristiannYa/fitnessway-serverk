@@ -3,6 +3,7 @@ package com.example.repository.foods.log
 import com.example.domain.*
 import com.example.dto.FoodInformationDto
 import com.example.mappers.toCategoryGroups
+import com.example.mappers.toClientFilter
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientPreviews
 import com.example.utils.suspendTransaction
@@ -15,14 +16,15 @@ import kotlin.time.toJavaInstant
 
 
 class FoodLogRepository : IFoodLogRepository {
-    override suspend fun findById(userId: UUID, id: Int): FoodLog? = suspendTransaction {
+    override suspend fun findById(userId: UUID, id: Int, isUserPremium: Boolean): FoodLog? = suspendTransaction {
         UFLDao.find {
             (UFL.userId eq userId) and (UFL.id eq id)
-        }.firstOrNull()?.toFoodLogDto()
+        }.firstOrNull()?.toFoodLogDto(isUserPremium)
     }
 
     override suspend fun findByDate(
         userId: UUID,
+        isUserPremium: Boolean,
         range: InstantRange
     ): Result<List<FoodLog>> = suspendTransaction {
         val foodLogs = mutableListOf<FoodLog>()
@@ -32,7 +34,7 @@ class FoodLogRepository : IFoodLogRepository {
             (UFL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
             (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
         }.forEach { flDao ->
-            val foodLog = flDao.toFoodLogDto()
+            val foodLog = flDao.toFoodLogDto(isUserPremium)
                 ?: return@suspendTransaction Result.failure(
                     IllegalStateException(
                         "food log dao #${flDao.id.value} not found"
@@ -141,7 +143,7 @@ class FoodLogRepository : IFoodLogRepository {
         updateCount > 0
     }
 
-    private fun UFLDao.toFoodLogDto(): FoodLog? {
+    private fun UFLDao.toFoodLogDto(isUserPremium: Boolean): FoodLog? {
         val foodLogFoodId = this.foodId
         val foodLogFoodSnapshotId = this.foodSnapshotId?.value
 
@@ -198,6 +200,7 @@ class FoodLogRepository : IFoodLogRepository {
                     amount = row[UNI.intakeAmount].toDouble()
                 )
             }
+            .toClientFilter(isUserPremium = isUserPremium)
 
         return this.toDto(
             userFoodSnapshotStatus = foodSnapshotStatus,

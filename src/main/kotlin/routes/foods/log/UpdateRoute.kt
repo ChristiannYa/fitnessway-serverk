@@ -22,6 +22,7 @@ fun Route.update() {
         val foodLog = foodLogService.update(
             FoodLogUpdate(
                 userId = userPrincipal.id,
+                isUserPremium = userPrincipal.isPremium,
                 foodLogId = req.foodLogId,
                 userFoodSnapshotId = req.userFoodSnapshotId,
                 servings = req.servings

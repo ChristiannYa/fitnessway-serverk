@@ -18,7 +18,8 @@ class FoodLogService(
     private val nutrientIntakeRepository: INutrientIntakeRepository,
     private val timeConverter: TimeConverter,
 ) {
-    suspend fun findById(userId: UUID, id: Int) = foodLogRepository.findById(userId, id)
+    suspend fun findById(userId: UUID, id: Int, isUserPremium: Boolean) =
+        foodLogRepository.findById(userId, id, isUserPremium)
 
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): FoodLogsCategorized {
         val range = timeConverter
@@ -26,7 +27,7 @@ class FoodLogService(
             .getOrElse { ex -> throw BadRequestException(ex.message ?: "user time convertion failed") }
 
         return foodLogRepository
-            .findByDate(userPrincipal.id, range)
+            .findByDate(userPrincipal.id, userPrincipal.isPremium, range)
             .getOrElse { throw it }
             .toCategory()
     }
@@ -76,7 +77,7 @@ class FoodLogService(
             )
         }
 
-        val foodLog = foodLogRepository.findById(userPrincipal.id, foodLogId)
+        val foodLog = foodLogRepository.findById(userPrincipal.id, foodLogId, userPrincipal.isPremium)
             ?: throw FoodLogNotFoundException(
                 "food log ($foodLogId) not found after nutrient insertion when logging food"
             )
@@ -133,7 +134,7 @@ class FoodLogService(
             )
         }
 
-        foodLogRepository.findById(updateData.userId, updateData.foodLogId)
+        foodLogRepository.findById(updateData.userId, updateData.foodLogId, updateData.isUserPremium)
             ?: throw FoodLogNotFoundException(
                 "food log (${updateData.foodLogId}) not found after inserting intakes"
             )
