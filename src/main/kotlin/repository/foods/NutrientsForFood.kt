@@ -1,7 +1,10 @@
 package com.example.repository.foods
 
 import com.example.constants.NutrientId
-import com.example.domain.*
+import com.example.domain.NutrientAmountWithColor
+import com.example.domain.NutrientDataAmount
+import com.example.domain.NutrientPreview
+import com.example.mappers.toNutrientDataAmount
 import com.example.mapping.FoodNutrientTable
 import com.example.mapping.N
 import com.example.mapping.UNP
@@ -15,11 +18,8 @@ fun <T> queryNutrientsForFood(
     foodNutrientTable: T,
     foodId: Int,
     userId: UUID
-): List<NutrientDataAmount> where T : Table, T : FoodNutrientTable {
-    return (foodNutrientTable innerJoin N)
-        // LEFT JOIN user_nutrient_preferences
-        // ON nutrients.id = user_nutrient_preferences.nutrient_id
-        // AND user_nutrient_preferences.user_id = ?
+): List<NutrientDataAmount> where T : Table, T : FoodNutrientTable =
+    (foodNutrientTable innerJoin N)
         .join(
             joinType = JoinType.LEFT,
             otherTable = UNP,
@@ -29,28 +29,9 @@ fun <T> queryNutrientsForFood(
         )
         .selectAll()
         .where { foodNutrientTable.foodId eq foodId }
-        .map { row ->
-            NutrientDataAmount(
-                nutrientData = NutrientData(
-                    base = NutrientBase(
-                        id = row[N.id].value,
-                        name = row[N.name],
-                        unit = row[N.unit],
-                        type = row[N.type],
-                        symbol = row[N.symbol],
-                        isPremium = row[N.isPremium]
-                    ),
-                    preferences = NutrientPreferences(
-                        hexColor = row.getOrNull(UNP.hexColor),
-                        goal = row.getOrNull(UNP.goal)?.toDouble()
-                    )
-                ),
-                amount = row[foodNutrientTable.amount].toDouble()
-            )
-        }
-}
+        .map { row -> row.toNutrientDataAmount(foodNutrientTable) }
 
-fun <T> queryNutrientsForFoodBatch(
+fun <T> queryNutrientsForFoods(
     foodNutrientTable: T,
     foodIds: List<Int>,
     userId: UUID
@@ -67,25 +48,7 @@ fun <T> queryNutrientsForFoodBatch(
         .where { (foodNutrientTable.foodId inList foodIds) }
         .groupBy(
             keySelector = { row -> row[foodNutrientTable.foodId].value },
-            valueTransform = { row ->
-                NutrientDataAmount(
-                    nutrientData = NutrientData(
-                        base = NutrientBase(
-                            id = row[N.id].value,
-                            name = row[N.name],
-                            unit = row[N.unit],
-                            type = row[N.type],
-                            symbol = row[N.symbol],
-                            isPremium = row[N.isPremium]
-                        ),
-                        preferences = NutrientPreferences(
-                            hexColor = row.getOrNull(UNP.hexColor),
-                            goal = row.getOrNull(UNP.goal)?.toDouble()
-                        )
-                    ),
-                    amount = row[foodNutrientTable.amount].toDouble()
-                )
-            }
+            valueTransform = { row -> row.toNutrientDataAmount(foodNutrientTable) }
         )
 
 fun <T> queryNutrientPreviews(

@@ -1,10 +1,11 @@
 package com.example.mappers
 
 import com.example.constants.NutrientId
-import com.example.domain.NutrientDataAmount
-import com.example.domain.NutrientGroupable
-import com.example.domain.NutrientType
-import com.example.domain.NutrientsByType
+import com.example.domain.*
+import com.example.mapping.FoodNutrientTable
+import com.example.mapping.N
+import com.example.mapping.UNP
+import org.jetbrains.exposed.sql.ResultRow
 
 fun <N : NutrientGroupable> NutrientsByType<N>.toList() =
     this.basic + this.vitamins + this.minerals
@@ -38,3 +39,21 @@ fun List<NutrientDataAmount>.toClientFilter(
                 .let { i -> if (i != -1) i else Int.MAX_VALUE }
         }.thenBy { it.nutrientData.base.id }
     )
+
+fun ResultRow.toNutrientDataAmount(foodNutrientTable: FoodNutrientTable) = NutrientDataAmount(
+    nutrientData = NutrientData(
+        base = NutrientBase(
+            id = this[N.id].value,
+            name = this[N.name],
+            unit = this[N.unit],
+            type = this[N.type],
+            symbol = this[N.symbol],
+            isPremium = this[N.isPremium]
+        ),
+        preferences = NutrientPreferences(
+            hexColor = this.getOrNull(UNP.hexColor),
+            goal = this.getOrNull(UNP.goal)?.toDouble()
+        )
+    ),
+    amount = this[foodNutrientTable.amount].toDouble()
+)

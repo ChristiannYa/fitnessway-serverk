@@ -5,7 +5,7 @@ import com.example.mappers.toCategoryGroups
 import com.example.mappers.toClientFilter
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientsForFood
-import com.example.repository.foods.queryNutrientsForFoodBatch
+import com.example.repository.foods.queryNutrientsForFoods
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -59,7 +59,7 @@ class PendingFoodRepository : IPendingFoodRepository {
 
         val foodIds = pfDaos.map { it.id.value }
 
-        val foodNutrients = queryNutrientsForFoodBatch(
+        val foodNutrients = queryNutrientsForFoods(
             UPFN,
             foodIds,
             paginationCriteria.data.userId
