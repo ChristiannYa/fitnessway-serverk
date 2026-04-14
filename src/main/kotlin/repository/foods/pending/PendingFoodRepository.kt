@@ -21,7 +21,10 @@ class PendingFoodRepository : IPendingFoodRepository {
             ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
-        pfDao.toDto(nutrients.toCategoryGroups())
+            .toClientFilter(isAppFood = true)
+            .toCategoryGroups()
+
+        pfDao.toDto(nutrients)
     }
 
     override suspend fun findPaginated(
@@ -108,8 +111,10 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
+                .toClientFilter(isAppFood = true)
+                .toCategoryGroups()
 
-            pfDao.toDto(nutrients.toCategoryGroups())
+            pfDao.toDto(nutrients)
         }
     }
 
@@ -126,7 +131,10 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, it.reviewerPrincipal.id)
-            pfDao.toDto(nutrients.toCategoryGroups())
+                .toClientFilter(isAppFood = true)
+                .toCategoryGroups()
+
+            pfDao.toDto(nutrients)
         }
     }
 
