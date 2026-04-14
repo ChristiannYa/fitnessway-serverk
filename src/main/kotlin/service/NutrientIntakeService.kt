@@ -19,6 +19,11 @@ class NutrientIntakeService(
 
         val nutrientDataList = nutrientRepository.findAllWithData(userPrincipal.id)
 
-        return nutrientIntakeRepository.findByDate(userPrincipal.id, range, nutrientDataList)
+        return nutrientIntakeRepository.findByDate(
+            userPrincipal.id,
+            userPrincipal.isPremium,
+            range,
+            nutrientDataList
+        )
     }
 }

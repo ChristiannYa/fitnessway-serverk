@@ -4,7 +4,13 @@ import com.example.domain.*
 import java.util.*
 
 interface INutrientIntakeRepository {
-    suspend fun findByDate(userId: UUID, range: InstantRange, nutrientDataList: List<NutrientData>): NutrientIntakes
+    suspend fun findByDate(
+        userId: UUID,
+        isUserPremium: Boolean,
+        range: InstantRange,
+        nutrientDataList: List<NutrientData>
+    ): NutrientIntakes
+
     suspend fun findByFoodLog(userId: UUID, foodLogId: Int): List<NutrientIntakeRow>
     suspend fun insertFromFood(data: NutrientIntakesFromFood): Boolean
     suspend fun insertFromCurrent(data: NutrientIntakesFromCurrent)

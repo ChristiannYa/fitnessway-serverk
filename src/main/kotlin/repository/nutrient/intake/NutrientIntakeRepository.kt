@@ -2,6 +2,7 @@ package com.example.repository.nutrient.intake
 
 import com.example.domain.*
 import com.example.mappers.toCategoryGroups
+import com.example.mappers.toClientFilter
 import com.example.mapping.*
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
@@ -15,6 +16,7 @@ import kotlin.time.toJavaInstant
 class NutrientIntakeRepository : INutrientIntakeRepository {
     override suspend fun findByDate(
         userId: UUID,
+        isUserPremium: Boolean,
         range: InstantRange,
         nutrientDataList: List<NutrientData>
     ): NutrientIntakes = suspendTransaction {
@@ -31,14 +33,14 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
                 row[N.id].value to (row[UNI.intakeAmount.sum()]?.toDouble() ?: 0.0)
             }
 
-        val nutrientIntakesList = nutrientDataList.map { nutrientData ->
+        nutrientDataList.map { nutrientData ->
             NutrientDataAmount(
                 nutrientData = nutrientData,
                 amount = intakesMap[nutrientData.base.id] ?: 0.0
             )
         }
-
-        nutrientIntakesList.toCategoryGroups()
+            .toClientFilter(isUserPremium = isUserPremium)
+            .toCategoryGroups()
     }
 
     override suspend fun findByFoodLog(
