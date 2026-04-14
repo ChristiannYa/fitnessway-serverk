@@ -2,7 +2,7 @@ package com.example.repository.foods.log
 
 import com.example.domain.*
 import com.example.dto.FoodInformationDto
-import com.example.mappers.toType
+import com.example.mappers.toCategoryGroups
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientPreviews
 import com.example.utils.suspendTransaction
@@ -35,7 +35,7 @@ class FoodLogRepository : IFoodLogRepository {
             val foodLog = flDao.toFoodLogDto()
                 ?: return@suspendTransaction Result.failure(
                     IllegalStateException(
-                        "food log dao [${flDao.id.value}] not found"
+                        "food log dao #${flDao.id.value} not found"
                     )
                 )
 
@@ -204,7 +204,7 @@ class FoodLogRepository : IFoodLogRepository {
             foodId = foodLogFoodId,
             foodInformationDto = FoodInformationDto(
                 base = foodBase,
-                nutrients = nutrients.toType()
+                nutrients = nutrients.toCategoryGroups()
             )
         )
     }

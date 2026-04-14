@@ -1,6 +1,7 @@
 package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
+import com.example.config.UserPrincipalKey
 import com.example.domain.*
 import com.example.dto.DtoRes
 import com.example.exception.InvalidPendingFoodStatusException
@@ -15,6 +16,7 @@ import io.ktor.server.routing.*
 
 fun Route.findByUserType() {
     get("/user-type") {
+        val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
@@ -28,6 +30,7 @@ fun Route.findByUserType() {
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(
                 data = PendingFoodsPaginationCriteria(
+                    userId = userPrincipal.id,
                     userScope = UserScope.Type(userType),
                     status = pendingStatus
                 ),

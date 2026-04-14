@@ -50,6 +50,44 @@ fun <T> queryNutrientsForFood(
         }
 }
 
+fun <T> queryNutrientsForFoodBatch(
+    foodNutrientTable: T,
+    foodIds: List<Int>,
+    userId: UUID
+): Map<Int, List<NutrientDataAmount>?> where T : Table, T : FoodNutrientTable =
+    (foodNutrientTable innerJoin N)
+        .join(
+            joinType = JoinType.LEFT,
+            otherTable = UNP,
+            onColumn = N.id,
+            otherColumn = UNP.nutrientId,
+            additionalConstraint = { UNP.userId eq userId }
+        )
+        .selectAll()
+        .where { (foodNutrientTable.foodId inList foodIds) }
+        .groupBy(
+            keySelector = { row -> row[foodNutrientTable.foodId].value },
+            valueTransform = { row ->
+                NutrientDataAmount(
+                    nutrientData = NutrientData(
+                        base = NutrientBase(
+                            id = row[N.id].value,
+                            name = row[N.name],
+                            unit = row[N.unit],
+                            type = row[N.type],
+                            symbol = row[N.symbol],
+                            isPremium = row[N.isPremium]
+                        ),
+                        preferences = NutrientPreferences(
+                            hexColor = row.getOrNull(UNP.hexColor),
+                            goal = row.getOrNull(UNP.goal)?.toDouble()
+                        )
+                    ),
+                    amount = row[foodNutrientTable.amount].toDouble()
+                )
+            }
+        )
+
 fun <T> queryNutrientPreviews(
     foodNutrientTable: T,
     foodIds: List<Int>,

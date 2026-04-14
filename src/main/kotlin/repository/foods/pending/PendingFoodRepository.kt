@@ -1,9 +1,11 @@
 package com.example.repository.foods.pending
 
 import com.example.domain.*
-import com.example.mappers.toType
+import com.example.mappers.toCategoryGroups
+import com.example.mappers.toClientFilter
 import com.example.mapping.*
 import com.example.repository.foods.queryNutrientsForFood
+import com.example.repository.foods.queryNutrientsForFoodBatch
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -19,12 +21,12 @@ class PendingFoodRepository : IPendingFoodRepository {
             ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
-        pfDao.toDto(nutrients.toType())
+        pfDao.toDto(nutrients.toCategoryGroups())
     }
 
     override suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): PaginationQuery<PendingFood> = suspendTransaction {
+    ): Result<PaginationQuery<PendingFood>> = suspendTransaction {
         val criteria = paginationCriteria.data
 
         val query = run {
@@ -50,18 +52,37 @@ class PendingFoodRepository : IPendingFoodRepository {
             criteria.status?.let { andWhere { PF.status eq it } }
         }
 
-        val totalCount = query.count()
-
-        val data = query
+        val pfDaos = query
             .limit(paginationCriteria.limit)
             .offset(paginationCriteria.offset)
-            .map { row ->
-                val pfDao = PFDao.wrapRow(row)
-                val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, row[U.id].value)
-                pfDao.toDto(nutrients.toType())
-            }
+            .map { row -> PFDao.wrapRow(row) }
 
-        PaginationQuery(data, totalCount)
+        val foodIds = pfDaos.map { it.id.value }
+
+        val foodNutrients = queryNutrientsForFoodBatch(
+            UPFN,
+            foodIds,
+            paginationCriteria.data.userId
+        )
+
+        val pfDaoMap = pfDaos.associateBy { it.id.value }
+        val foods = foodIds.map { foodId ->
+            val pfDao = pfDaoMap[foodId] ?: return@suspendTransaction Result.failure(
+                IllegalStateException("pending food dao #${foodId} not found")
+            )
+
+            foodNutrients[foodId]?.let { nutrients ->
+                pfDao.toDto(
+                    nutrients
+                        .toClientFilter(isAppFood = true)
+                        .toCategoryGroups()
+                )
+            } ?: return@suspendTransaction Result.failure(
+                IllegalStateException("pending food dao #${foodId}'s nutrients not found")
+            )
+        }
+
+        Result.success(PaginationQuery(foods, query.count()))
     }
 
     override suspend fun create(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
@@ -88,7 +109,7 @@ class PendingFoodRepository : IPendingFoodRepository {
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
 
-            pfDao.toDto(nutrients.toType())
+            pfDao.toDto(nutrients.toCategoryGroups())
         }
     }
 
@@ -105,7 +126,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
 
             val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, it.reviewerPrincipal.id)
-            pfDao.toDto(nutrients.toType())
+            pfDao.toDto(nutrients.toCategoryGroups())
         }
     }
 

@@ -83,7 +83,6 @@ data class PendingFood(
 data class UserFood(
     val id: Int,
     val information: FoodInformationDto,
-    val isFavorite: Boolean,
     val lastLoggedAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant? = null,
@@ -196,6 +195,7 @@ data class AppFoodSearchPaginationCriteria(
  * Represents the criteria by which [PendingFood] paginated queries can be filtered
  */
 data class PendingFoodsPaginationCriteria(
+    val userId: UUID,
     val userScope: UserScope,
     val status: PendingFoodStatus? = null
 )

@@ -1,6 +1,7 @@
 package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
+import com.example.config.UserPrincipalKey
 import com.example.domain.PaginationCriteria
 import com.example.domain.PendingFoodStatus
 import com.example.domain.PendingFoodsPaginationCriteria
@@ -18,6 +19,7 @@ import java.util.*
 
 fun Route.findByUserId() {
     get("/user-id") {
+        val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
@@ -32,6 +34,7 @@ fun Route.findByUserId() {
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(
                 data = PendingFoodsPaginationCriteria(
+                    userId = userPrincipal.id,
                     userScope = UserScope.Id(userId),
                     status = pendingStatus
                 ),

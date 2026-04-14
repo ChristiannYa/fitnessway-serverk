@@ -21,6 +21,7 @@ fun Route.findMyOwn() {
         val pendingFoodsPagination = pendingFoodsService.findPaginated(
             PaginationCriteria(
                 data = PendingFoodsPaginationCriteria(
+                    userId = userPrincipal.id,
                     userScope = UserScope.Id(userPrincipal.id)
                 ),
                 limit = limit,

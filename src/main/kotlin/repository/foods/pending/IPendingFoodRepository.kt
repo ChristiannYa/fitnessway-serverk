@@ -8,7 +8,7 @@ import java.util.*
 interface IPendingFoodRepository {
     suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): PaginationQuery<PendingFood>
+    ): Result<PaginationQuery<PendingFood>>
 
     suspend fun findById(id: Int, userId: UUID): PendingFood?
 

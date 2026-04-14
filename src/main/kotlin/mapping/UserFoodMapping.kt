@@ -5,7 +5,7 @@ import com.example.domain.NutrientDataAmount
 import com.example.domain.ServingUnit
 import com.example.domain.UserFood
 import com.example.dto.FoodInformationDto
-import com.example.mappers.toType
+import com.example.mappers.toCategoryGroups
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -20,7 +20,6 @@ object UF : IntIdTable("user_foods") {
     val brand = varchar("brand", 50).nullable()
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
-    val isFavorite = bool("is_favorite")
     val lastLoggedAt = timestamp("last_logged_at").nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
@@ -34,7 +33,6 @@ class UFDao(id: EntityID<Int>) : IntEntity(id) {
     var brand by UF.brand
     var amountPerServing by UF.amountPerServing
     var servingUnit by UF.servingUnit
-    var isFavorite by UF.isFavorite
     var lastLoggedAt by UF.lastLoggedAt
     var createdAt by UF.createdAt
     var updatedAt by UF.updatedAt
@@ -51,9 +49,8 @@ fun UFDao.toDto(nutrients: List<NutrientDataAmount>) = UserFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),
-        nutrients = nutrients.toType(),
+        nutrients = nutrients.toCategoryGroups(),
     ),
-    isFavorite = this.isFavorite,
     lastLoggedAt = this.lastLoggedAt?.toKotlinInstant(),
     createdAt = this.createdAt.toKotlinInstant(),
     updatedAt = this.updatedAt.toKotlinInstant()

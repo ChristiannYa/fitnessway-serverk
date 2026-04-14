@@ -1,7 +1,7 @@
 package com.example.repository.nutrient.intake
 
 import com.example.domain.*
-import com.example.mappers.toType
+import com.example.mappers.toCategoryGroups
 import com.example.mapping.*
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
@@ -38,7 +38,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
             )
         }
 
-        nutrientIntakesList.toType()
+        nutrientIntakesList.toCategoryGroups()
     }
 
     override suspend fun findByFoodLog(
