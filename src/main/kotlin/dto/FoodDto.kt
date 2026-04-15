@@ -33,6 +33,7 @@ data class PendingFoodAddRequest(
 
 @Serializable
 data class PendingFoodReviewRequest(
+    val createdById: String,
     val pendingFoodId: Int,
     val rejectionReason: String?
 )

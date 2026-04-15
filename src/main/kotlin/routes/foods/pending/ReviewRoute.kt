@@ -2,7 +2,6 @@ package com.example.routes.foods.pending
 
 import com.example.config.PendingFoodServiceKey
 import com.example.config.UserPrincipalKey
-import com.example.domain.PendingFoodReview
 import com.example.dto.DtoRes
 import com.example.dto.PendingFoodReviewRequest
 import io.ktor.http.*
@@ -17,13 +16,7 @@ fun Route.reviewPendingFood() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodService = application.attributes[PendingFoodServiceKey]
 
-        val reviewedPendingFood = pendingFoodService.review(
-            PendingFoodReview(
-                pendingFoodId = req.pendingFoodId,
-                reviewerPrincipal = userPrincipal,
-                rejectionReason = req.rejectionReason
-            )
-        )
+        val reviewedPendingFood = pendingFoodService.review(req, userPrincipal)
 
         call.respond(
             HttpStatusCode.OK,

@@ -3,6 +3,7 @@ package com.example.service
 import com.example.config.RewardConfig
 import com.example.domain.*
 import com.example.domain.UserType.*
+import com.example.dto.PendingFoodReviewRequest
 import com.example.exception.*
 import com.example.mappers.toCategoryGroups
 import com.example.mappers.toClientFilter
@@ -61,14 +62,17 @@ class PendingFoodService(
         }
     }
 
-    suspend fun review(pendingFoodReview: PendingFoodReview): PendingFood = suspendTransaction {
-        pendingFoodReview.let {
+    suspend fun review(req: PendingFoodReviewRequest, reviewerPrincipal: UserPrincipal): PendingFood =
+        suspendTransaction {
+            val createdById = UUID.fromString(req.createdById)
+                ?: throw InvalidIdException("created by")
+
             val (pfDao, nutrientList) = pendingFoodRepository.findById(
-                it.pendingFoodId,
-                it.createdById,
-                it.reviewerPrincipal.id
+                req.pendingFoodId,
+                createdById,
+                reviewerPrincipal.id
             ) ?: throw FoodNotFoundException(
-                "pending food with id ${it.pendingFoodId} not found during revision"
+                "pending food with id ${req.pendingFoodId} not found during revision"
             )
 
             val nutrients = nutrientList
@@ -83,12 +87,19 @@ class PendingFoodService(
                 )
             }
 
-            val reviewedFood = pendingFoodRepository.updateStatus(it)
+            val reviewData = PendingFoodReview(
+                createdById = createdById,
+                pendingFoodId = req.pendingFoodId,
+                reviewerPrincipal = reviewerPrincipal,
+                rejectionReason = req.rejectionReason
+            )
+
+            val reviewedFood = pendingFoodRepository.updateStatus(reviewData)
                 ?: throw FoodNotFoundException(
                     "pending food #${pendingFood.id} not found when updating review status"
                 )
 
-            if (it.isApproved) {
+            if (reviewData.isApproved) {
                 val appFoodCreateData = pendingFood.toCreate()
                     ?: throw UserNotFoundException(
                         "pending food author not found when mapping data to create app food"
@@ -119,7 +130,6 @@ class PendingFoodService(
 
             reviewedFood
         }
-    }
 
     suspend fun countUserSubmissionsOfDay(userId: UUID) =
         pendingFoodRepository.countUserSubmissionsOfDay(userId)
