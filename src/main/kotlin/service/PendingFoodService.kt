@@ -98,10 +98,16 @@ class PendingFoodService(
                 rejectionReason = req.rejectionReason
             )
 
-            val reviewedFood = pendingFoodRepository.updateStatus(reviewData)
+            val (pfDaoUpdated, nutrientListUpdated) = pendingFoodRepository.updateStatus(reviewData)
                 ?: throw FoodNotFoundException(
                     "pending food #${pendingFood.id} not found when updating review status"
                 )
+
+            val reviewedFood = pfDaoUpdated.toDto(
+                nutrientListUpdated
+                    .toClientFilter(isAppFood = true)
+                    .toCategoryGroups()
+            )
 
             if (reviewData.isApproved) {
                 val appFoodCreateData = pendingFood.toCreate()

@@ -19,7 +19,9 @@ interface IPendingFoodRepository {
 
     suspend fun create(foodToCreate: PendingFoodCreate): Pair<PFDao, List<NutrientDataAmount>>
 
-    suspend fun updateStatus(pendingFoodReview: PendingFoodReview): PendingFood?
+    suspend fun updateStatus(
+        pendingFoodReview: PendingFoodReview
+    ): Pair<PFDao, List<NutrientDataAmount>>?
 
     suspend fun countUserSubmissionsOfDay(userId: UUID, date: LocalDate = LocalDate.now(ZoneOffset.UTC)): Int
 

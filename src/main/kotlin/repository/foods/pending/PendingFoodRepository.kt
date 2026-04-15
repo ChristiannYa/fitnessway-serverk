@@ -118,24 +118,22 @@ class PendingFoodRepository : IPendingFoodRepository {
         pfDao to nutrients
     }
 
-    override suspend fun updateStatus(pendingFoodReview: PendingFoodReview): PendingFood? = suspendTransaction {
-        pendingFoodReview.let {
-            val pfDao = PFDao.findById(it.pendingFoodId)
-                ?: return@suspendTransaction null
+    override suspend fun updateStatus(
+        pendingFoodReview: PendingFoodReview
+    ): Pair<PFDao, List<NutrientDataAmount>>? = suspendTransaction {
+        val pfDao = PFDao.find {
+            (PF.id eq pendingFoodReview.pendingFoodId) and
+            (PF.createdBy eq pendingFoodReview.createdById)
+        }.firstOrNull() ?: return@suspendTransaction null
 
-            pfDao.apply {
-                status = it.approvalStatus
-                reviewedBy = EntityID(it.reviewerPrincipal.id, U)
-                reviewedAt = Instant.now()
-                it.rejectionReason?.let { reason -> rejectionReason = reason }
-            }
-
-            val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, it.reviewerPrincipal.id)
-                .toClientFilter(isAppFood = true)
-                .toCategoryGroups()
-
-            pfDao.toDto(nutrients)
+        pfDao.apply {
+            status = pendingFoodReview.approvalStatus
+            reviewedBy = EntityID(pendingFoodReview.reviewerPrincipal.id, U)
+            reviewedAt = Instant.now()
+            pendingFoodReview.rejectionReason?.let { reason -> rejectionReason = reason }
         }
+
+        pfDao to queryNutrientsForFood(UPFN, pfDao.id.value, pendingFoodReview.reviewerPrincipal.id)
     }
 
     override suspend fun countUserSubmissionsOfDay(userId: UUID, date: LocalDate): Int = suspendTransaction {
