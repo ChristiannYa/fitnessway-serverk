@@ -1,6 +1,7 @@
 package com.example.repository.foods.pending
 
 import com.example.domain.*
+import com.example.mapping.PFDao
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.*
@@ -10,7 +11,11 @@ interface IPendingFoodRepository {
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
     ): Result<PaginationQuery<PendingFood>>
 
-    suspend fun findById(id: Int, userId: UUID): PendingFood?
+    suspend fun findById(
+        id: Int,
+        createdById: UUID,
+        reviewerId: UUID? = null
+    ): Pair<PFDao, List<NutrientDataAmount>>?
 
     suspend fun create(foodToCreate: PendingFoodCreate): PendingFood
 

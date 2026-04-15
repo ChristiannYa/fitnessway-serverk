@@ -173,6 +173,7 @@ data class PendingFoodCreate(
  * Holds the data needed to review a pending food
  */
 data class PendingFoodReview(
+    val createdById: UUID,
     val pendingFoodId: Int,
     val reviewerPrincipal: UserPrincipal,
     val rejectionReason: String?

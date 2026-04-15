@@ -16,16 +16,19 @@ import java.time.ZoneOffset
 import java.util.*
 
 class PendingFoodRepository : IPendingFoodRepository {
-    override suspend fun findById(id: Int, userId: UUID): PendingFood? = suspendTransaction {
-        // @TODO: Should add by user AND constraint as well
-        val pfDao = PFDao.findById(id)
-            ?: return@suspendTransaction null
+    override suspend fun findById(
+        id: Int,
+        createdById: UUID,
+        reviewerId: UUID?
+    ): Pair<PFDao, List<NutrientDataAmount>>? = suspendTransaction {
+        val pfDao = PFDao.find {
+            (PF.id eq id) and
+            (PF.createdBy eq createdById)
+        }.firstOrNull() ?: return@suspendTransaction null
 
-        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, userId)
-            .toClientFilter(isAppFood = true)
-            .toCategoryGroups()
+        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, reviewerId ?: createdById)
 
-        pfDao.toDto(nutrients)
+        pfDao to nutrients
     }
 
     override suspend fun findPaginated(
