@@ -9,7 +9,7 @@ import java.util.*
 interface IPendingFoodRepository {
     suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): Result<PaginationQuery<PendingFood>>
+    ): Result<PaginationQuery<Pair<PFDao, List<NutrientDataAmount>>>>
 
     suspend fun findById(
         id: Int,

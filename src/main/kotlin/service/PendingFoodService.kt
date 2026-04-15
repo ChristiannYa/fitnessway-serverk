@@ -38,7 +38,13 @@ class PendingFoodService(
             .getOrElse { throw it }
 
         return PaginationResult(
-            data = paginationQuery.data,
+            data = paginationQuery.data.map { (pfDao, nutrientList) ->
+                pfDao.toDto(
+                    nutrientList
+                        .toClientFilter(isAppFood = true)
+                        .toCategoryGroups()
+                )
+            },
             totalCount = paginationQuery.totalCount,
             pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
             currentPage = paginationCriteria.calcCurrentPage()

@@ -1,9 +1,10 @@
 package com.example.repository.foods.pending
 
 import com.example.domain.*
-import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
-import com.example.mapping.*
+import com.example.mapping.PF
+import com.example.mapping.PFDao
+import com.example.mapping.U
+import com.example.mapping.UPFN
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.repository.foods.queryNutrientsForFoods
 import com.example.utils.suspendTransaction
@@ -33,7 +34,7 @@ class PendingFoodRepository : IPendingFoodRepository {
 
     override suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): Result<PaginationQuery<PendingFood>> = suspendTransaction {
+    ): Result<PaginationQuery<Pair<PFDao, List<NutrientDataAmount>>>> = suspendTransaction {
         val criteria = paginationCriteria.data
 
         val query = run {
@@ -79,11 +80,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             )
 
             foodNutrients[foodId]?.let { nutrients ->
-                pfDao.toDto(
-                    nutrients
-                        .toClientFilter(isAppFood = true)
-                        .toCategoryGroups()
-                )
+                pfDao to nutrients
             } ?: return@suspendTransaction Result.failure(
                 IllegalStateException("pending food dao #${foodId}'s nutrients not found")
             )
