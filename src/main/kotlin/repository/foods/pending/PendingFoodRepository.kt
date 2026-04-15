@@ -167,7 +167,10 @@ class PendingFoodRepository : IPendingFoodRepository {
         }
     }
 
-    override suspend fun delete(pendingFoodId: Int): Unit = suspendTransaction {
-        PF.deleteWhere { id eq pendingFoodId }
+    override suspend fun delete(pendingFoodId: Int, userId: UUID) = suspendTransaction {
+        PF.deleteWhere {
+            (this.id eq pendingFoodId) and
+            (this.createdBy eq userId)
+        }
     }
 }

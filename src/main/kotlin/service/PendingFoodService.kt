@@ -168,6 +168,6 @@ class PendingFoodService(
             throw CannotDismissPendingFoodException()
         }
 
-        pendingFoodRepository.delete(pendingFoodId)
+        pendingFoodRepository.delete(pendingFoodId, userId)
     }
 }

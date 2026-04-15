@@ -27,5 +27,5 @@ interface IPendingFoodRepository {
 
     suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean
 
-    suspend fun delete(pendingFoodId: Int)
+    suspend fun delete(pendingFoodId: Int, userId: UUID): Int
 }
