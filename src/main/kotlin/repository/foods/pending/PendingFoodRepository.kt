@@ -17,6 +17,7 @@ import java.util.*
 
 class PendingFoodRepository : IPendingFoodRepository {
     override suspend fun findById(id: Int, userId: UUID): PendingFood? = suspendTransaction {
+        // @TODO: Should add by user AND constraint as well
         val pfDao = PFDao.findById(id)
             ?: return@suspendTransaction null
 

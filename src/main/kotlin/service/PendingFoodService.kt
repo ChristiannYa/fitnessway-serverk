@@ -121,9 +121,9 @@ class PendingFoodService(
     suspend fun countUserSubmissionsOfDay(userId: UUID) =
         pendingFoodRepository.countUserSubmissionsOfDay(userId)
 
-    suspend fun dismissReview(pendingFoodId: Int?, userId: UUID) = suspendTransaction {
-        // Check pending food `id` is not null or <= 0
-        if (pendingFoodId == null || pendingFoodId <= 0) {
+    suspend fun dismissReview(pendingFoodId: Int, userId: UUID) = suspendTransaction {
+        // Check pending food ID is not <= 0
+        if (pendingFoodId <= 0) {
             throw InvalidIdException("pending food")
         }
 
