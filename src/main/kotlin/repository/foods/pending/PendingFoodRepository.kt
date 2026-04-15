@@ -92,34 +92,30 @@ class PendingFoodRepository : IPendingFoodRepository {
         Result.success(PaginationQuery(foods, query.count()))
     }
 
-    override suspend fun create(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
-        foodToCreate.let {
-            val foodInformation = it.foodInformation.base
+    override suspend fun create(
+        foodToCreate: PendingFoodCreate
+    ): Pair<PFDao, List<NutrientDataAmount>> = suspendTransaction {
+        val foodBase = foodToCreate.foodInformation.base
 
-            // Insert into user_pending_foods
-            val pfDao = PFDao.new {
-                this.name = foodInformation.name
-                this.brand = foodInformation.brand.toString()
-                this.amountPerServing = foodInformation.amountPerServing.toBigDecimal()
-                this.servingUnit = foodInformation.servingUnit
-                this.status = PendingFoodStatus.PENDING
-                this.createdBy = EntityID(foodToCreate.userPrincipal.id, U)
-                this.createdAt = Instant.now()
-            }
-
-            // Insert nutrients
-            UPFN.batchInsert(foodToCreate.foodInformation.nutrients) { d ->
-                this[UPFN.foodId] = pfDao.id
-                this[UPFN.nutrientId] = d.nutrientId
-                this[UPFN.amount] = d.amount.toBigDecimal()
-            }
-
-            val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
-                .toClientFilter(isAppFood = true)
-                .toCategoryGroups()
-
-            pfDao.toDto(nutrients)
+        val pfDao = PFDao.new {
+            this.name = foodBase.name
+            this.brand = foodBase.brand.toString()
+            this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
+            this.servingUnit = foodBase.servingUnit
+            this.status = PendingFoodStatus.PENDING
+            this.createdBy = EntityID(foodToCreate.userPrincipal.id, U)
+            this.createdAt = Instant.now()
         }
+
+        UPFN.batchInsert(foodToCreate.foodInformation.nutrients) { d ->
+            this[UPFN.foodId] = pfDao.id
+            this[UPFN.nutrientId] = d.nutrientId
+            this[UPFN.amount] = d.amount.toBigDecimal()
+        }
+
+        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
+
+        pfDao to nutrients
     }
 
     override suspend fun updateStatus(pendingFoodReview: PendingFoodReview): PendingFood? = suspendTransaction {

@@ -17,7 +17,7 @@ interface IPendingFoodRepository {
         reviewerId: UUID? = null
     ): Pair<PFDao, List<NutrientDataAmount>>?
 
-    suspend fun create(foodToCreate: PendingFoodCreate): PendingFood
+    suspend fun create(foodToCreate: PendingFoodCreate): Pair<PFDao, List<NutrientDataAmount>>
 
     suspend fun updateStatus(pendingFoodReview: PendingFoodReview): PendingFood?
 

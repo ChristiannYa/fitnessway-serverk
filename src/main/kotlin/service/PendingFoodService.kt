@@ -46,20 +46,24 @@ class PendingFoodService(
     }
 
     suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
-        foodToCreate.let {
-            val dailyLimit = foodToCreate.userPrincipal.type.getDailyLimit()
+        val dailyLimit = foodToCreate.userPrincipal.type.getDailyLimit()
 
-            val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(it.userPrincipal.id)
-            if (submissionCount >= dailyLimit) throw DailySubmissionLimitExceededException(dailyLimit)
+        val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(foodToCreate.userPrincipal.id)
+        if (submissionCount >= dailyLimit) throw DailySubmissionLimitExceededException(dailyLimit)
 
-            val isAlreadyInApp = appFoodRepository.isDuplicate(it.foodInformation)
-            if (isAlreadyInApp) throw FoodAlreadyInAppException()
+        val isAlreadyInApp = appFoodRepository.isDuplicate(foodToCreate.foodInformation)
+        if (isAlreadyInApp) throw FoodAlreadyInAppException()
 
-            val isAlreadyPending = pendingFoodRepository.isDuplicate(it.foodInformation)
-            if (isAlreadyPending) throw FoodAlreadyPendingException()
+        val isAlreadyPending = pendingFoodRepository.isDuplicate(foodToCreate.foodInformation)
+        if (isAlreadyPending) throw FoodAlreadyPendingException()
 
-            pendingFoodRepository.create(it)
-        }
+        val (pfDao, nutrientList) = pendingFoodRepository.create(foodToCreate)
+
+        pfDao.toDto(
+            nutrientList
+                .toClientFilter(isAppFood = true)
+                .toCategoryGroups()
+        )
     }
 
     suspend fun review(req: PendingFoodReviewRequest, reviewerPrincipal: UserPrincipal): PendingFood =
