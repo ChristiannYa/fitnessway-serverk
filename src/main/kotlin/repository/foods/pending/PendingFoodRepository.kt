@@ -60,6 +60,8 @@ class PendingFoodRepository : IPendingFoodRepository {
             criteria.status?.let { andWhere { PF.status eq it } }
         }
 
+        val queryCount = query.count()
+        
         val pfDaos = query
             .limit(paginationCriteria.limit)
             .offset(paginationCriteria.offset)
@@ -86,7 +88,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             )
         }
 
-        Result.success(PaginationQuery(foods, query.count()))
+        Result.success(PaginationQuery(foods, queryCount))
     }
 
     override suspend fun create(

@@ -29,7 +29,7 @@ data class PaginationCriteria<T>(
     val offset: Long
 ) {
     fun calcPageCount(totalCount: Double) = ceil(totalCount / this.limit).toInt()
-    fun calcCurrentPage() = (this.offset / this.limit).toInt() + 1
+    fun calcCurrentPage() = (this.offset.toInt() / this.limit) + 1
 }
 
 /**

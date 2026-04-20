@@ -26,7 +26,7 @@ class PendingFoodService(
         fun UserType.getDailyLimit() = when (this) {
             USER -> 5
             CONTRIBUTOR -> 15
-            ADMIN -> 20
+            ADMIN -> 100
         }
     }
 
