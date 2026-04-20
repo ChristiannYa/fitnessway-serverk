@@ -18,7 +18,7 @@ import kotlin.time.toJavaInstant
 class FoodLogRepository : IFoodLogRepository {
     override suspend fun findById(userId: UUID, id: Int, isUserPremium: Boolean): FoodLog? = suspendTransaction {
         UFLDao.find {
-            (UFL.userId eq userId) and (UFL.id eq id)
+            (UEL.userId eq userId) and (UEL.id eq id)
         }.firstOrNull()?.toFoodLogDto(isUserPremium)
     }
 
@@ -30,9 +30,9 @@ class FoodLogRepository : IFoodLogRepository {
         val foodLogs = mutableListOf<FoodLog>()
 
         UFLDao.find {
-            (UFL.userId eq userId) and
-            (UFL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
-            (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
+            (UEL.userId eq userId) and
+            (UEL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
+            (UEL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
         }.forEach { flDao ->
             val foodLog = flDao.toFoodLogDto(isUserPremium)
                 ?: return@suspendTransaction Result.failure(
@@ -50,25 +50,25 @@ class FoodLogRepository : IFoodLogRepository {
     override suspend fun findLatest(
         criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
-        val recentFoodIds = UFL
-            .select(UFL.foodId, UFL.foodSource, UFL.time.max())
-            .where { UFL.userId eq criteria.data.userId }
-            .groupBy(UFL.foodId, UFL.foodSource)
-            .orderBy(UFL.time.max(), SortOrder.DESC)
+        val recentFoodIds = UEL
+            .select(UEL.edibleId, UEL.logSource, UEL.time.max())
+            .where { UEL.userId eq criteria.data.userId }
+            .groupBy(UEL.edibleId, UEL.logSource)
+            .orderBy(UEL.time.max(), SortOrder.DESC)
             .limit(criteria.limit)
             .offset(criteria.offset)
-            .mapNotNull { row -> row[UFL.foodId] to row[UFL.foodSource] }
+            .mapNotNull { row -> row[UEL.edibleId] to row[UEL.logSource] }
 
         val recentAppFoodIds = recentFoodIds
-            .filter { it.second == FoodSource.APP }
+            .filter { it.second == LogSource.APP }
             .mapNotNull { it.first }
 
         val recentUserFoodIds = recentFoodIds
-            .filter { it.second == FoodSource.USER }
+            .filter { it.second == LogSource.USER }
             .mapNotNull { it.first }
 
         val appNutrientPreviews = queryNutrientPreviews(AFN, recentAppFoodIds, criteria.data.userId)
-        val userNutrientPreviews = queryNutrientPreviews(UFN, recentUserFoodIds, criteria.data.userId)
+        val userNutrientPreviews = queryNutrientPreviews(UEN, recentUserFoodIds, criteria.data.userId)
 
         val appFoods = AFDao
             .forIds(recentAppFoodIds)
@@ -80,23 +80,23 @@ class FoodLogRepository : IFoodLogRepository {
 
         val data: List<FoodPreview> = recentFoodIds.mapNotNull { (foodId, source) ->
             when (source) {
-                FoodSource.APP -> {
+                LogSource.APP -> {
                     val afDao = appFoods[foodId] ?: return@mapNotNull null
                     FoodPreview(
                         id = afDao.id.value,
                         base = afDao.toBase(),
                         nutrientPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
-                        source = FoodSource.APP
+                        source = LogSource.APP
                     )
                 }
 
-                FoodSource.USER -> {
+                LogSource.USER -> {
                     val ufDao = userFoods[foodId] ?: return@mapNotNull null
                     FoodPreview(
                         id = ufDao.id.value,
                         base = ufDao.toBase(),
                         nutrientPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
-                        source = FoodSource.USER
+                        source = LogSource.USER
                     )
                 }
             }
@@ -107,13 +107,13 @@ class FoodLogRepository : IFoodLogRepository {
 
     override suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {
         UFLDao.find {
-            (UFL.userId eq userId) and (UFL.id eq foodLogId)
+            (UEL.userId eq userId) and (UEL.id eq foodLogId)
         }.firstOrNull()?.let { uflDao ->
             FoodLogBase(
-                foodId = uflDao.foodId,
-                userFoodSnapshotId = uflDao.foodSnapshotId?.value,
+                foodId = uflDao.edibleId,
+                userFoodSnapshotId = uflDao.edibleSnapshotId?.value,
                 servings = uflDao.servings.toDouble(),
-                source = uflDao.foodSource
+                source = uflDao.logSource
             )
         }
     }
@@ -121,13 +121,13 @@ class FoodLogRepository : IFoodLogRepository {
     override suspend fun add(data: FoodLogAdd): Int = suspendTransaction {
         UFLDao.new {
             userId = EntityID(data.userId, U)
-            foodId = data.foodId
-            foodSnapshotId = null
+            edibleId = data.foodId
+            edibleSnapshotId = null
             servings = data.servings.toBigDecimal()
             category = data.category
             time = data.time.toJavaInstant().atOffset(ZoneOffset.UTC)
             loggedAt = Instant.now().atOffset(ZoneOffset.UTC)
-            foodSource = data.source
+            logSource = data.source
         }.id.value
     }
 
@@ -136,42 +136,42 @@ class FoodLogRepository : IFoodLogRepository {
         foodLogId: Int,
         servings: Double
     ): Boolean = suspendTransaction {
-        val updateCount = UFL.update(
-            where = { (UFL.userId eq userId) and (UFL.id eq foodLogId) }
-        ) { it[UFL.servings] = servings.toBigDecimal() }
+        val updateCount = UEL.update(
+            where = { (UEL.userId eq userId) and (UEL.id eq foodLogId) }
+        ) { it[UEL.servings] = servings.toBigDecimal() }
 
         updateCount > 0
     }
 
     private fun UFLDao.toFoodLogDto(isUserPremium: Boolean): FoodLog? {
-        val foodLogFoodId = this.foodId
-        val foodLogFoodSnapshotId = this.foodSnapshotId?.value
+        val foodLogFoodId = this.edibleId
+        val foodLogFoodSnapshotId = this.edibleSnapshotId?.value
 
         val (
-            foodSnapshotStatus: UserFoodSnapshotStatus?,
+            foodSnapshotStatus: UserEdibleSnapshotStatus?,
             foodBase: FoodBase
-        ) = when (this.foodSource) {
-            FoodSource.APP -> {
+        ) = when (this.logSource) {
+            LogSource.APP -> {
                 if (foodLogFoodId == null) return null
 
                 val afDao = AFDao.findById(foodLogFoodId) ?: return null
                 null to afDao.toBase()
             }
 
-            FoodSource.USER -> when {
+            LogSource.USER -> when {
                 foodLogFoodSnapshotId == null && foodLogFoodId != null -> {
                     val ufDao = UFDao.findById(foodLogFoodId) ?: return null
-                    UserFoodSnapshotStatus.PRESENT to ufDao.toBase()
+                    UserEdibleSnapshotStatus.PRESENT to ufDao.toBase()
                 }
 
                 foodLogFoodSnapshotId != null && foodLogFoodId != null -> {
                     val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return null
-                    UserFoodSnapshotStatus.UPDATED to ufsDao.toBase()
+                    UserEdibleSnapshotStatus.UPDATED to ufsDao.toBase()
                 }
 
                 foodLogFoodSnapshotId != null && foodLogFoodId == null -> {
                     val ufsDao = UFSDao.findById(foodLogFoodSnapshotId) ?: return null
-                    UserFoodSnapshotStatus.DELETED to ufsDao.toBase()
+                    UserEdibleSnapshotStatus.DELETED to ufsDao.toBase()
                 }
 
                 else -> return null
@@ -188,7 +188,7 @@ class FoodLogRepository : IFoodLogRepository {
             )
             .selectAll()
             .where {
-                (UNI.foodLogId eq this@toFoodLogDto.id.value) and
+                (UNI.edibleLogId eq this@toFoodLogDto.id.value) and
                 (UNI.userId eq this@toFoodLogDto.userId.value)
             }
             .map { row ->
@@ -203,7 +203,7 @@ class FoodLogRepository : IFoodLogRepository {
             .toClientFilter(isUserPremium = isUserPremium)
 
         return this.toDto(
-            userFoodSnapshotStatus = foodSnapshotStatus,
+            userEdibleSnapshotStatus = foodSnapshotStatus,
             foodId = foodLogFoodId,
             foodInformationDto = FoodInformationDto(
                 base = foodBase,

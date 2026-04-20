@@ -13,9 +13,9 @@ data class FoodInformationDto(
 data class FoodLogAddRequest(
     val foodId: Int,
     val servings: Double,
-    val category: FoodLogCategory,
+    val category: LogCategory,
     val time: String,
-    val source: FoodSource
+    val source: LogSource
 )
 
 @Serializable

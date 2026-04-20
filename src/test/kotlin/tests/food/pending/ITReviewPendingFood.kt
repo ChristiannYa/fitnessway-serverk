@@ -110,7 +110,7 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AFN
                 .selectAll()
-                .where { AFN.foodId eq afDao.id }
+                .where { AFN.edibleId eq afDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 
@@ -189,7 +189,7 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AFN
                 .selectAll()
-                .where { AFN.foodId eq afDao.id }
+                .where { AFN.edibleId eq afDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 

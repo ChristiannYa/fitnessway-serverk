@@ -6,10 +6,10 @@ fun List<FoodLog>.toCategory(): FoodLogsCategorized {
     val grouped = this.groupBy { it.category }
 
     return FoodLogsCategorized(
-        breakfast = grouped[FoodLogCategory.BREAKFAST] ?: emptyList(),
-        lunch = grouped[FoodLogCategory.LUNCH] ?: emptyList(),
-        dinner = grouped[FoodLogCategory.DINNER] ?: emptyList(),
-        supplement = grouped[FoodLogCategory.SUPPLEMENT] ?: emptyList()
+        breakfast = grouped[LogCategory.BREAKFAST] ?: emptyList(),
+        lunch = grouped[LogCategory.LUNCH] ?: emptyList(),
+        dinner = grouped[LogCategory.DINNER] ?: emptyList(),
+        supplement = grouped[LogCategory.SUPPLEMENT] ?: emptyList()
     )
 }
 

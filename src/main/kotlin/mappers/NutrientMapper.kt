@@ -2,7 +2,7 @@ package com.example.mappers
 
 import com.example.constants.NutrientId
 import com.example.domain.*
-import com.example.mapping.FoodNutrientTable
+import com.example.mapping.EdibleNutrientTable
 import com.example.mapping.N
 import com.example.mapping.UNP
 import org.jetbrains.exposed.sql.ResultRow
@@ -40,7 +40,7 @@ fun List<NutrientDataAmount>.toClientFilter(
         }.thenBy { it.nutrientData.base.id }
     )
 
-fun ResultRow.toNutrientDataAmount(foodNutrientTable: FoodNutrientTable) = NutrientDataAmount(
+fun ResultRow.toNutrientDataAmount(edibleNutrientTable: EdibleNutrientTable) = NutrientDataAmount(
     nutrientData = NutrientData(
         base = NutrientBase(
             id = this[N.id].value,
@@ -55,5 +55,5 @@ fun ResultRow.toNutrientDataAmount(foodNutrientTable: FoodNutrientTable) = Nutri
             goal = this.getOrNull(UNP.goal)?.toDouble()
         )
     ),
-    amount = this[foodNutrientTable.amount].toDouble()
+    amount = this[edibleNutrientTable.amount].toDouble()
 )

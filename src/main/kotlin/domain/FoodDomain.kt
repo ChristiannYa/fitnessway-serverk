@@ -21,7 +21,7 @@ enum class ServingUnit {
 }
 
 @Serializable
-enum class FoodLogCategory {
+enum class LogCategory {
     BREAKFAST,
     LUNCH,
     DINNER,
@@ -29,7 +29,13 @@ enum class FoodLogCategory {
 }
 
 @Serializable
-enum class FoodSource {
+enum class EdibleType {
+    FOOD,
+    SUPPLEMENT
+}
+
+@Serializable
+enum class LogSource {
     USER,
     APP
 }
@@ -44,7 +50,7 @@ enum class PendingFoodStatus {
 }
 
 @Serializable
-enum class UserFoodSnapshotStatus {
+enum class UserEdibleSnapshotStatus {
     PRESENT,
     UPDATED,
     DELETED
@@ -91,13 +97,13 @@ data class UserFood(
 @Serializable
 data class FoodLog(
     val id: Int,
-    val category: FoodLogCategory,
+    val category: LogCategory,
     val time: Instant,
     val loggedAt: Instant,
     val servings: Double,
-    val userFoodSnapshotStatus: UserFoodSnapshotStatus? = null,
+    val userEdibleSnapshotStatus: UserEdibleSnapshotStatus? = null,
     val userFoodSnapshotId: Int?,
-    val source: FoodSource,
+    val source: LogSource,
     val foodId: Int?,
     val foodInformation: FoodInformationDto
 )
@@ -115,7 +121,7 @@ data class FoodPreview(
     val id: Int,
     val base: FoodBase,
     val nutrientPreview: NutrientPreview,
-    val source: FoodSource
+    val source: LogSource
 )
 
 data class FoodInformation<N : NutrientEntry>(
@@ -127,7 +133,7 @@ data class FoodLogBase(
     val foodId: Int?,
     val userFoodSnapshotId: Int?,
     val servings: Double,
-    val source: FoodSource
+    val source: LogSource
 )
 
 /**
@@ -137,9 +143,9 @@ data class FoodLogAdd(
     val userId: UUID,
     val foodId: Int,
     val servings: Double,
-    val category: FoodLogCategory,
+    val category: LogCategory,
     val time: Instant,
-    val source: FoodSource
+    val source: LogSource
 )
 
 /**

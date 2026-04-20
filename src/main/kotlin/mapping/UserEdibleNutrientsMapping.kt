@@ -2,8 +2,8 @@ package com.example.mapping
 
 import org.jetbrains.exposed.sql.Table
 
-object AFN : Table("app_food_nutrients"), EdibleNutrientTable {
-    override val edibleId = reference("app_food_id", AF)
+object UEN : Table("user_edible_nutrients"), EdibleNutrientTable {
+    override val edibleId = reference("user_edible_id", UE)
     override val nutrientId = reference("nutrient_id", N)
     override val amount = decimal("amount", 12, 4)
 

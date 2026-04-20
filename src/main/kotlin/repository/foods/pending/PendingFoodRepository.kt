@@ -61,7 +61,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         }
 
         val queryCount = query.count()
-        
+
         val pfDaos = query
             .limit(paginationCriteria.limit)
             .offset(paginationCriteria.offset)
@@ -107,7 +107,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         }
 
         UPFN.batchInsert(foodToCreate.foodInformation.nutrients) { d ->
-            this[UPFN.foodId] = pfDao.id
+            this[UPFN.edibleId] = pfDao.id
             this[UPFN.nutrientId] = d.nutrientId
             this[UPFN.amount] = d.amount.toBigDecimal()
         }
@@ -157,7 +157,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         pendingFoodBaseDaos.any { foodBaseDao ->
             val foodBaseDaoNutrients = UPFN
                 .select(UPFN.nutrientId, UPFN.amount)
-                .where { UPFN.foodId eq foodBaseDao.id }
+                .where { UPFN.edibleId eq foodBaseDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
                         nutrientId = row[UPFN.nutrientId].value,

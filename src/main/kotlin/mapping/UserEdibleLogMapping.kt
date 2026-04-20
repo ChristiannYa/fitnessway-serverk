@@ -1,9 +1,9 @@
 package com.example.mapping
 
 import com.example.domain.FoodLog
-import com.example.domain.FoodLogCategory
-import com.example.domain.FoodSource
-import com.example.domain.UserFoodSnapshotStatus
+import com.example.domain.LogCategory
+import com.example.domain.LogSource
+import com.example.domain.UserEdibleSnapshotStatus
 import com.example.dto.FoodInformationDto
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
@@ -13,32 +13,32 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 import kotlin.time.toKotlinInstant
 
-object UFL : IntIdTable("user_food_logs") {
+object UEL : IntIdTable("user_edible_logs") {
     val userId = reference("user_id", U)
-    val foodId = integer("food_id").nullable()
-    val foodSnapshotId = reference("food_snapshot_id", UFS).nullable()
+    val edibleId = integer("edible_id").nullable()
+    val edibleSnapshotId = reference("edible_snapshot_id", UES).nullable()
     val servings = decimal("servings", 12, 4)
-    val category = pgEnum<FoodLogCategory>("category", "food_log_category")
+    val category = pgEnum<LogCategory>("category", "log_category")
     val time = timestampWithTimeZone("time")
     val loggedAt = timestampWithTimeZone("logged_at")
-    val foodSource = pgEnum<FoodSource>("source", "food_source")
+    val logSource = pgEnum<LogSource>("source", "log_source")
 }
 
 class UFLDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UFLDao>(UFL)
+    companion object : IntEntityClass<UFLDao>(UEL)
 
-    var userId by UFL.userId
-    var foodId by UFL.foodId
-    var foodSnapshotId by UFL.foodSnapshotId
-    var servings by UFL.servings
-    var category by UFL.category
-    var time by UFL.time
-    var loggedAt by UFL.loggedAt
-    var foodSource by UFL.foodSource
+    var userId by UEL.userId
+    var edibleId by UEL.edibleId
+    var edibleSnapshotId by UEL.edibleSnapshotId
+    var servings by UEL.servings
+    var category by UEL.category
+    var time by UEL.time
+    var loggedAt by UEL.loggedAt
+    var logSource by UEL.logSource
 }
 
 fun UFLDao.toDto(
-    userFoodSnapshotStatus: UserFoodSnapshotStatus?,
+    userEdibleSnapshotStatus: UserEdibleSnapshotStatus?,
     foodId: Int?,
     foodInformationDto: FoodInformationDto
 ) = FoodLog(
@@ -47,9 +47,9 @@ fun UFLDao.toDto(
     time = this.time.toInstant().toKotlinInstant(),
     loggedAt = this.loggedAt.toInstant().toKotlinInstant(),
     servings = this.servings.toDouble(),
-    userFoodSnapshotStatus = userFoodSnapshotStatus,
-    userFoodSnapshotId = this.foodSnapshotId?.value,
-    source = this.foodSource,
+    userEdibleSnapshotStatus = userEdibleSnapshotStatus,
+    userFoodSnapshotId = this.edibleSnapshotId?.value,
+    source = this.logSource,
     foodId = foodId,
     foodInformation = foodInformationDto
 )

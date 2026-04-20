@@ -2,8 +2,8 @@ package com.example.routes.foods.log
 
 import com.example.config.FoodLogServiceKey
 import com.example.config.UserPrincipalKey
-import com.example.domain.FoodLogCategory
-import com.example.domain.FoodSource
+import com.example.domain.LogCategory
+import com.example.domain.LogSource
 import com.example.dto.DtoRes
 import com.example.dto.FoodLogAddRequest
 import com.example.validation.toValidationResult
@@ -47,13 +47,13 @@ fun FoodLogAddRequest.validate(): ValidationResult {
     }
 
     this.category.toString().validate("category") {
-        it.isEnumValidated<FoodLogCategory>()
+        it.isEnumValidated<LogCategory>()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }
 
     this.source.toString().validate("source") {
-        it.isEnumValidated<FoodSource>()
+        it.isEnumValidated<LogSource>()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }

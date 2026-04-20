@@ -1,9 +1,6 @@
 package com.example.mapping
 
-import com.example.domain.FoodBase
-import com.example.domain.NutrientDataAmount
-import com.example.domain.ServingUnit
-import com.example.domain.UserFood
+import com.example.domain.*
 import com.example.dto.FoodInformationDto
 import com.example.mappers.toCategoryGroups
 import com.example.utils.pgEnum
@@ -14,7 +11,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import kotlin.time.toKotlinInstant
 
-object UF : IntIdTable("user_foods") {
+object UE : IntIdTable("user_edibles") {
     val userId = reference("user_id", U)
     val name = varchar("name", 50)
     val brand = varchar("brand", 50).nullable()
@@ -23,19 +20,20 @@ object UF : IntIdTable("user_foods") {
     val lastLoggedAt = timestamp("last_logged_at").nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
+    val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
 }
 
 class UFDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UFDao>(UF)
+    companion object : IntEntityClass<UFDao>(UE)
 
-    var userId by UF.userId
-    var name by UF.name
-    var brand by UF.brand
-    var amountPerServing by UF.amountPerServing
-    var servingUnit by UF.servingUnit
-    var lastLoggedAt by UF.lastLoggedAt
-    var createdAt by UF.createdAt
-    var updatedAt by UF.updatedAt
+    var userId by UE.userId
+    var name by UE.name
+    var brand by UE.brand
+    var amountPerServing by UE.amountPerServing
+    var servingUnit by UE.servingUnit
+    var lastLoggedAt by UE.lastLoggedAt
+    var createdAt by UE.createdAt
+    var updatedAt by UE.updatedAt
 }
 
 fun UFDao.toBase() = FoodBase(

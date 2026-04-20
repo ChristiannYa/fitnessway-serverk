@@ -21,12 +21,12 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
         nutrientDataList: List<NutrientData>
     ): NutrientIntakes = suspendTransaction {
 
-        val intakesMap = (UFL innerJoin UNI innerJoin N)
+        val intakesMap = (UEL innerJoin UNI innerJoin N)
             .select(N.id, UNI.intakeAmount.sum())
             .where {
-                (UFL.userId eq userId) and
-                (UFL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
-                (UFL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
+                (UEL.userId eq userId) and
+                (UEL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
+                (UEL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
             }
             .groupBy(N.id)
             .associate { row ->
@@ -48,7 +48,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
         foodLogId: Int
     ): List<NutrientIntakeRow> = suspendTransaction {
         UNI.selectAll()
-            .where { (UNI.userId eq userId) and (UNI.foodLogId eq foodLogId) }
+            .where { (UNI.userId eq userId) and (UNI.edibleLogId eq foodLogId) }
             .map { row ->
                 NutrientIntakeRow(
                     nutrientId = row[UNI.nutrientId].value,
@@ -59,8 +59,8 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
     override suspend fun insertFromFood(data: NutrientIntakesFromFood): Boolean = suspendTransaction {
         val nutrientsTable = when (data.source) {
-            FoodSource.APP -> AFN
-            FoodSource.USER -> UFN
+            LogSource.APP -> AFN
+            LogSource.USER -> UEN
         }
 
         val nutrients = nutrientsTable.queryFoodNutrientAmounts(data.foodId, data.servings)
@@ -68,7 +68,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
         UNI.batchInsert(nutrients) { (nutrientId, amount) ->
             this[UNI.userId] = EntityID(data.userId, U)
-            this[UNI.foodLogId] = EntityID(data.foodLogId, UFL)
+            this[UNI.edibleLogId] = EntityID(data.foodLogId, UEL)
             this[UNI.nutrientId] = EntityID(nutrientId, N)
             this[UNI.intakeAmount] = amount
         }
@@ -81,7 +81,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
         UNI.batchInsert(data.curIntakes) { intake ->
             this[UNI.userId] = data.userId
-            this[UNI.foodLogId] = data.foodLogId
+            this[UNI.edibleLogId] = data.foodLogId
             this[UNI.nutrientId] = intake.nutrientId
             this[UNI.intakeAmount] = (intake.amount * ratio.toBigDecimal())
         }
@@ -89,7 +89,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
     override suspend fun deleteByFoodLog(userId: UUID, foodLogId: Int): Boolean = suspendTransaction {
         val deleteCount = UNI.deleteWhere {
-            (UNI.foodLogId eq foodLogId) and (UNI.userId eq userId)
+            (UNI.edibleLogId eq foodLogId) and (UNI.userId eq userId)
         }
 
         deleteCount > 0
@@ -98,10 +98,10 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
     private fun <T> T.queryFoodNutrientAmounts(
         foodId: Int,
         servings: Double
-    ): List<Pair<Int, BigDecimal>>? where T : Table, T : FoodNutrientTable {
+    ): List<Pair<Int, BigDecimal>>? where T : Table, T : EdibleNutrientTable {
         val nutrients = this
             .selectAll()
-            .where { this@queryFoodNutrientAmounts.foodId eq foodId }
+            .where { this@queryFoodNutrientAmounts.edibleId eq foodId }
             .map { row ->
                 Pair(
                     row[nutrientId].value,

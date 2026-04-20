@@ -95,7 +95,7 @@ data class NutrientIntakesFromFood(
     val foodLogId: Int,
     val foodId: Int,
     val servings: Double,
-    val source: FoodSource
+    val source: LogSource
 )
 
 /**

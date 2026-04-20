@@ -35,7 +35,7 @@ class AppFoodRepository : IAppFoodRepository {
         }
 
         AFN.batchInsert(foodToCreate.food.nutrients) { nutrient ->
-            this[AFN.foodId] = afDao.id.value
+            this[AFN.edibleId] = afDao.id.value
             this[AFN.nutrientId] = nutrient.nutrientId
             this[AFN.amount] = nutrient.amount.toBigDecimal()
         }
@@ -54,7 +54,7 @@ class AppFoodRepository : IAppFoodRepository {
         appFoodBaseDaos.any { appFoodDao ->
             val appFoodDaoNutrients = AFN
                 .select(AFN.nutrientId, AFN.amount)
-                .where { AFN.foodId eq appFoodDao.id }
+                .where { AFN.edibleId eq appFoodDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
                         nutrientId = row[AFN.nutrientId].value,
@@ -96,7 +96,7 @@ class AppFoodRepository : IAppFoodRepository {
                     servingUnit = afDao.servingUnit
                 ),
                 nutrientPreview = nutrientPreviews[afDao.id.value] ?: NutrientPreview(),
-                source = FoodSource.APP
+                source = LogSource.APP
             )
         }
 
