@@ -68,7 +68,7 @@ class UserEdibleRepository : IUserEdibleRepository {
         Result.success(PaginationQuery(foods, queryCount))
     }
 
-    override suspend fun isDuplicate(
+    override suspend fun isBaseDuplicate(
         userId: UUID,
         edibleBase: EdibleBase,
         nutrientList: List<NutrientIdWithAmount>
@@ -81,17 +81,7 @@ class UserEdibleRepository : IUserEdibleRepository {
                 (UE.amountPerServing eq edibleBase.amountPerServing.toBigDecimal()) and
                 (UE.servingUnit eq edibleBase.servingUnit)
             }
-            .any { ueDao ->
-                nutrientList == UEN
-                    .select(UEN.nutrientId, UEN.amount)
-                    .where { UEN.edibleId eq ueDao.id }
-                    .map { row ->
-                        NutrientIdWithAmount(
-                            nutrientId = row[UEN.nutrientId].value,
-                            amount = row[UEN.amount].toDouble()
-                        )
-                    }
-            }
+            .count() > 0
     }
 
     override suspend fun create(

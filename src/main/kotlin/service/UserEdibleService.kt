@@ -42,7 +42,7 @@ class UserEdibleService(
         userPrincipal: UserPrincipal
     ): UserEdible = suspendTransaction {
 
-        if (userEdibleRepository.isDuplicate(userPrincipal.id, req.base, req.nutrients)) {
+        if (userEdibleRepository.isBaseDuplicate(userPrincipal.id, req.base, req.nutrients)) {
             throw EdibleAlreadyExistsException(req.edibleType.toEnum())
         }
 
