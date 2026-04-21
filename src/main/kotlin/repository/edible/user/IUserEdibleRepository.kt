@@ -10,4 +10,8 @@ interface IUserEdibleRepository {
     suspend fun findPagination(
         paginationCriteria: PaginationCriteria<UserEdiblesPaginationCriteria>
     ): Result<PaginationQuery<Pair<UEDao, List<NutrientDataAmount>>>>
+
+    suspend fun isDuplicate(userId: UUID, edibleBase: EdibleBase, nutrientList: List<NutrientIdWithAmount>): Boolean
+
+    suspend fun create(createData: UserEdibleCreate): Pair<UEDao, List<NutrientDataAmount>>
 }

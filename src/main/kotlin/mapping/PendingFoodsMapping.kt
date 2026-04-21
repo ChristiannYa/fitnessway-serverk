@@ -41,7 +41,7 @@ class PFDao(id: EntityID<Int>) : IntEntity(id) {
 fun PFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
     id = this.id.value,
     information = FoodInformationDto(
-        base = FoodBase(
+        base = EdibleBase(
             name = this.name,
             brand = this.brand,
             amountPerServing = this.amountPerServing.toDouble(),

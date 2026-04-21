@@ -1,6 +1,6 @@
 package com.example.mapping
 
-import com.example.domain.FoodBase
+import com.example.domain.EdibleBase
 import com.example.domain.ServingUnit
 import com.example.domain.UserEdibleSnapshotStatus
 import com.example.utils.pgEnum
@@ -34,7 +34,7 @@ class UFSDao(id: EntityID<Int>) : IntEntity(id) {
     var createdAt by UES.createdAt
 }
 
-fun UFSDao.toBase() = FoodBase(
+fun UFSDao.toBase() = EdibleBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),

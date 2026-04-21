@@ -7,7 +7,7 @@ fun buildPendingFoodCreateData(
     name: String = "food number ${(1000..9999).random()}"
 ) = PendingFoodCreate(
     foodInformation = FoodInformation(
-        base = FoodBase(
+        base = EdibleBase(
             name = name,
             brand = "kotlinized",
             amountPerServing = 42.0,

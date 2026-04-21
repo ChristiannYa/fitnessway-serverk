@@ -10,6 +10,7 @@ import com.example.repository.foods.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
+import com.example.utils.toEnum
 import io.ktor.server.plugins.*
 import java.util.*
 
@@ -53,11 +54,11 @@ class FoodLogService(
         val foodLogId = foodLogRepository.add(
             FoodLogAdd(
                 userId = userPrincipal.id,
-                foodId = req.foodId,
+                foodId = req.edibleId,
                 servings = req.servings,
-                category = req.category,
+                category = req.category.toEnum(),
                 time = time,
-                source = req.source
+                source = req.source.toEnum()
             )
         )
 
@@ -65,15 +66,15 @@ class FoodLogService(
             NutrientIntakesFromFood(
                 userId = userPrincipal.id,
                 foodLogId = foodLogId,
-                foodId = req.foodId,
+                foodId = req.edibleId,
                 servings = req.servings,
-                source = req.source
+                source = req.source.toEnum()
             )
         )
 
         if (!isNutrientInsertionSuccess) {
             throw EdibleNotFoundException(
-                "no nutrient data found for food (${req.foodId})"
+                "no nutrient data found for food (${req.edibleId})"
             )
         }
 

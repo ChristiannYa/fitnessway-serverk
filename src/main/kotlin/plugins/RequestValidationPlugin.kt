@@ -2,7 +2,8 @@ package com.example.plugins
 
 import com.example.dto.*
 import com.example.routes.auth.validate
-import com.example.routes.foods.log.validate
+import com.example.routes.edible.log.validate
+import com.example.routes.edible.user.validate
 import com.example.routes.foods.pending.validate
 import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -22,6 +23,11 @@ fun Application.configureRequestValidation() {
         // --------
         validate<FoodLogAddRequest> { it.validate() }
         validate<FoodLogUpdateRequest> { it.validate() }
+
+        // -----------
+        // USER EDIBLE
+        // -----------
+        validate<UserEdibleAddRequest> { it.validate() }
 
         // ------------
         // PENDING FOOD

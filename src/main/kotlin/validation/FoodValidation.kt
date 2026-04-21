@@ -1,12 +1,12 @@
 package com.example.validation
 
-import com.example.domain.FoodBase
+import com.example.domain.EdibleBase
 import io.ktor.server.plugins.requestvalidation.*
 
 fun String.validateAsFoodName() = this.validateAsName("food name", whiteSpace = true)
 fun String.validateAsFoodBrand() = this.validateAsName("food brand", whiteSpace = true)
 
-fun FoodBase.validate(): ValidationResult {
+fun EdibleBase.validate(): ValidationResult {
     this.name.validateAsFoodName().toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }

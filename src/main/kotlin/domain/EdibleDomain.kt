@@ -57,7 +57,7 @@ enum class UserEdibleSnapshotStatus {
 }
 
 @Serializable
-data class FoodBase(
+data class EdibleBase(
     val name: String,
     val brand: String? = null,
     val amountPerServing: Double,
@@ -86,7 +86,7 @@ data class PendingFood(
 )
 
 @Serializable
-data class UserFood(
+data class UserEdible(
     val id: Int,
     val information: FoodInformationDto,
     val lastLoggedAt: Instant? = null,
@@ -119,13 +119,13 @@ data class FoodLogsCategorized(
 @Serializable
 data class FoodPreview(
     val id: Int,
-    val base: FoodBase,
+    val base: EdibleBase,
     val nutrientPreview: NutrientPreview,
     val source: LogSource
 )
 
 data class FoodInformation<N : NutrientEntry>(
-    val base: FoodBase,
+    val base: EdibleBase,
     val nutrients: List<N>
 )
 
@@ -159,6 +159,8 @@ data class FoodLogUpdate(
     val servings: Double
 )
 
+// @TODO: Split `food` into `EdibleBase` and `NutrientList`.
+//        Repository should not care about the entire food object
 /**
  * Holds the data needed to create an app food
  */
@@ -167,12 +169,24 @@ data class AppFoodCreate(
     val createdBy: UUID
 )
 
+// @TODO: Split `foodInformation` into `EdibleBase` and `NutrientList`.
+//        Repository should not care about the entire food object
 /**
  * Holds the data needed to create a pending food/app food request
  */
 data class PendingFoodCreate(
     val foodInformation: FoodInformation<NutrientIdWithAmount>,
     val userPrincipal: UserPrincipal
+)
+
+/**
+ * Holds the data needed to create a user edible
+ */
+data class UserEdibleCreate(
+    val userId: UUID,
+    val foodBase: EdibleBase,
+    val nutrientList: List<NutrientIdWithAmount>,
+    val edibleType: EdibleType
 )
 
 /**
@@ -217,7 +231,7 @@ data class RecentlyLoggedFoodsPaginationCriteria(
 )
 
 /**
- * Represents the criteria by which [UserFood] paginated queries can be found
+ * Represents the criteria by which [UserEdible] paginated queries can be found
  */
 data class UserEdiblesPaginationCriteria(
     val userId: UUID,

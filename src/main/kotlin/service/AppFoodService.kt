@@ -4,7 +4,7 @@ import com.example.domain.AppFoodSearchPaginationCriteria
 import com.example.domain.FoodPreview
 import com.example.domain.PaginationCriteria
 import com.example.domain.PaginationResult
-import com.example.repository.foods.app.AppFoodRepository
+import com.example.repository.edible.app.AppFoodRepository
 import java.util.*
 
 class AppFoodService(

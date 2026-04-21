@@ -1,8 +1,9 @@
-package com.example.repository.foods.app
+package com.example.repository.edible.app
 
 import com.example.domain.*
 import com.example.mappers.toCategoryGroups
 import com.example.mapping.*
+import com.example.repository.foods.app.IAppFoodRepository
 import com.example.repository.foods.queryNutrientPreviews
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.similarity
@@ -89,7 +90,7 @@ class AppFoodRepository : IAppFoodRepository {
         val data = afDaos.map { afDao ->
             FoodPreview(
                 id = afDao.id.value,
-                base = FoodBase(
+                base = EdibleBase(
                     name = afDao.name,
                     brand = afDao.brand.ifEmpty { "~" },
                     amountPerServing = afDao.amountPerServing.toDouble(),

@@ -1,7 +1,8 @@
-package com.example.routes.foods.log
+package com.example.routes.edible.log
 
 import com.example.config.FoodLogServiceKey
 import com.example.config.UserPrincipalKey
+import com.example.domain.EdibleType
 import com.example.domain.LogCategory
 import com.example.domain.LogSource
 import com.example.dto.DtoRes
@@ -34,8 +35,14 @@ fun Route.add() {
 
 fun FoodLogAddRequest.validate(): ValidationResult {
 
-    this.foodId.toString().validate("food id") {
+    this.edibleId.toString().validate("edible id") {
         it.isPositiveDouble()
+    }.toValidationResult().let {
+        if (it is ValidationResult.Invalid) return it
+    }
+
+    this.edibleType.validate("edible type") {
+        it.isEnumValidated<EdibleType>()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }
@@ -46,13 +53,13 @@ fun FoodLogAddRequest.validate(): ValidationResult {
         if (it is ValidationResult.Invalid) return it
     }
 
-    this.category.toString().validate("category") {
+    this.category.validate("category") {
         it.isEnumValidated<LogCategory>()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it
     }
 
-    this.source.toString().validate("source") {
+    this.source.validate("source") {
         it.isEnumValidated<LogSource>()
     }.toValidationResult().let {
         if (it is ValidationResult.Invalid) return it

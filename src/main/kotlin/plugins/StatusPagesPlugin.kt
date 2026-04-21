@@ -152,6 +152,9 @@ fun Application.configureStatusPages() {
 
                 is InvalidEdibleException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
+
+                is EdibleAlreadyExistsException ->
+                    ex.message.toString() to HttpStatusCode.Conflict
             }
         }
 

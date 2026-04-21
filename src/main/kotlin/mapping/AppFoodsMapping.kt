@@ -33,7 +33,7 @@ class AFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by AF.updatedAt
 }
 
-fun AFDao.toBase() = FoodBase(
+fun AFDao.toBase() = EdibleBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),

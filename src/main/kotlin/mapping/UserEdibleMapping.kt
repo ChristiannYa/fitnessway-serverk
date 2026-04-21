@@ -16,10 +16,10 @@ object UE : IntIdTable("user_edibles") {
     val brand = varchar("brand", 50).nullable()
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
+    val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
     val lastLoggedAt = timestamp("last_logged_at").nullable()
     val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at")
-    val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
+    val updatedAt = timestamp("updated_at").nullable()
 }
 
 class UEDao(id: EntityID<Int>) : IntEntity(id) {
@@ -30,19 +30,20 @@ class UEDao(id: EntityID<Int>) : IntEntity(id) {
     var brand by UE.brand
     var amountPerServing by UE.amountPerServing
     var servingUnit by UE.servingUnit
+    var edibleType by UE.edibleType
     var lastLoggedAt by UE.lastLoggedAt
     var createdAt by UE.createdAt
     var updatedAt by UE.updatedAt
 }
 
-fun UEDao.toBase() = FoodBase(
+fun UEDao.toBase() = EdibleBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),
     servingUnit = this.servingUnit
 )
 
-fun UEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = UserFood(
+fun UEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = UserEdible(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),
@@ -50,5 +51,5 @@ fun UEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = UserFood(
     ),
     lastLoggedAt = this.lastLoggedAt?.toKotlinInstant(),
     createdAt = this.createdAt.toKotlinInstant(),
-    updatedAt = this.updatedAt.toKotlinInstant()
+    updatedAt = this.updatedAt?.toKotlinInstant()
 )

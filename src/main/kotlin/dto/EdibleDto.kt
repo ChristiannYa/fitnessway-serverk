@@ -1,21 +1,25 @@
 package com.example.dto
 
-import com.example.domain.*
+import com.example.domain.EdibleBase
+import com.example.domain.NutrientDataAmount
+import com.example.domain.NutrientIdWithAmount
+import com.example.domain.NutrientsByType
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class FoodInformationDto(
-    val base: FoodBase,
+    val base: EdibleBase,
     val nutrients: NutrientsByType<NutrientDataAmount>
 )
 
 @Serializable
 data class FoodLogAddRequest(
-    val foodId: Int,
+    val edibleId: Int,
+    val edibleType: String,
     val servings: Double,
-    val category: LogCategory,
+    val category: String,
     val time: String,
-    val source: LogSource
+    val source: String
 )
 
 @Serializable
@@ -26,8 +30,15 @@ data class FoodLogUpdateRequest(
 )
 
 @Serializable
+data class UserEdibleAddRequest(
+    val base: EdibleBase,
+    val nutrients: List<NutrientIdWithAmount>,
+    val edibleType: String
+)
+
+@Serializable
 data class PendingFoodAddRequest(
-    val base: FoodBase,
+    val base: EdibleBase,
     val nutrients: List<NutrientIdWithAmount>
 )
 

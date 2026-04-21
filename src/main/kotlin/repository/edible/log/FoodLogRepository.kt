@@ -149,7 +149,7 @@ class FoodLogRepository : IFoodLogRepository {
 
         val (
             foodSnapshotStatus: UserEdibleSnapshotStatus?,
-            foodBase: FoodBase
+            edibleBase: EdibleBase
         ) = when (this.logSource) {
             LogSource.APP -> {
                 if (foodLogFoodId == null) return null
@@ -206,7 +206,7 @@ class FoodLogRepository : IFoodLogRepository {
             userEdibleSnapshotStatus = foodSnapshotStatus,
             foodId = foodLogFoodId,
             foodInformationDto = FoodInformationDto(
-                base = foodBase,
+                base = edibleBase,
                 nutrients = nutrients.toCategoryGroups()
             )
         )

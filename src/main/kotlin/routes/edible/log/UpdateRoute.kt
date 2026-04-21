@@ -1,4 +1,4 @@
-package com.example.routes.foods.log
+package com.example.routes.edible.log
 
 import com.example.config.FoodLogServiceKey
 import com.example.config.UserPrincipalKey
