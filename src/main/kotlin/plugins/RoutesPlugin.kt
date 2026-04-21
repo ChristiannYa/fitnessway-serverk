@@ -1,7 +1,7 @@
 package com.example.plugins
 
 import com.example.routes.auth.authRoutes
-import com.example.routes.foods.foodRoutes
+import com.example.routes.edible.edibleRoutes
 import com.example.routes.nutrient.nutrientRoutes
 import com.example.routes.user.userRoutes
 import io.ktor.server.application.*
@@ -19,7 +19,7 @@ fun Application.configureApiRoues() {
 
             withAuth {
                 userRoutes()
-                foodRoutes()
+                edibleRoutes()
                 nutrientRoutes()
             }
         }

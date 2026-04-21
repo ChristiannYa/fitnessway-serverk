@@ -11,4 +11,5 @@ val NutrientIntakeServiceKey = AttributeKey<NutrientIntakeService>("NutrientInta
 val AppFoodServiceKey = AttributeKey<AppFoodService>("AppFoodService")
 val FoodLogServiceKey = AttributeKey<FoodLogService>("FoodLogServiceKey")
 val PendingFoodServiceKey = AttributeKey<PendingFoodService>("PendingFoodService")
+val UserEdibleServiceKey = AttributeKey<UserEdibleService>("UserEdibleService")
 val UserServiceKey = AttributeKey<UserService>("UserService")

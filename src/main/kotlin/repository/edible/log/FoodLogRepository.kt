@@ -74,7 +74,7 @@ class FoodLogRepository : IFoodLogRepository {
             .forIds(recentAppFoodIds)
             .associateBy { it.id.value }
 
-        val userFoods = UFDao
+        val userFoods = UEDao
             .forIds(recentUserFoodIds)
             .associateBy { it.id.value }
 
@@ -160,7 +160,7 @@ class FoodLogRepository : IFoodLogRepository {
 
             LogSource.USER -> when {
                 foodLogFoodSnapshotId == null && foodLogFoodId != null -> {
-                    val ufDao = UFDao.findById(foodLogFoodId) ?: return null
+                    val ufDao = UEDao.findById(foodLogFoodId) ?: return null
                     UserEdibleSnapshotStatus.PRESENT to ufDao.toBase()
                 }
 

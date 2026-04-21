@@ -200,7 +200,7 @@ data class AppFoodSearchPaginationCriteria(
 )
 
 /**
- * Represents the criteria by which [PendingFood] paginated queries can be filtered
+ * Represents the criteria by which [PendingFood] paginated queries can be found
  */
 data class PendingFoodsPaginationCriteria(
     val userId: UUID,
@@ -210,8 +210,16 @@ data class PendingFoodsPaginationCriteria(
 
 /**
  * Represents the criteria by which recently logged foods (as [FoodPreview]) paginated
- * queries can be filtered
+ * queries can be found
  */
 data class RecentlyLoggedFoodsPaginationCriteria(
     val userId: UUID
+)
+
+/**
+ * Represents the criteria by which [UserFood] paginated queries can be found
+ */
+data class UserEdiblesPaginationCriteria(
+    val userId: UUID,
+    val edibleType: EdibleType
 )

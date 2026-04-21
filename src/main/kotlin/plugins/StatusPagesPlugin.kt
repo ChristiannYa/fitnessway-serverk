@@ -145,10 +145,13 @@ fun Application.configureStatusPages() {
         // ---------------
         // FOOD EXCEPTIONS
         // ---------------
-        handleExceptions<FoodExceptions> { ex ->
+        handleExceptions<EdibleExceptions> { ex ->
             when (ex) {
-                is FoodNotFoundException ->
+                is EdibleNotFoundException ->
                     ex.message.toString() to HttpStatusCode.NotFound
+
+                is InvalidEdibleException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 

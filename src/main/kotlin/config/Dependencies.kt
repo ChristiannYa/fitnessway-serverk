@@ -1,5 +1,6 @@
 package com.example.config
 
+import com.example.repository.edible.user.UserEdibleRepository
 import com.example.repository.foods.app.AppFoodRepository
 import com.example.repository.foods.log.FoodLogRepository
 import com.example.repository.foods.pending.PendingFoodRepository
@@ -25,6 +26,7 @@ fun Application.configureDependencies() {
     val nutrientRepository = NutrientRepository()
     val nutrientIntakeRepository = NutrientIntakeRepository()
     val appFoodRepository = AppFoodRepository()
+    val userEdibleRepository = UserEdibleRepository()
     val pendingFoodRepository = PendingFoodRepository()
     val foodLogRepository = FoodLogRepository()
 
@@ -38,6 +40,7 @@ fun Application.configureDependencies() {
         timeConverter
     )
     val appFoodService = AppFoodService(appFoodRepository)
+    val userEdibleService = UserEdibleService(userEdibleRepository)
     val pendingFoodService = PendingFoodService(
         pendingFoodRepository,
         userWalletsRepository,
@@ -56,6 +59,7 @@ fun Application.configureDependencies() {
     this.attributes.put(UserServiceKey, userService)
     this.attributes.put(NutrientIntakeServiceKey, nutrientIntakeService)
     this.attributes.put(AppFoodServiceKey, appFoodService)
+    this.attributes.put(UserEdibleServiceKey, userEdibleService)
     this.attributes.put(PendingFoodServiceKey, pendingFoodService)
     this.attributes.put(FoodLogServiceKey, foodLogService)
 }

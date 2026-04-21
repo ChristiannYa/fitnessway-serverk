@@ -1,6 +1,7 @@
-package com.example.routes.foods.pending
+package com.example.routes.edible.pending
 
 import com.example.plugins.withAdmin
+import com.example.routes.foods.pending.*
 import io.ktor.server.routing.*
 
 fun Route.pendingFoodRoutes() {

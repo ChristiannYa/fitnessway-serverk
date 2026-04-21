@@ -81,7 +81,7 @@ class PendingFoodService(
                 req.pendingFoodId,
                 createdById,
                 reviewerPrincipal.id
-            ) ?: throw FoodNotFoundException(
+            ) ?: throw EdibleNotFoundException(
                 "pending food with id ${req.pendingFoodId} not found during revision"
             )
 
@@ -105,7 +105,7 @@ class PendingFoodService(
             )
 
             val (pfDaoUpdated, nutrientListUpdated) = pendingFoodRepository.updateStatus(reviewData)
-                ?: throw FoodNotFoundException(
+                ?: throw EdibleNotFoundException(
                     "pending food #${pendingFood.id} not found when updating review status"
                 )
 
@@ -156,7 +156,7 @@ class PendingFoodService(
         }
 
         val (pfDao, nutrientList) = pendingFoodRepository.findById(pendingFoodId, userId)
-            ?: throw FoodNotFoundException("pending food #$pendingFoodId not found when dismissing review")
+            ?: throw EdibleNotFoundException("pending food #$pendingFoodId not found when dismissing review")
 
         val nutrients = nutrientList
             .toClientFilter(isAppFood = true)

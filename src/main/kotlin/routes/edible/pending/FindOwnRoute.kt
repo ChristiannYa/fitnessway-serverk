@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.findMyOwn() {
+    // @TODO: Rename path to '/me'
     get("/my-own") {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val pendingFoodsService = application.attributes[PendingFoodServiceKey]

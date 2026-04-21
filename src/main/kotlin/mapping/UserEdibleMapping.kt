@@ -2,7 +2,6 @@ package com.example.mapping
 
 import com.example.domain.*
 import com.example.dto.FoodInformationDto
-import com.example.mappers.toCategoryGroups
 import com.example.utils.pgEnum
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -23,8 +22,8 @@ object UE : IntIdTable("user_edibles") {
     val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
 }
 
-class UFDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UFDao>(UE)
+class UEDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<UEDao>(UE)
 
     var userId by UE.userId
     var name by UE.name
@@ -36,18 +35,18 @@ class UFDao(id: EntityID<Int>) : IntEntity(id) {
     var updatedAt by UE.updatedAt
 }
 
-fun UFDao.toBase() = FoodBase(
+fun UEDao.toBase() = FoodBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),
     servingUnit = this.servingUnit
 )
 
-fun UFDao.toDto(nutrients: List<NutrientDataAmount>) = UserFood(
+fun UEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = UserFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),
-        nutrients = nutrients.toCategoryGroups(),
+        nutrients = nutrients,
     ),
     lastLoggedAt = this.lastLoggedAt?.toKotlinInstant(),
     createdAt = this.createdAt.toKotlinInstant(),

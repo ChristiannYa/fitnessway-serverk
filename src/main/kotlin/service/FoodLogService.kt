@@ -2,8 +2,8 @@ package com.example.service
 
 import com.example.domain.*
 import com.example.dto.FoodLogAddRequest
+import com.example.exception.EdibleNotFoundException
 import com.example.exception.FoodLogNotFoundException
-import com.example.exception.FoodNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
 import com.example.repository.foods.log.IFoodLogRepository
@@ -72,7 +72,7 @@ class FoodLogService(
         )
 
         if (!isNutrientInsertionSuccess) {
-            throw FoodNotFoundException(
+            throw EdibleNotFoundException(
                 "no nutrient data found for food (${req.foodId})"
             )
         }
