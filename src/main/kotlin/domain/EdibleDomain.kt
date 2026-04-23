@@ -227,7 +227,8 @@ data class PendingFoodsPaginationCriteria(
  * queries can be found
  */
 data class RecentlyLoggedFoodsPaginationCriteria(
-    val userId: UUID
+    val userId: UUID,
+    val edibleType: EdibleType
 )
 
 /**

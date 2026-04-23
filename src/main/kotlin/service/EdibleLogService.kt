@@ -6,7 +6,7 @@ import com.example.exception.EdibleNotFoundException
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
-import com.example.repository.foods.log.IFoodLogRepository
+import com.example.repository.edible.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
@@ -14,7 +14,7 @@ import com.example.utils.toEnum
 import io.ktor.server.plugins.*
 import java.util.*
 
-class FoodLogService(
+class EdibleLogService(
     private val foodLogRepository: IFoodLogRepository,
     private val nutrientIntakeRepository: INutrientIntakeRepository,
     private val timeConverter: TimeConverter,

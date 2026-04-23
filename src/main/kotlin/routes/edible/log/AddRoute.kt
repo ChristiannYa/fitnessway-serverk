@@ -1,6 +1,6 @@
 package com.example.routes.edible.log
 
-import com.example.config.FoodLogServiceKey
+import com.example.config.EdibleLogServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.EdibleType
 import com.example.domain.LogCategory
@@ -19,7 +19,7 @@ fun Route.add() {
     post {
         val req = call.receive<FoodLogAddRequest>()
         val userPrincipal = call.attributes[UserPrincipalKey]
-        val foodLogService = application.attributes[FoodLogServiceKey]
+        val foodLogService = application.attributes[EdibleLogServiceKey]
 
         val foodLog = foodLogService.add(userPrincipal, req)
 

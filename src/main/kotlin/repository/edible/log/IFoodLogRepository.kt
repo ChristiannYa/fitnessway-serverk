@@ -1,4 +1,4 @@
-package com.example.repository.foods.log
+package com.example.repository.edible.log
 
 import com.example.domain.*
 import java.util.*

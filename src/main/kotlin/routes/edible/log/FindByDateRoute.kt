@@ -1,6 +1,6 @@
 package com.example.routes.edible.log
 
-import com.example.config.FoodLogServiceKey
+import com.example.config.EdibleLogServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.dto.DtoRes
 import com.example.utils.extensions.extractPathParamOrThrow
@@ -11,7 +11,7 @@ import io.ktor.server.routing.*
 fun Route.findByDate() {
     get("/date/{date}") {
         val userPrincipal = call.attributes[UserPrincipalKey]
-        val foodLogService = application.attributes[FoodLogServiceKey]
+        val foodLogService = application.attributes[EdibleLogServiceKey]
 
         val date = call.extractPathParamOrThrow("date")
         val foodLogs = foodLogService.findByDate(userPrincipal, date)

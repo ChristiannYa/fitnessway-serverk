@@ -1,4 +1,4 @@
-package com.example.repository.foods.log
+package com.example.repository.edible.log
 
 import com.example.domain.*
 import com.example.dto.FoodInformationDto
@@ -50,59 +50,65 @@ class FoodLogRepository : IFoodLogRepository {
     override suspend fun findLatest(
         criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
-        val recentFoodIds = UEL
+
+        var count: Long
+
+        val foodIdsByType: Map<LogSource, List<Int>> = UEL
             .select(UEL.edibleId, UEL.logSource, UEL.time.max())
             .where { UEL.userId eq criteria.data.userId }
             .groupBy(UEL.edibleId, UEL.logSource)
             .orderBy(UEL.time.max(), SortOrder.DESC)
             .limit(criteria.limit)
             .offset(criteria.offset)
-            .mapNotNull { row -> row[UEL.edibleId] to row[UEL.logSource] }
+            .also { count = it.count() }
+            .groupBy({ r -> r[UEL.logSource] }, { r -> r[UEL.edibleId] })
+            .mapValues { it.value.filterNotNull() }
 
-        val recentAppFoodIds = recentFoodIds
-            .filter { it.second == LogSource.APP }
-            .mapNotNull { it.first }
+        val appFoodIds: List<Int> = foodIdsByType[LogSource.APP] ?: emptyList()
+        val userEdibleIds: List<Int> = foodIdsByType[LogSource.USER] ?: emptyList()
 
-        val recentUserFoodIds = recentFoodIds
-            .filter { it.second == LogSource.USER }
-            .mapNotNull { it.first }
+        val appNutrientPreviews: Map<Int, NutrientPreview> =
+            queryNutrientPreviews(AFN, appFoodIds, criteria.data.userId)
 
-        val appNutrientPreviews = queryNutrientPreviews(AFN, recentAppFoodIds, criteria.data.userId)
-        val userNutrientPreviews = queryNutrientPreviews(UEN, recentUserFoodIds, criteria.data.userId)
+        val userNutrientPreviews: Map<Int, NutrientPreview> =
+            queryNutrientPreviews(UEN, userEdibleIds, criteria.data.userId)
 
-        val appFoods = AFDao
-            .forIds(recentAppFoodIds)
+        val appFoodDaos: Map<Int, AFDao> = AFDao
+            .forIds(appFoodIds)
             .associateBy { it.id.value }
+            // @TODO: Update to its actual `edibleType` value
+            .filter { criteria.data.edibleType == EdibleType.FOOD }
 
-        val userFoods = UEDao
-            .forIds(recentUserFoodIds)
+        val userEdibleDaos: Map<Int, UEDao> = UEDao
+            .forIds(userEdibleIds)
             .associateBy { it.id.value }
+            .filter { it.value.edibleType == criteria.data.edibleType }
 
-        val data: List<FoodPreview> = recentFoodIds.mapNotNull { (foodId, source) ->
-            when (source) {
-                LogSource.APP -> {
-                    val afDao = appFoods[foodId] ?: return@mapNotNull null
-                    FoodPreview(
-                        id = afDao.id.value,
-                        base = afDao.toBase(),
-                        nutrientPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
-                        source = LogSource.APP
-                    )
-                }
+        val data: List<FoodPreview> = foodIdsByType.flatMap { (source, ids) ->
+            ids.mapNotNull { foodId ->
+                when (source) {
+                    LogSource.APP -> appFoodDaos[foodId]?.let { afDao ->
+                        FoodPreview(
+                            id = afDao.id.value,
+                            base = afDao.toBase(),
+                            nutrientPreview = appNutrientPreviews[foodId] ?: NutrientPreview(),
+                            source = LogSource.APP
+                        )
+                    }
 
-                LogSource.USER -> {
-                    val ufDao = userFoods[foodId] ?: return@mapNotNull null
-                    FoodPreview(
-                        id = ufDao.id.value,
-                        base = ufDao.toBase(),
-                        nutrientPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
-                        source = LogSource.USER
-                    )
+                    LogSource.USER -> userEdibleDaos[foodId]?.let { ueDao ->
+                        FoodPreview(
+                            id = ueDao.id.value,
+                            base = ueDao.toBase(),
+                            nutrientPreview = userNutrientPreviews[foodId] ?: NutrientPreview(),
+                            source = LogSource.USER
+                        )
+                    }
                 }
             }
         }
 
-        PaginationQuery(data, recentFoodIds.size.toLong())
+        PaginationQuery(data, count)
     }
 
     override suspend fun getBaseData(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {

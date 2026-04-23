@@ -1,6 +1,6 @@
 package com.example.routes.edible.log
 
-import com.example.config.FoodLogServiceKey
+import com.example.config.EdibleLogServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.FoodLogUpdate
 import com.example.dto.DtoRes
@@ -17,7 +17,7 @@ fun Route.update() {
     put {
         val req = call.receive<FoodLogUpdateRequest>()
         val userPrincipal = call.attributes[UserPrincipalKey]
-        val foodLogService = application.attributes[FoodLogServiceKey]
+        val foodLogService = application.attributes[EdibleLogServiceKey]
 
         val foodLog = foodLogService.update(
             FoodLogUpdate(
