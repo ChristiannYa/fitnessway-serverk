@@ -13,7 +13,7 @@ data class FoodInformationDto(
 )
 
 @Serializable
-data class FoodLogAddRequest(
+data class EdibleLogAddRequest(
     val edibleId: Int,
     val edibleType: String,
     val servings: Double,

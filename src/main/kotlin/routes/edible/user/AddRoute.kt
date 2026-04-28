@@ -19,14 +19,11 @@ fun Route.add() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val userEdibleService = application.attributes[UserEdibleServiceKey]
 
-        val userEdible = userEdibleService.add(req, userPrincipal)
+        userEdibleService.add(req, userPrincipal)
 
         call.respond(
-            HttpStatusCode.OK,
-            DtoRes.success(
-                "User ${req.edibleType} added successfully",
-                mapOf("user_edible" to userEdible)
-            )
+            HttpStatusCode.Created,
+            DtoRes.success<Unit>("user ${req.edibleType} added successfully")
         )
     }
 }

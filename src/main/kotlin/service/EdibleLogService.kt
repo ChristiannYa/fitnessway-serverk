@@ -1,7 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
-import com.example.dto.FoodLogAddRequest
+import com.example.dto.EdibleLogAddRequest
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
@@ -46,7 +46,7 @@ class EdibleLogService(
         )
     }
 
-    suspend fun add(userPrincipal: UserPrincipal, req: FoodLogAddRequest): FoodLog = suspendTransaction {
+    suspend fun add(userPrincipal: UserPrincipal, req: EdibleLogAddRequest): FoodLog = suspendTransaction {
         val time = timeConverter
             .toUtcResult(req.time, userPrincipal.timezone)
             .getOrElse { ex -> throw BadRequestException(ex.message ?: "invalid time") }

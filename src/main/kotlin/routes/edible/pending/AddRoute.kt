@@ -1,4 +1,4 @@
-package com.example.routes.foods.pending
+package com.example.routes.edible.pending
 
 import com.example.config.PendingFoodServiceKey
 import com.example.config.UserPrincipalKey

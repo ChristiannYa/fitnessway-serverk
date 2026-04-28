@@ -6,7 +6,7 @@ import com.example.domain.EdibleType
 import com.example.domain.LogCategory
 import com.example.domain.LogSource
 import com.example.dto.DtoRes
-import com.example.dto.FoodLogAddRequest
+import com.example.dto.EdibleLogAddRequest
 import com.example.validation.toValidationResult
 import com.example.validation.validate
 import io.ktor.http.*
@@ -17,7 +17,7 @@ import io.ktor.server.routing.*
 
 fun Route.add() {
     post {
-        val req = call.receive<FoodLogAddRequest>()
+        val req = call.receive<EdibleLogAddRequest>()
         val userPrincipal = call.attributes[UserPrincipalKey]
         val foodLogService = application.attributes[EdibleLogServiceKey]
 
@@ -26,14 +26,14 @@ fun Route.add() {
         call.respond(
             HttpStatusCode.Created,
             DtoRes.success(
-                "food log added successfully",
+                "${req.edibleType} log added successfully",
                 mapOf("food_log_added" to foodLog)
             )
         )
     }
 }
 
-fun FoodLogAddRequest.validate(): ValidationResult {
+fun EdibleLogAddRequest.validate(): ValidationResult {
 
     this.edibleId.toString().validate("edible id") {
         it.isPositiveDouble()
