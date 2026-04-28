@@ -11,36 +11,38 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 import kotlin.time.toKotlinInstant
 
-object AF : IntIdTable("app_foods") {
+object AE : IntIdTable("app_edibles") {
     val name = varchar("name", 50)
     val brand = varchar("brand", 50)
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
+    val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
     val createdBy = reference("created_by", U).nullable()
     val createdAt = timestamp("created_at").clientDefault { Instant.now() }
     val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
 }
 
-class AFDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<AFDao>(AF)
+class AEDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<AEDao>(AE)
 
-    var name by AF.name
-    var brand by AF.brand
-    var amountPerServing by AF.amountPerServing
-    var servingUnit by AF.servingUnit
-    var createdBy by AF.createdBy
-    var createdAt by AF.createdAt
-    var updatedAt by AF.updatedAt
+    var name by AE.name
+    var brand by AE.brand
+    var amountPerServing by AE.amountPerServing
+    var servingUnit by AE.servingUnit
+    var edibleType by AE.edibleType
+    var createdBy by AE.createdBy
+    var createdAt by AE.createdAt
+    var updatedAt by AE.updatedAt
 }
 
-fun AFDao.toBase() = EdibleBase(
+fun AEDao.toBase() = EdibleBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),
     servingUnit = this.servingUnit
 )
 
-fun AFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
+fun AEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),

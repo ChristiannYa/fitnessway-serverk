@@ -2,8 +2,8 @@ package com.example.config
 
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.repository.edible.log.FoodLogRepository
+import com.example.repository.edible.pending.PendingFoodRepository
 import com.example.repository.edible.user.UserEdibleRepository
-import com.example.repository.foods.pending.PendingFoodRepository
 import com.example.repository.nutrient.NutrientRepository
 import com.example.repository.nutrient.intake.NutrientIntakeRepository
 import com.example.repository.refresh.RefreshRepository

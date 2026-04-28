@@ -59,7 +59,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
     override suspend fun insertFromFood(data: NutrientIntakesFromFood): Boolean = suspendTransaction {
         val nutrientsTable = when (data.source) {
-            LogSource.APP -> AFN
+            LogSource.APP -> AEN
             LogSource.USER -> UEN
         }
 

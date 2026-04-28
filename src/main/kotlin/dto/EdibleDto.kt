@@ -30,16 +30,10 @@ data class FoodLogUpdateRequest(
 )
 
 @Serializable
-data class UserEdibleAddRequest(
+data class EdibleAddRequest(
     val base: EdibleBase,
     val nutrients: List<NutrientIdWithAmount>,
     val edibleType: String
-)
-
-@Serializable
-data class PendingFoodAddRequest(
-    val base: EdibleBase,
-    val nutrients: List<NutrientIdWithAmount>
 )
 
 @Serializable

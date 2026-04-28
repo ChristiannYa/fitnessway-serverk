@@ -4,7 +4,7 @@ import com.example.dto.*
 import com.example.routes.auth.validate
 import com.example.routes.edible.log.validate
 import com.example.routes.edible.pending.validate
-import com.example.routes.edible.user.validate
+import com.example.routes.edible.validate
 import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
 
@@ -24,15 +24,14 @@ fun Application.configureRequestValidation() {
         validate<EdibleLogAddRequest> { it.validate() }
         validate<FoodLogUpdateRequest> { it.validate() }
 
-        // -----------
-        // USER EDIBLE
-        // -----------
-        validate<UserEdibleAddRequest> { it.validate() }
+        // ----------------
+        // EDIBLE (GENERAL)
+        // ----------------
+        validate<EdibleAddRequest> { it.validate() }
 
         // ------------
-        // PENDING FOOD
+        // PENDING EDIBLE
         // ------------
-        validate<PendingFoodAddRequest> { it.validate() }
         validate<PendingFoodReviewRequest> { it.validate() }
     }
 }

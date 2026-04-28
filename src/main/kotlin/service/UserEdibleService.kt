@@ -1,7 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
-import com.example.dto.UserEdibleAddRequest
+import com.example.dto.EdibleAddRequest
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.mappers.toCategoryGroups
 import com.example.mappers.toClientFilter
@@ -38,7 +38,7 @@ class UserEdibleService(
     }
 
     suspend fun add(
-        req: UserEdibleAddRequest,
+        req: EdibleAddRequest,
         userPrincipal: UserPrincipal
     ): UserEdible = suspendTransaction {
 
@@ -49,7 +49,7 @@ class UserEdibleService(
         val (ueDao, nutrientList) = userEdibleRepository.create(
             UserEdibleCreate(
                 userId = userPrincipal.id,
-                foodBase = req.base,
+                edibleBase = req.base,
                 nutrientList = req.nutrients,
                 edibleType = req.edibleType.toEnum()
             )

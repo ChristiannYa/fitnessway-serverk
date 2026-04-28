@@ -78,6 +78,7 @@ data class PendingFood(
     val id: Int,
     val information: FoodInformationDto,
     val status: PendingFoodStatus,
+    val edibleType: EdibleType,
     val createdBy: UUID?,
     val reviewedBy: UUID? = null,
     val reviewedAt: Instant? = null,
@@ -159,24 +160,24 @@ data class FoodLogUpdate(
     val servings: Double
 )
 
-// @TODO: Split `food` into `EdibleBase` and `NutrientList`.
-//        Repository should not care about the entire food object
 /**
  * Holds the data needed to create an app food
  */
 data class AppFoodCreate(
-    val food: FoodInformation<NutrientIdWithAmount>,
-    val createdBy: UUID
+    val createdBy: UUID,
+    val base: EdibleBase,
+    val nutrientList: List<NutrientIdWithAmount>,
+    val edibleType: EdibleType
 )
 
-// @TODO: Split `foodInformation` into `EdibleBase` and `NutrientList`.
-//        Repository should not care about the entire food object
 /**
  * Holds the data needed to create a pending food/app food request
  */
 data class PendingFoodCreate(
-    val foodInformation: FoodInformation<NutrientIdWithAmount>,
-    val userPrincipal: UserPrincipal
+    val userId: UUID,
+    val base: EdibleBase,
+    val nutrientList: List<NutrientIdWithAmount>,
+    val edibleType: EdibleType
 )
 
 /**
@@ -184,7 +185,7 @@ data class PendingFoodCreate(
  */
 data class UserEdibleCreate(
     val userId: UUID,
-    val foodBase: EdibleBase,
+    val edibleBase: EdibleBase,
     val nutrientList: List<NutrientIdWithAmount>,
     val edibleType: EdibleType
 )

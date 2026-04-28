@@ -10,12 +10,13 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
 import kotlin.time.toKotlinInstant
 
-object PF : IntIdTable("user_pending_foods") {
+object PE : IntIdTable("user_pending_edibles") {
     val name = varchar("name", 50)
     val brand = varchar("brand", 50)
     val amountPerServing = decimal("amount_per_serving", 12, 4)
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
-    val status = pgEnum<PendingFoodStatus>("status", "app_food_pending_status")
+    val status = pgEnum<PendingFoodStatus>("status", "app_edible_pending_status")
+    val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
     val createdBy = reference("created_by", U).nullable()
     val reviewedBy = reference("reviewed_by", U).nullable()
     val reviewedAt = timestamp("reviewed_at").nullable()
@@ -23,22 +24,23 @@ object PF : IntIdTable("user_pending_foods") {
     val rejectionReason = text("rejection_reason").nullable()
 }
 
-class PFDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<PFDao>(PF)
+class PEDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<PEDao>(PE)
 
-    var name by PF.name
-    var brand by PF.brand
-    var amountPerServing by PF.amountPerServing
-    var servingUnit by PF.servingUnit
-    var status by PF.status
-    var createdBy by PF.createdBy
-    var reviewedBy by PF.reviewedBy
-    var reviewedAt by PF.reviewedAt
-    var createdAt by PF.createdAt
-    var rejectionReason by PF.rejectionReason
+    var name by PE.name
+    var brand by PE.brand
+    var amountPerServing by PE.amountPerServing
+    var servingUnit by PE.servingUnit
+    var status by PE.status
+    var edibleType by PE.edibleType
+    var createdBy by PE.createdBy
+    var reviewedBy by PE.reviewedBy
+    var reviewedAt by PE.reviewedAt
+    var createdAt by PE.createdAt
+    var rejectionReason by PE.rejectionReason
 }
 
-fun PFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
+fun PEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = EdibleBase(
@@ -49,6 +51,7 @@ fun PFDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
         ),
         nutrients = nutrients
     ),
+    edibleType = this.edibleType,
     createdBy = this.createdBy?.value,
     status = this.status,
     reviewedBy = this.reviewedBy?.value,

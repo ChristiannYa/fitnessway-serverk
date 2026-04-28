@@ -1,8 +1,8 @@
 package tests.food.pending
 
 import com.example.domain.PendingFood
+import com.example.repository.edible.pending.PendingFoodRepository
 import com.example.repository.foods.app.AppFoodRepository
-import com.example.repository.foods.pending.PendingFoodRepository
 import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
 import com.example.repository.user.wallets.UserWalletRepository

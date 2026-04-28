@@ -18,13 +18,15 @@ fun List<FoodLog>.toCategory(): FoodLogsCategorized {
  *
  * @return [AppFoodCreate] if the pending food has an author, `null` otherwise
  */
-fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let {
-    val food = FoodInformation(
+fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let { userId ->
+    AppFoodCreate(
+        createdBy = userId,
         base = this.information.base,
-        nutrients = this.information.nutrients.toList().map {
-            NutrientIdWithAmount(it.nutrientData.base.id, it.amount)
-        }
+        nutrientList = this.information.nutrients
+            .toList()
+            .map {
+                NutrientIdWithAmount(it.nutrientData.base.id, it.amount)
+            },
+        edibleType = this.edibleType
     )
-
-    AppFoodCreate(food, this.createdBy)
 }

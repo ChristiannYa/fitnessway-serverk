@@ -89,10 +89,10 @@ class UserEdibleRepository : IUserEdibleRepository {
     ): Pair<UEDao, List<NutrientDataAmount>> = suspendTransaction {
         val ueDao = UEDao.new {
             this.userId = EntityID(createData.userId, U)
-            this.name = createData.foodBase.name
-            this.brand = createData.foodBase.brand
-            this.amountPerServing = createData.foodBase.amountPerServing.toBigDecimal()
-            this.servingUnit = createData.foodBase.servingUnit
+            this.name = createData.edibleBase.name
+            this.brand = createData.edibleBase.brand
+            this.amountPerServing = createData.edibleBase.amountPerServing.toBigDecimal()
+            this.servingUnit = createData.edibleBase.servingUnit
             this.edibleType = createData.edibleType
             this.lastLoggedAt = null
             this.createdAt = Instant.now()

@@ -68,12 +68,12 @@ class FoodLogRepository : IFoodLogRepository {
         val userEdibleIds: List<Int> = foodIdsByType[LogSource.USER] ?: emptyList()
 
         val appNutrientPreviews: Map<Int, NutrientPreview> =
-            queryNutrientPreviews(AFN, appFoodIds, criteria.data.userId)
+            queryNutrientPreviews(AEN, appFoodIds, criteria.data.userId)
 
         val userNutrientPreviews: Map<Int, NutrientPreview> =
             queryNutrientPreviews(UEN, userEdibleIds, criteria.data.userId)
 
-        val appFoodDaos: Map<Int, AFDao> = AFDao
+        val appFoodDaos: Map<Int, AEDao> = AEDao
             .forIds(appFoodIds)
             .associateBy { it.id.value }
             // @TODO: Update to its actual `edibleType` value
@@ -160,8 +160,8 @@ class FoodLogRepository : IFoodLogRepository {
             LogSource.APP -> {
                 if (foodLogFoodId == null) return null
 
-                val afDao = AFDao.findById(foodLogFoodId) ?: return null
-                null to afDao.toBase()
+                val AEDao = AEDao.findById(foodLogFoodId) ?: return null
+                null to AEDao.toBase()
             }
 
             LogSource.USER -> when {

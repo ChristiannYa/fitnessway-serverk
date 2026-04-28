@@ -3,17 +3,19 @@ package com.example.service
 import com.example.config.RewardConfig
 import com.example.domain.*
 import com.example.domain.UserType.*
+import com.example.dto.EdibleAddRequest
 import com.example.dto.PendingFoodReviewRequest
 import com.example.exception.*
 import com.example.mappers.toCategoryGroups
 import com.example.mappers.toClientFilter
 import com.example.mappers.toCreate
 import com.example.mapping.toDto
-import com.example.repository.foods.app.IAppFoodRepository
-import com.example.repository.foods.pending.IPendingFoodRepository
+import com.example.repository.edible.app.IAppFoodRepository
+import com.example.repository.edible.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
 import com.example.utils.suspendTransaction
+import com.example.utils.toEnum
 import java.util.*
 
 class PendingFoodService(
@@ -51,19 +53,29 @@ class PendingFoodService(
         )
     }
 
-    suspend fun add(foodToCreate: PendingFoodCreate): PendingFood = suspendTransaction {
-        val dailyLimit = foodToCreate.userPrincipal.type.getDailyLimit()
+    suspend fun add(
+        req: EdibleAddRequest,
+        userPrincipal: UserPrincipal
+    ): PendingFood = suspendTransaction {
+        val dailyLimit = userPrincipal.type.getDailyLimit()
 
-        val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(foodToCreate.userPrincipal.id)
+        val submissionCount = this@PendingFoodService.countUserSubmissionsOfDay(userPrincipal.id)
         if (submissionCount >= dailyLimit) throw DailySubmissionLimitExceededException(dailyLimit)
 
-        val isAlreadyInApp = appFoodRepository.isDuplicate(foodToCreate.foodInformation)
+        val isAlreadyInApp = appFoodRepository.isDuplicate(req.base, req.nutrients)
         if (isAlreadyInApp) throw FoodAlreadyInAppException()
 
-        val isAlreadyPending = pendingFoodRepository.isDuplicate(foodToCreate.foodInformation)
+        val isAlreadyPending = pendingFoodRepository.isDuplicate(req.base, req.nutrients)
         if (isAlreadyPending) throw FoodAlreadyPendingException()
 
-        val (pfDao, nutrientList) = pendingFoodRepository.create(foodToCreate)
+        val (pfDao, nutrientList) = pendingFoodRepository.create(
+            PendingFoodCreate(
+                userId = userPrincipal.id,
+                base = req.base,
+                nutrientList = req.nutrients,
+                edibleType = req.edibleType.toEnum()
+            )
+        )
 
         pfDao.toDto(
             nutrientList

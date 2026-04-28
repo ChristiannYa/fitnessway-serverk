@@ -1,10 +1,10 @@
-package com.example.repository.foods.pending
+package com.example.repository.edible.pending
 
 import com.example.domain.*
-import com.example.mapping.PF
-import com.example.mapping.PFDao
+import com.example.mapping.PE
+import com.example.mapping.PEDao
 import com.example.mapping.U
-import com.example.mapping.UPFN
+import com.example.mapping.UPEN
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.repository.foods.queryNutrientsForFoods
 import com.example.utils.suspendTransaction
@@ -21,28 +21,28 @@ class PendingFoodRepository : IPendingFoodRepository {
         id: Int,
         createdById: UUID,
         reviewerId: UUID?
-    ): Pair<PFDao, List<NutrientDataAmount>>? = suspendTransaction {
-        val pfDao = PFDao.find {
-            (PF.id eq id) and
-            (PF.createdBy eq createdById)
+    ): Pair<PEDao, List<NutrientDataAmount>>? = suspendTransaction {
+        val peDao = PEDao.find {
+            (PE.id eq id) and
+            (PE.createdBy eq createdById)
         }.firstOrNull() ?: return@suspendTransaction null
 
-        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, reviewerId ?: createdById)
+        val nutrients = queryNutrientsForFood(UPEN, peDao.id.value, reviewerId ?: createdById)
 
-        pfDao to nutrients
+        peDao to nutrients
     }
 
     override suspend fun findPaginated(
         paginationCriteria: PaginationCriteria<PendingFoodsPaginationCriteria>
-    ): Result<PaginationQuery<Pair<PFDao, List<NutrientDataAmount>>>> = suspendTransaction {
+    ): Result<PaginationQuery<Pair<PEDao, List<NutrientDataAmount>>>> = suspendTransaction {
         val criteria = paginationCriteria.data
 
         // @TODO: Remove join and make function receive a user type argument
         val query = run {
-            val pfJoin: Join = PF.join(
+            val pfJoin: Join = PE.join(
                 joinType = JoinType.INNER,
                 otherTable = U,
-                onColumn = PF.createdBy,
+                onColumn = PE.createdBy,
                 otherColumn = U.id
             )
 
@@ -55,28 +55,28 @@ class PendingFoodRepository : IPendingFoodRepository {
                 is UserScope.Id ->
                     pfJoin
                         .selectAll()
-                        .where { PF.createdBy eq userScope.id }
+                        .where { PE.createdBy eq userScope.id }
             }
         }.apply {
-            criteria.status?.let { andWhere { PF.status eq it } }
+            criteria.status?.let { andWhere { PE.status eq it } }
         }
 
         val queryCount = query.count()
 
-        val pfDaos = query
+        val peDao = query
             .limit(paginationCriteria.limit)
             .offset(paginationCriteria.offset)
-            .map { row -> PFDao.wrapRow(row) }
+            .map { row -> PEDao.wrapRow(row) }
 
-        val foodIds = pfDaos.map { it.id.value }
+        val foodIds = peDao.map { it.id.value }
 
         val foodNutrients = queryNutrientsForFoods(
-            UPFN,
+            UPEN,
             foodIds,
             paginationCriteria.data.userId
         )
 
-        val pfDaoMap = pfDaos.associateBy { it.id.value }
+        val pfDaoMap = peDao.associateBy { it.id.value }
         val foods = foodIds.map { foodId ->
             val pfDao = pfDaoMap[foodId] ?: return@suspendTransaction Result.failure(
                 IllegalStateException("pending food dao #${foodId} not found")
@@ -94,84 +94,85 @@ class PendingFoodRepository : IPendingFoodRepository {
 
     override suspend fun create(
         foodToCreate: PendingFoodCreate
-    ): Pair<PFDao, List<NutrientDataAmount>> = suspendTransaction {
-        val foodBase = foodToCreate.foodInformation.base
+    ): Pair<PEDao, List<NutrientDataAmount>> = suspendTransaction {
 
-        val pfDao = PFDao.new {
-            this.name = foodBase.name
-            this.brand = foodBase.brand.toString()
-            this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
-            this.servingUnit = foodBase.servingUnit
+        val peDao = PEDao.new {
+            this.name = foodToCreate.base.name
+            this.brand = foodToCreate.base.brand.toString()
+            this.amountPerServing = foodToCreate.base.amountPerServing.toBigDecimal()
+            this.servingUnit = foodToCreate.base.servingUnit
+            this.edibleType = foodToCreate.edibleType
             this.status = PendingFoodStatus.PENDING
-            this.createdBy = EntityID(foodToCreate.userPrincipal.id, U)
+            this.createdBy = EntityID(foodToCreate.userId, U)
             this.createdAt = Instant.now()
         }
 
-        UPFN.batchInsert(foodToCreate.foodInformation.nutrients) { d ->
-            this[UPFN.edibleId] = pfDao.id
-            this[UPFN.nutrientId] = d.nutrientId
-            this[UPFN.amount] = d.amount.toBigDecimal()
+        UPEN.batchInsert(foodToCreate.nutrientList) { d ->
+            this[UPEN.edibleId] = peDao.id
+            this[UPEN.nutrientId] = d.nutrientId
+            this[UPEN.amount] = d.amount.toBigDecimal()
         }
 
-        val nutrients = queryNutrientsForFood(UPFN, pfDao.id.value, foodToCreate.userPrincipal.id)
-
-        pfDao to nutrients
+        peDao to queryNutrientsForFood(UPEN, peDao.id.value, foodToCreate.userId)
     }
 
     override suspend fun updateStatus(
         pendingFoodReview: PendingFoodReview
-    ): Pair<PFDao, List<NutrientDataAmount>>? = suspendTransaction {
-        val pfDao = PFDao.find {
-            (PF.id eq pendingFoodReview.pendingFoodId) and
-            (PF.createdBy eq pendingFoodReview.createdById)
+    ): Pair<PEDao, List<NutrientDataAmount>>? = suspendTransaction {
+        val peDao = PEDao.find {
+            (PE.id eq pendingFoodReview.pendingFoodId) and
+            (PE.createdBy eq pendingFoodReview.createdById)
         }.firstOrNull() ?: return@suspendTransaction null
 
-        pfDao.apply {
+        peDao.apply {
             status = pendingFoodReview.approvalStatus
             reviewedBy = EntityID(pendingFoodReview.reviewerPrincipal.id, U)
             reviewedAt = Instant.now()
             pendingFoodReview.rejectionReason?.let { reason -> rejectionReason = reason }
         }
 
-        pfDao to queryNutrientsForFood(UPFN, pfDao.id.value, pendingFoodReview.reviewerPrincipal.id)
+        peDao to queryNutrientsForFood(UPEN, peDao.id.value, pendingFoodReview.reviewerPrincipal.id)
     }
 
     override suspend fun countUserSubmissionsOfDay(userId: UUID, date: LocalDate): Int = suspendTransaction {
         val startOfDay = date.atStartOfDay().toInstant(ZoneOffset.UTC)
         val endOfDay = date.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)
 
-        PFDao.find {
-            (PF.createdBy eq userId) and
-            (PF.createdAt greaterEq startOfDay) and
-            (PF.createdAt less endOfDay)
+        PEDao.find {
+            (PE.createdBy eq userId) and
+            (PE.createdAt greaterEq startOfDay) and
+            (PE.createdAt less endOfDay)
         }.count().toInt()
     }
 
-    override suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
-        val pendingFoodBaseDaos = PFDao.find {
-            (PF.name eq food.base.name) and
-            (PF.brand eq food.base.brand.toString()) and
-            (PF.amountPerServing eq food.base.amountPerServing.toBigDecimal()) and
-            (PF.servingUnit eq food.base.servingUnit)
+    override suspend fun isDuplicate(
+        base: EdibleBase,
+        nutrientList: List<NutrientIdWithAmount>
+    ): Boolean = suspendTransaction {
+        val pendingFoodBaseDaos = PEDao.find {
+            (PE.name eq base.name) and
+            (PE.brand eq base.brand.toString()) and
+            (PE.amountPerServing eq base.amountPerServing.toBigDecimal()) and
+            (PE.servingUnit eq base.servingUnit)
         }
 
         pendingFoodBaseDaos.any { foodBaseDao ->
-            val foodBaseDaoNutrients = UPFN
-                .select(UPFN.nutrientId, UPFN.amount)
-                .where { UPFN.edibleId eq foodBaseDao.id }
+            val foodBaseDaoNutrients = UPEN
+                .select(UPEN.nutrientId, UPEN.amount)
+                .where { UPEN.edibleId eq foodBaseDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
-                        nutrientId = row[UPFN.nutrientId].value,
-                        amount = row[UPFN.amount].toDouble()
+                        nutrientId = row[UPEN.nutrientId].value,
+                        amount = row[UPEN.amount].toDouble()
                     )
                 }
 
-            food.nutrients == foodBaseDaoNutrients
+            nutrientList == foodBaseDaoNutrients
         }
     }
 
     override suspend fun delete(pendingFoodId: Int, userId: UUID) = suspendTransaction {
-        PF.deleteWhere {
+        PE.deleteWhere {
             (this.id eq pendingFoodId) and
             (this.createdBy eq userId)
         }

@@ -3,7 +3,6 @@ package com.example.repository.edible.app
 import com.example.domain.*
 import com.example.mappers.toCategoryGroups
 import com.example.mapping.*
-import com.example.repository.foods.app.IAppFoodRepository
 import com.example.repository.foods.queryNutrientPreviews
 import com.example.repository.foods.queryNutrientsForFood
 import com.example.utils.similarity
@@ -17,53 +16,58 @@ import java.util.*
 
 class AppFoodRepository : IAppFoodRepository {
     override suspend fun findById(id: Int, userId: UUID): AppFood? = suspendTransaction {
-        val afDao = AFDao.findById(id)
+        val aeDao = AEDao.findById(id)
             ?: return@suspendTransaction null
 
-        val nutrients = queryNutrientsForFood(AFN, afDao.id.value, userId)
-        afDao.toDto(nutrients.toCategoryGroups())
+        val nutrients = queryNutrientsForFood(AEN, aeDao.id.value, userId)
+        aeDao.toDto(nutrients.toCategoryGroups())
     }
 
     override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {
-        val afDao = foodToCreate.food.base.let { foodBase ->
-            AFDao.new {
+        val aeDao = foodToCreate.base.let { foodBase ->
+            AEDao.new {
                 this.name = foodBase.name
                 this.brand = foodBase.brand.toString()
                 this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
                 this.servingUnit = foodBase.servingUnit
+                this.edibleType = foodToCreate.edibleType
                 this.createdBy = EntityID(foodToCreate.createdBy, U)
             }
         }
 
-        AFN.batchInsert(foodToCreate.food.nutrients) { nutrient ->
-            this[AFN.edibleId] = afDao.id.value
-            this[AFN.nutrientId] = nutrient.nutrientId
-            this[AFN.amount] = nutrient.amount.toBigDecimal()
+        AEN.batchInsert(foodToCreate.nutrientList) { nutrient ->
+            this[AEN.edibleId] = aeDao.id.value
+            this[AEN.nutrientId] = nutrient.nutrientId
+            this[AEN.amount] = nutrient.amount.toBigDecimal()
         }
 
-        afDao.id.value
+        aeDao.id.value
     }
 
-    override suspend fun isDuplicate(food: FoodInformation<NutrientIdWithAmount>): Boolean = suspendTransaction {
-        val appFoodBaseDaos = AFDao.find {
-            (AF.name eq food.base.name) and
-            (AF.brand eq food.base.brand.toString()) and
-            (AF.amountPerServing eq food.base.amountPerServing.toBigDecimal()) and
-            (AF.servingUnit eq food.base.servingUnit)
+    override suspend fun isDuplicate(
+        base: EdibleBase,
+        nutrientList: List<NutrientIdWithAmount>
+    ): Boolean = suspendTransaction {
+
+        val aeDaos = AEDao.find {
+            (AE.name eq base.name) and
+            (AE.brand eq base.brand.toString()) and
+            (AE.amountPerServing eq base.amountPerServing.toBigDecimal()) and
+            (AE.servingUnit eq base.servingUnit)
         }
 
-        appFoodBaseDaos.any { appFoodDao ->
-            val appFoodDaoNutrients = AFN
-                .select(AFN.nutrientId, AFN.amount)
-                .where { AFN.edibleId eq appFoodDao.id }
+        aeDaos.any { appFoodDao ->
+            val appFoodDaoNutrients = AEN
+                .select(AEN.nutrientId, AEN.amount)
+                .where { AEN.edibleId eq appFoodDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
-                        nutrientId = row[AFN.nutrientId].value,
-                        amount = row[AFN.amount].toDouble()
+                        nutrientId = row[AEN.nutrientId].value,
+                        amount = row[AEN.amount].toDouble()
                     )
                 }
 
-            food.nutrients == appFoodDaoNutrients
+            nutrientList == appFoodDaoNutrients
         }
     }
 
@@ -71,21 +75,21 @@ class AppFoodRepository : IAppFoodRepository {
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
         val query = criteria.data.query
-        val matched = AFDao.find {
-            AF.name.lowerCase() like "%${query.lowercase()}%"
+        val matched = AEDao.find {
+            AE.name.lowerCase() like "%${query.lowercase()}%"
         }
 
         val afDaos = matched
             .orderBy(
-                similarity(AF.name, query) to SortOrder.DESC,
-                AF.id to SortOrder.ASC
+                similarity(AE.name, query) to SortOrder.DESC,
+                AE.id to SortOrder.ASC
             )
             .limit(criteria.limit)
             .offset(criteria.offset)
             .toList()
 
         val foodIds = afDaos.map { it.id.value }
-        val nutrientPreviews = queryNutrientPreviews(AFN, foodIds, criteria.data.userId)
+        val nutrientPreviews = queryNutrientPreviews(AEN, foodIds, criteria.data.userId)
 
         val data = afDaos.map { afDao ->
             FoodPreview(
