@@ -18,7 +18,7 @@ class EdibleAlreadyExistsException(
     cause: Throwable? = null
 ) : EdibleExceptions(message, cause)
 
-class InvalidEdibleException(
+class InvalidEdibleTypeException(
     message: String = "invalid edible type",
     cause: Throwable? = null
 ) : EdibleExceptions(message, cause)

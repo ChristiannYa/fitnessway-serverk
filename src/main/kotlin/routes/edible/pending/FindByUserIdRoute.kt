@@ -1,16 +1,15 @@
-package com.example.routes.foods.pending
+package com.example.routes.edible.pending
 
 import com.example.config.PendingFoodServiceKey
 import com.example.config.UserPrincipalKey
-import com.example.domain.PaginationCriteria
-import com.example.domain.PendingFoodStatus
-import com.example.domain.PendingFoodsPaginationCriteria
-import com.example.domain.UserScope
+import com.example.domain.*
 import com.example.dto.DtoRes
+import com.example.exception.InvalidEdibleTypeException
 import com.example.exception.InvalidIdException
 import com.example.exception.InvalidPendingFoodStatusException
 import com.example.utils.extensions.extractPaginationOrThrow
 import com.example.utils.extensions.extractPathParamOrThrow
+import com.example.utils.extensions.extractQueryParamOrNull
 import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -28,15 +27,21 @@ fun Route.findByUserId() {
             UUID.fromString(it)
         } ?: throw InvalidIdException("user")
 
-        val pendingStatus = call.request.queryParameters["pendingStatus"]
-            ?.toEnumOrThrow<PendingFoodStatus> { InvalidPendingFoodStatusException() }
+        val pendingStatus: PendingFoodStatus? = call
+            .extractQueryParamOrNull("pendingStatus")
+            ?.toEnumOrThrow { InvalidPendingFoodStatusException() }
+
+        val edibleType: EdibleType? = call
+            .extractQueryParamOrNull("edibleType")
+            ?.toEnumOrThrow { InvalidEdibleTypeException() }
 
         val pendingFoodsPagination = pendingFoodService.findPaginated(
             PaginationCriteria(
                 data = PendingFoodsPaginationCriteria(
                     userId = userPrincipal.id,
                     userScope = UserScope.Id(userId),
-                    status = pendingStatus
+                    status = pendingStatus,
+                    edibleType = edibleType
                 ),
                 limit = limit,
                 offset = offset

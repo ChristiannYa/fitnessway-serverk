@@ -150,7 +150,7 @@ fun Application.configureStatusPages() {
                 is EdibleNotFoundException ->
                     ex.message.toString() to HttpStatusCode.NotFound
 
-                is InvalidEdibleException ->
+                is InvalidEdibleTypeException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
 
                 is EdibleAlreadyExistsException ->

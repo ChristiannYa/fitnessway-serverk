@@ -37,7 +37,6 @@ class PendingFoodRepository : IPendingFoodRepository {
     ): Result<PaginationQuery<Pair<PEDao, List<NutrientDataAmount>>>> = suspendTransaction {
         val criteria = paginationCriteria.data
 
-        // @TODO: Remove join and make function receive a user type argument
         val query = run {
             val pfJoin: Join = PE.join(
                 joinType = JoinType.INNER,
@@ -59,6 +58,7 @@ class PendingFoodRepository : IPendingFoodRepository {
             }
         }.apply {
             criteria.status?.let { andWhere { PE.status eq it } }
+            criteria.edibleType?.let { andWhere { PE.edibleType eq it } }
         }
 
         val queryCount = query.count()

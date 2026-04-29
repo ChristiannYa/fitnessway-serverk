@@ -6,7 +6,7 @@ import com.example.domain.EdibleType
 import com.example.domain.PaginationCriteria
 import com.example.domain.RecentlyLoggedFoodsPaginationCriteria
 import com.example.dto.DtoRes
-import com.example.exception.InvalidEdibleException
+import com.example.exception.InvalidEdibleTypeException
 import com.example.utils.extensions.extractPaginationOrThrow
 import com.example.utils.extensions.extractPathParamOrThrow
 import com.example.utils.toEnumOrThrow
@@ -23,7 +23,7 @@ fun Route.findLatest() {
 
         val edibleType: EdibleType = call
             .extractPathParamOrThrow("edibleType")
-            .toEnumOrThrow { InvalidEdibleException() }
+            .toEnumOrThrow { InvalidEdibleTypeException() }
 
         val pagination = foodLogService.findLatest(
             PaginationCriteria(

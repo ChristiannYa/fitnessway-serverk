@@ -6,7 +6,7 @@ import com.example.domain.EdibleType
 import com.example.domain.PaginationCriteria
 import com.example.domain.UserEdiblesPaginationCriteria
 import com.example.dto.DtoRes
-import com.example.exception.InvalidEdibleException
+import com.example.exception.InvalidEdibleTypeException
 import com.example.utils.extensions.extractPaginationOrThrow
 import com.example.utils.extensions.extractPathParamOrThrow
 import com.example.utils.toEnumOrThrow
@@ -23,7 +23,7 @@ fun Route.findMyOwn() {
 
         val edibleType = call
             .extractPathParamOrThrow("edibleType")
-            .toEnumOrThrow<EdibleType> { InvalidEdibleException() }
+            .toEnumOrThrow<EdibleType> { InvalidEdibleTypeException() }
 
         val userEdiblesPagination = userEdibleService.findPagination(
             PaginationCriteria(

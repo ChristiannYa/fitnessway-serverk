@@ -220,7 +220,8 @@ data class AppFoodSearchPaginationCriteria(
 data class PendingFoodsPaginationCriteria(
     val userId: UUID,
     val userScope: UserScope,
-    val status: PendingFoodStatus? = null
+    val status: PendingFoodStatus? = null,
+    val edibleType: EdibleType? = null
 )
 
 /**

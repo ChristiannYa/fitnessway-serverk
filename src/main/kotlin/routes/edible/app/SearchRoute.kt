@@ -1,4 +1,4 @@
-package com.example.routes.foods.app
+package com.example.routes.edible.app
 
 import com.example.config.AppFoodServiceKey
 import com.example.config.UserPrincipalKey

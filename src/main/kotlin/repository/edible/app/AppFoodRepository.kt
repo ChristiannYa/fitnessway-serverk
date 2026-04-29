@@ -71,6 +71,7 @@ class AppFoodRepository : IAppFoodRepository {
         }
     }
 
+    // @TODO: Should filter by edible type
     override suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
