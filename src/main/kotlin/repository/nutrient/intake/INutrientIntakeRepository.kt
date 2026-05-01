@@ -6,10 +6,9 @@ import java.util.*
 interface INutrientIntakeRepository {
     suspend fun findByDate(
         userId: UUID,
-        isUserPremium: Boolean,
         range: InstantRange,
         nutrientDataList: List<NutrientData>
-    ): NutrientIntakes
+    ): List<NutrientDataAmount>
 
     suspend fun findByFoodLog(userId: UUID, foodLogId: Int): List<NutrientIntakeRow>
     suspend fun insertFromFood(data: NutrientIntakesFromFood): Boolean
