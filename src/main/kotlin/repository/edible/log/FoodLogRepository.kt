@@ -70,8 +70,6 @@ class FoodLogRepository : IFoodLogRepository {
         criteria: PaginationCriteria<RecentlyLoggedFoodsPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
 
-        var count: Long
-
         val foodIdsByType: Map<LogSource, List<Int>> = UEL
             .select(UEL.edibleId, UEL.logSource, UEL.time.max())
             .where { UEL.userId eq criteria.data.userId }
@@ -79,7 +77,6 @@ class FoodLogRepository : IFoodLogRepository {
             .orderBy(UEL.time.max(), SortOrder.DESC)
             .limit(criteria.limit)
             .offset(criteria.offset)
-            .also { count = it.count() }
             .groupBy({ r -> r[UEL.logSource] }, { r -> r[UEL.edibleId] })
             .mapValues { it.value.filterNotNull() }
 
@@ -126,7 +123,7 @@ class FoodLogRepository : IFoodLogRepository {
             }
         }
 
-        PaginationQuery(data, count)
+        PaginationQuery(data, data.size.toLong())
     }
 
     override suspend fun getBase(userId: UUID, foodLogId: Int): FoodLogBase? = suspendTransaction {

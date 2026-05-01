@@ -87,6 +87,8 @@ class AppFoodRepository : IAppFoodRepository {
             (AE.edibleType eq criteria.data.edibleType)
         }
 
+        val count = matched.count()
+
         val afDaos = matched
             .orderBy(
                 similarity(AE.name, query) to SortOrder.DESC,
@@ -113,6 +115,6 @@ class AppFoodRepository : IAppFoodRepository {
             )
         }
 
-        PaginationQuery(data, matched.count())
+        PaginationQuery(data, count)
     }
 }
