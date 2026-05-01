@@ -1,16 +1,27 @@
 package com.example.service
 
-import com.example.domain.AppFoodSearchPaginationCriteria
-import com.example.domain.FoodPreview
-import com.example.domain.PaginationCriteria
-import com.example.domain.PaginationResult
+import com.example.domain.*
+import com.example.mappers.toCategoryGroups
+import com.example.mappers.toClientFilter
+import com.example.mapping.toDto
 import com.example.repository.edible.app.AppFoodRepository
 import java.util.*
 
 class AppFoodService(
     private val appFoodRepository: AppFoodRepository
 ) {
-    suspend fun findById(id: Int, userId: UUID) = appFoodRepository.findById(id, userId)
+    suspend fun findById(id: Int, userId: UUID, isUserPremium: Boolean): AppFood? {
+        val (aeDao, nutrientList) = appFoodRepository
+            .findById(id, userId)
+            ?: return null
+
+        return aeDao
+            .toDto(
+                nutrients = nutrientList
+                    .toClientFilter(isAppFood = true, isUserPremium = isUserPremium)
+                    .toCategoryGroups()
+            )
+    }
 
     suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>

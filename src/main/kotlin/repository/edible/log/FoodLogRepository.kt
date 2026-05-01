@@ -95,8 +95,7 @@ class FoodLogRepository : IFoodLogRepository {
         val appFoodDaos: Map<Int, AEDao> = AEDao
             .forIds(appFoodIds)
             .associateBy { it.id.value }
-            // @TODO: Update to its actual `edibleType` value
-            .filter { criteria.data.edibleType == EdibleType.FOOD }
+            .filter { it.value.edibleType == criteria.data.edibleType }
 
         val userEdibleDaos: Map<Int, UEDao> = UEDao
             .forIds(userEdibleIds)
@@ -241,7 +240,7 @@ class FoodLogRepository : IFoodLogRepository {
                 )
             }
         }
-        
+
         return Result.success(edibleBase to snapshotStatus)
     }
 

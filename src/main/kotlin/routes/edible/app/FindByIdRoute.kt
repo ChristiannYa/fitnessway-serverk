@@ -1,4 +1,4 @@
-package com.example.routes.foods.app
+package com.example.routes.edible.app
 
 import com.example.config.AppFoodServiceKey
 import com.example.config.UserPrincipalKey
@@ -17,7 +17,7 @@ fun Route.findById() {
         val appFoodId = call.extractPathParamOrThrow("id").toIntOrNull()
             ?: throw InvalidIdException("app food")
 
-        val appFood = appFoodService.findById(appFoodId, userPrincipal.id)
+        val appFood = appFoodService.findById(appFoodId, userPrincipal.id, userPrincipal.isPremium)
 
         call.respond(
             HttpStatusCode.OK,

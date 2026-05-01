@@ -1,8 +1,10 @@
 package com.example.repository.edible.app
 
 import com.example.domain.*
-import com.example.mappers.toCategoryGroups
-import com.example.mapping.*
+import com.example.mapping.AE
+import com.example.mapping.AEDao
+import com.example.mapping.AEN
+import com.example.mapping.U
 import com.example.repository.edible.queryNutrientPreviews
 import com.example.repository.edible.queryNutrientsForFood
 import com.example.utils.similarity
@@ -15,12 +17,17 @@ import org.jetbrains.exposed.sql.lowerCase
 import java.util.*
 
 class AppFoodRepository : IAppFoodRepository {
-    override suspend fun findById(id: Int, userId: UUID): AppFood? = suspendTransaction {
-        val aeDao = AEDao.findById(id)
+
+    override suspend fun findById(
+        id: Int,
+        userId: UUID
+    ): Pair<AEDao, List<NutrientDataAmount>>? = suspendTransaction {
+
+        val aeDao = AEDao
+            .findById(id)
             ?: return@suspendTransaction null
 
-        val nutrients = queryNutrientsForFood(AEN, aeDao.id.value, userId)
-        aeDao.toDto(nutrients.toCategoryGroups())
+        aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
     }
 
     override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {

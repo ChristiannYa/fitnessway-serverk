@@ -25,7 +25,7 @@ fun List<NutrientDataAmount>.toClientFilter(
     isAppFood: Boolean = false,
     isUserPremium: Boolean = false
 ) = this
-    .filter { isAppFood || it.nutrientData.preferences.goal != null }
+    .filter { it.nutrientData.preferences.goal != null }
     .filter { isAppFood || isUserPremium || !it.nutrientData.base.isPremium }
     .sortedWith(
         compareBy<NutrientDataAmount> {
