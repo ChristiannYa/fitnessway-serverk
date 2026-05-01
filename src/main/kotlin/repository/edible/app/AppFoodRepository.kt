@@ -3,8 +3,8 @@ package com.example.repository.edible.app
 import com.example.domain.*
 import com.example.mappers.toCategoryGroups
 import com.example.mapping.*
-import com.example.repository.foods.queryNutrientPreviews
-import com.example.repository.foods.queryNutrientsForFood
+import com.example.repository.edible.queryNutrientPreviews
+import com.example.repository.edible.queryNutrientsForFood
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID

@@ -21,8 +21,8 @@ object UES : IntIdTable("user_edible_snapshots") {
     val createdAt = timestamp("created_at")
 }
 
-class UFSDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UFSDao>(UES)
+class UESDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<UESDao>(UES)
 
     var originalEdibleId by UES.originalEdibleId
     var userId by UES.userId
@@ -34,7 +34,7 @@ class UFSDao(id: EntityID<Int>) : IntEntity(id) {
     var createdAt by UES.createdAt
 }
 
-fun UFSDao.toBase() = EdibleBase(
+fun UESDao.toBase() = EdibleBase(
     name = this.name,
     brand = this.brand,
     amountPerServing = this.amountPerServing.toDouble(),

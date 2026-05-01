@@ -5,8 +5,8 @@ import com.example.mapping.PE
 import com.example.mapping.PEDao
 import com.example.mapping.U
 import com.example.mapping.UPEN
-import com.example.repository.foods.queryNutrientsForFood
-import com.example.repository.foods.queryNutrientsForFoods
+import com.example.repository.edible.queryNutrientsForFood
+import com.example.repository.edible.queryNutrientsForFoods
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*

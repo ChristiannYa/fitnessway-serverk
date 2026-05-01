@@ -1,4 +1,4 @@
-package com.example.routes.foods.log
+package com.example.routes.edible.log
 
 import com.example.config.EdibleLogServiceKey
 import com.example.config.UserPrincipalKey
@@ -14,10 +14,12 @@ fun Route.findById() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val foodLogService = application.attributes[EdibleLogServiceKey]
 
-        val foodLogId = call.extractPathParamOrThrow("id").toIntOrNull()
+        val foodLogId = call
+            .extractPathParamOrThrow("id")
+            .toIntOrNull()
             ?: throw InvalidIdException("food log")
 
-        val foodLog = foodLogService.findById(userPrincipal.id, foodLogId, userPrincipal.isPremium)
+        val foodLog = foodLogService.findById(foodLogId, userPrincipal.id, userPrincipal.isPremium)
 
         call.respond(
             HttpStatusCode.OK,

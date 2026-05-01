@@ -4,6 +4,7 @@
 package com.example.domain
 
 import com.example.dto.FoodInformationDto
+import com.example.mapping.UELDao
 import com.example.utils.UUIDSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -103,10 +104,10 @@ data class FoodLog(
     val loggedAt: Instant,
     val servings: Double,
     val userEdibleSnapshotStatus: UserEdibleSnapshotStatus? = null,
-    val userFoodSnapshotId: Int?,
+    val userEdibleSnapshotId: Int?,
     val source: LogSource,
-    val foodId: Int?,
-    val foodInformation: FoodInformationDto
+    val edibleId: Int?,
+    val edibleInformation: FoodInformationDto
 )
 
 @Serializable
@@ -125,16 +126,28 @@ data class FoodPreview(
     val source: LogSource
 )
 
-data class FoodInformation<N : NutrientEntry>(
-    val base: EdibleBase,
-    val nutrients: List<N>
-)
-
 data class FoodLogBase(
     val foodId: Int?,
     val userFoodSnapshotId: Int?,
     val servings: Double,
     val source: LogSource
+)
+
+/**
+ * Holds the data the edible log repostiory will provide in order
+ * for the service to build the completed object based on some
+ * business logic
+ */
+data class EdibleLogBuildData(
+    val dao: UELDao,
+    val edibleBase: EdibleBase,
+    val nutrientList: List<NutrientDataAmount>,
+    val snapshotStatus: UserEdibleSnapshotStatus?
+)
+
+data class FoodInformation<N : NutrientEntry>(
+    val base: EdibleBase,
+    val nutrients: List<N>
 )
 
 /**

@@ -1,4 +1,4 @@
-package com.example.repository.foods
+package com.example.repository.edible
 
 import com.example.constants.NutrientId
 import com.example.domain.NutrientAmountWithColor

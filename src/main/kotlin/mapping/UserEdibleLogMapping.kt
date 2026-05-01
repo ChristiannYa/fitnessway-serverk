@@ -24,8 +24,8 @@ object UEL : IntIdTable("user_edible_logs") {
     val logSource = pgEnum<LogSource>("source", "log_source")
 }
 
-class UFLDao(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<UFLDao>(UEL)
+class UELDao(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<UELDao>(UEL)
 
     var userId by UEL.userId
     var edibleId by UEL.edibleId
@@ -37,9 +37,8 @@ class UFLDao(id: EntityID<Int>) : IntEntity(id) {
     var logSource by UEL.logSource
 }
 
-fun UFLDao.toDto(
+fun UELDao.toDto(
     userEdibleSnapshotStatus: UserEdibleSnapshotStatus?,
-    foodId: Int?,
     foodInformationDto: FoodInformationDto
 ) = FoodLog(
     id = this.id.value,
@@ -48,8 +47,8 @@ fun UFLDao.toDto(
     loggedAt = this.loggedAt.toInstant().toKotlinInstant(),
     servings = this.servings.toDouble(),
     userEdibleSnapshotStatus = userEdibleSnapshotStatus,
-    userFoodSnapshotId = this.edibleSnapshotId?.value,
+    userEdibleSnapshotId = this.edibleSnapshotId?.value,
     source = this.logSource,
-    foodId = foodId,
-    foodInformation = foodInformationDto
+    edibleId = this.edibleId,
+    edibleInformation = foodInformationDto
 )

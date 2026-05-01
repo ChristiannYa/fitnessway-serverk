@@ -2,10 +2,14 @@ package com.example.service
 
 import com.example.domain.*
 import com.example.dto.EdibleLogAddRequest
+import com.example.dto.FoodInformationDto
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
+import com.example.mappers.toCategoryGroups
+import com.example.mappers.toClientFilter
+import com.example.mapping.toDto
 import com.example.repository.edible.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.TimeConverter
@@ -19,8 +23,31 @@ class EdibleLogService(
     private val nutrientIntakeRepository: INutrientIntakeRepository,
     private val timeConverter: TimeConverter,
 ) {
-    suspend fun findById(userId: UUID, id: Int, isUserPremium: Boolean) =
-        foodLogRepository.findById(userId, id, isUserPremium)
+    private fun EdibleLogBuildData.build(isUserPremium: Boolean): FoodLog =
+        this.dao.toDto(
+            userEdibleSnapshotStatus = this.snapshotStatus,
+            foodInformationDto = FoodInformationDto(
+                base = this.edibleBase,
+                nutrients = this.nutrientList
+                    .toClientFilter(
+                        isUserPremium = isUserPremium,
+                        isAppFood = this.dao.logSource == LogSource.APP
+                    )
+                    .toCategoryGroups()
+            )
+        )
+
+    suspend fun findById(
+        id: Int,
+        userId: UUID,
+        isUserPremium: Boolean
+    ): FoodLog? = suspendTransaction {
+        val buildData = foodLogRepository
+            .findById(id, userId)
+            ?: return@suspendTransaction null
+
+        buildData.build(isUserPremium)
+    }
 
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): FoodLogsCategorized {
         val range = timeConverter
@@ -30,6 +57,7 @@ class EdibleLogService(
         return foodLogRepository
             .findByDate(userPrincipal.id, userPrincipal.isPremium, range)
             .getOrElse { throw it }
+            .map { it.build(userPrincipal.isPremium) }
             .toCategory()
     }
 
@@ -78,16 +106,16 @@ class EdibleLogService(
             )
         }
 
-        val foodLog = foodLogRepository.findById(userPrincipal.id, foodLogId, userPrincipal.isPremium)
+        val foodLogBuildData = foodLogRepository.findById(foodLogId, userPrincipal.id)
             ?: throw FoodLogNotFoundException(
                 "food log ($foodLogId) not found after nutrient insertion when logging food"
             )
 
-        foodLog
+        foodLogBuildData.build(userPrincipal.isPremium)
     }
 
     suspend fun update(updateData: FoodLogUpdate): FoodLog = suspendTransaction {
-        val baseData = foodLogRepository.getBaseData(updateData.userId, updateData.foodLogId)
+        val baseData = foodLogRepository.getBase(updateData.userId, updateData.foodLogId)
             ?: throw IllegalStateException(
                 "food log (${updateData.foodLogId}) base data not found"
             )
@@ -135,9 +163,12 @@ class EdibleLogService(
             )
         }
 
-        foodLogRepository.findById(updateData.userId, updateData.foodLogId, updateData.isUserPremium)
+        val foodLogBuildData = foodLogRepository
+            .findById(updateData.foodLogId, updateData.userId)
             ?: throw FoodLogNotFoundException(
                 "food log (${updateData.foodLogId}) not found after inserting intakes"
             )
+
+        foodLogBuildData.build(updateData.isUserPremium)
     }
 }
