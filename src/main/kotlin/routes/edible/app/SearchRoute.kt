@@ -3,10 +3,13 @@ package com.example.routes.edible.app
 import com.example.config.AppFoodServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.AppFoodSearchPaginationCriteria
+import com.example.domain.EdibleType
 import com.example.domain.PaginationCriteria
 import com.example.dto.DtoRes
-import com.example.exception.MissingSearchQueryException
+import com.example.exception.InvalidEdibleTypeException
 import com.example.utils.extensions.extractPaginationOrThrow
+import com.example.utils.extensions.extractQueryParamOrThrow
+import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -18,14 +21,17 @@ fun Route.search() {
 
         val (limit, offset) = call.extractPaginationOrThrow()
 
-        val query = call.request.queryParameters["q"]?.trim()
-            ?: throw MissingSearchQueryException()
+        val query = call.extractQueryParamOrThrow("q")
+        val edibleType: EdibleType = call
+            .extractQueryParamOrThrow("edibleType")
+            .toEnumOrThrow { InvalidEdibleTypeException() }
 
         val pagination = appFoodService.search(
             PaginationCriteria(
                 data = AppFoodSearchPaginationCriteria(
                     query = query,
-                    userId = userPrincipal.id
+                    userId = userPrincipal.id,
+                    edibleType = edibleType
                 ),
                 limit = limit,
                 offset = offset

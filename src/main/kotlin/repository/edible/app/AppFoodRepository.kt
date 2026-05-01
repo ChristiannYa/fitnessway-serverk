@@ -78,13 +78,13 @@ class AppFoodRepository : IAppFoodRepository {
         }
     }
 
-    // @TODO: Should filter by edible type
     override suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
     ): PaginationQuery<FoodPreview> = suspendTransaction {
         val query = criteria.data.query
         val matched = AEDao.find {
-            AE.name.lowerCase() like "%${query.lowercase()}%"
+            (AE.name.lowerCase() like "%${query.lowercase()}%") and
+            (AE.edibleType eq criteria.data.edibleType)
         }
 
         val afDaos = matched

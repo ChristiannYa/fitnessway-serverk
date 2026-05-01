@@ -224,7 +224,8 @@ data class PendingFoodReview(
  */
 data class AppFoodSearchPaginationCriteria(
     val query: String,
-    val userId: UUID
+    val userId: UUID,
+    val edibleType: EdibleType
 )
 
 /**
