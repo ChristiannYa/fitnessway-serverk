@@ -19,7 +19,7 @@ fun Route.findById() {
             .toIntOrNull()
             ?: throw InvalidIdException("food log")
 
-        val foodLog = foodLogService.findById(foodLogId, userPrincipal.id, userPrincipal.isPremium)
+        val foodLog = foodLogService.findById(foodLogId, userPrincipal.id)
 
         call.respond(
             HttpStatusCode.OK,

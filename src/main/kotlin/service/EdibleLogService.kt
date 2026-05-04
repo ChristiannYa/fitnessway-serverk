@@ -8,7 +8,6 @@ import com.example.exception.FoodLogNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
 import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
 import com.example.mapping.toDto
 import com.example.repository.edible.log.IFoodLogRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
@@ -23,30 +22,24 @@ class EdibleLogService(
     private val nutrientIntakeRepository: INutrientIntakeRepository,
     private val timeConverter: TimeConverter,
 ) {
-    private fun EdibleLogBuildData.build(isUserPremium: Boolean): FoodLog =
+    private fun EdibleLogBuildData.build(): FoodLog =
         this.dao.toDto(
             userEdibleSnapshotStatus = this.snapshotStatus,
             foodInformationDto = FoodInformationDto(
                 base = this.edibleBase,
-                nutrients = this.nutrientList
-                    .toClientFilter(
-                        isUserPremium = isUserPremium,
-                        isAppFood = this.dao.logSource == LogSource.APP
-                    )
-                    .toCategoryGroups()
+                nutrients = this.nutrientList.toCategoryGroups()
             )
         )
 
     suspend fun findById(
         id: Int,
         userId: UUID,
-        isUserPremium: Boolean
     ): FoodLog? = suspendTransaction {
         val buildData = foodLogRepository
             .findById(id, userId)
             ?: return@suspendTransaction null
 
-        buildData.build(isUserPremium)
+        buildData.build()
     }
 
     suspend fun findByDate(userPrincipal: UserPrincipal, date: String): FoodLogsCategorized {
@@ -57,7 +50,7 @@ class EdibleLogService(
         return foodLogRepository
             .findByDate(userPrincipal.id, userPrincipal.isPremium, range)
             .getOrElse { throw it }
-            .map { it.build(userPrincipal.isPremium) }
+            .map { it.build() }
             .toCategory()
     }
 
@@ -111,7 +104,7 @@ class EdibleLogService(
                 "food log ($foodLogId) not found after nutrient insertion when logging food"
             )
 
-        foodLogBuildData.build(userPrincipal.isPremium)
+        foodLogBuildData.build()
     }
 
     suspend fun update(updateData: FoodLogUpdate): FoodLog = suspendTransaction {
@@ -169,6 +162,6 @@ class EdibleLogService(
                 "food log (${updateData.foodLogId}) not found after inserting intakes"
             )
 
-        foodLogBuildData.build(updateData.isUserPremium)
+        foodLogBuildData.build()
     }
 }

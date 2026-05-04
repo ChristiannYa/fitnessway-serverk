@@ -10,7 +10,7 @@ import java.util.*
 class AppFoodService(
     private val appFoodRepository: AppFoodRepository
 ) {
-    suspend fun findById(id: Int, userId: UUID, isUserPremium: Boolean): AppFood? {
+    suspend fun findById(id: Int, userId: UUID): AppFood? {
         val (aeDao, nutrientList) = appFoodRepository
             .findById(id, userId)
             ?: return null
@@ -18,7 +18,7 @@ class AppFoodService(
         return aeDao
             .toDto(
                 nutrients = nutrientList
-                    .toClientFilter(isAppFood = true, isUserPremium = isUserPremium)
+                    .toClientFilter(isAppFood = true)
                     .toCategoryGroups()
             )
     }

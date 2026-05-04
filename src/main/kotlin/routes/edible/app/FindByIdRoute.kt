@@ -17,7 +17,7 @@ fun Route.findById() {
         val appFoodId = call.extractPathParamOrThrow("id").toIntOrNull()
             ?: throw InvalidIdException("app food")
 
-        val appFood = appFoodService.findById(appFoodId, userPrincipal.id, userPrincipal.isPremium)
+        val appFood = appFoodService.findById(appFoodId, userPrincipal.id)
 
         call.respond(
             HttpStatusCode.OK,

@@ -4,7 +4,6 @@ import com.example.domain.*
 import com.example.dto.EdibleAddRequest
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
 import com.example.mapping.toDto
 import com.example.repository.edible.user.UserEdibleRepository
 import com.example.utils.suspendTransaction
@@ -16,7 +15,6 @@ class UserEdibleService(
 
     suspend fun findPagination(
         paginationCriteria: PaginationCriteria<UserEdiblesPaginationCriteria>,
-        isUserPremium: Boolean
     ): PaginationResult<UserEdible> {
         val pagination = userEdibleRepository
             .findPagination(paginationCriteria)
@@ -24,11 +22,7 @@ class UserEdibleService(
 
         return PaginationResult(
             data = pagination.data.map { (ueDao, nutrientList) ->
-                ueDao.toDto(
-                    nutrientList
-                        .toClientFilter(isUserPremium = isUserPremium)
-                        .toCategoryGroups()
-                )
+                ueDao.toDto(nutrientList.toCategoryGroups())
             },
             totalCount = pagination.totalCount,
             pageCount = paginationCriteria.calcPageCount(pagination.totalCount.toDouble()),
@@ -55,10 +49,6 @@ class UserEdibleService(
             )
         )
 
-        ueDao.toDto(
-            nutrientList
-                .toClientFilter(isUserPremium = userPrincipal.isPremium)
-                .toCategoryGroups()
-        )
+        ueDao.toDto(nutrientList.toCategoryGroups())
     }
 }

@@ -34,7 +34,6 @@ fun Route.findMyOwn() {
                 limit = limit,
                 offset = offset
             ),
-            isUserPremium = userPrincipal.isPremium
         )
 
         call.respond(
