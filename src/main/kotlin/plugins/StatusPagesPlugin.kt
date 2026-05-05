@@ -129,6 +129,9 @@ fun Application.configureStatusPages() {
 
                 is InvalidUserTypeException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
+
+                is InvalidUserTimezoneException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 

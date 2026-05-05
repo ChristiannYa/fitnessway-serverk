@@ -7,5 +7,6 @@ import java.util.*
 interface IUserRepository {
     suspend fun findById(id: UUID): User?
     suspend fun findByEmail(email: String): User?
+    suspend fun setTimezone(userId: UUID, timezone: String): Boolean
     suspend fun create(user: UserCreate): User
 }

@@ -7,6 +7,7 @@ import com.example.mapping.U
 import com.example.mapping.UDao
 import com.example.mapping.toDto
 import com.example.utils.suspendTransaction
+import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.util.*
 
@@ -23,6 +24,19 @@ class UserRepository : IUserRepository {
             .find { U.email eq email }
             .singleOrNull()
             ?.toDto()
+    }
+
+    override suspend fun setTimezone(
+        userId: UUID,
+        timezone: String
+    ): Boolean = suspendTransaction {
+        val updateCount = U.update(
+            where = { U.id eq userId }
+        ) {
+            it[U.timezone] = timezone
+        }
+
+        updateCount == 1
     }
 
     override suspend fun create(user: UserCreate): User = suspendTransaction {

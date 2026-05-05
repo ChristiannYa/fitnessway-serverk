@@ -8,17 +8,11 @@ sealed class UserException(
     cause: Throwable? = null
 ) : Exception(message, cause)
 
-/**
- * Thrown when a user is not found
- */
 class UserNotFoundException(
     message: String = "User not found",
     cause: Throwable? = null
 ) : UserException(message, cause)
 
-/**
- * Thrown when trying to create a user that already exists
- */
 class UserAlreadyExistsException(
     message: String = "User with this email already exists",
     cause: Throwable? = null
@@ -26,5 +20,10 @@ class UserAlreadyExistsException(
 
 class InvalidUserTypeException(
     message: String = "Invalid user type",
+    cause: Throwable? = null
+) : UserException(message, cause)
+
+class InvalidUserTimezoneException(
+    message: String = "Invalid user timezone",
     cause: Throwable? = null
 ) : UserException(message, cause)

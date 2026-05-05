@@ -162,10 +162,15 @@ class FoodLogRepository : IFoodLogRepository {
         servings: Double
     ): Boolean = suspendTransaction {
         val updateCount = UEL.update(
-            where = { (UEL.userId eq userId) and (UEL.id eq foodLogId) }
-        ) { it[UEL.servings] = servings.toBigDecimal() }
+            where = {
+                (UEL.userId eq userId) and
+                (UEL.id eq foodLogId)
+            }
+        ) {
+            it[UEL.servings] = servings.toBigDecimal()
+        }
 
-        updateCount > 0
+        updateCount == 1
     }
 
     private fun UELDao.getEdibleBaseToSnapshotPairResult(
