@@ -22,8 +22,8 @@ fun Route.findById() {
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success(
-                "app food retrieved successfully",
-                mapOf("app_food" to appFood)
+                "app edible retrieved successfully",
+                mapOf("app_edible" to appFood)
             )
         )
     }
