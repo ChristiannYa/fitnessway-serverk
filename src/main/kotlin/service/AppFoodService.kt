@@ -1,10 +1,10 @@
 package com.example.service
 
 import com.example.domain.*
-import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
+import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.app.AppFoodRepository
+import com.example.utils.extensions.sortBaseNutrients
 import java.util.*
 
 class AppFoodService(
@@ -18,8 +18,8 @@ class AppFoodService(
         return aeDao
             .toDto(
                 nutrients = nutrientList
-                    .toClientFilter(isAppFood = true)
-                    .toCategoryGroups()
+                    .sortBaseNutrients()
+                    .toNutrientsByType()
             )
     }
 

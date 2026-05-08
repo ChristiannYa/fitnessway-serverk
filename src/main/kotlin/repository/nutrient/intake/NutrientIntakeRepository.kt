@@ -33,7 +33,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
 
         nutrientDataList.map { nutrientData ->
             NutrientDataAmount(
-                nutrientData = nutrientData,
+                data = nutrientData,
                 amount = intakesMap[nutrientData.base.id] ?: 0.0
             )
         }

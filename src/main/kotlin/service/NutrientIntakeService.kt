@@ -2,11 +2,12 @@ package com.example.service
 
 import com.example.domain.NutrientIntakes
 import com.example.domain.UserPrincipal
-import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
+import com.example.mappers.toNutrientsByType
 import com.example.repository.nutrient.INutrientRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.TimeConverter
+import com.example.utils.extensions.filterAccesibility
+import com.example.utils.extensions.sortBaseNutrients
 import io.ktor.server.plugins.*
 
 class NutrientIntakeService(
@@ -26,7 +27,8 @@ class NutrientIntakeService(
             range,
             nutrientDataList
         )
-            .toClientFilter(isUserPremium = userPrincipal.isPremium)
-            .toCategoryGroups()
+            .filterAccesibility(isUserPremium = userPrincipal.isPremium)
+            .sortBaseNutrients()
+            .toNutrientsByType()
     }
 }

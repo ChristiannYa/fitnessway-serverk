@@ -6,14 +6,14 @@ import com.example.domain.UserType.*
 import com.example.dto.EdibleAddRequest
 import com.example.dto.PendingFoodReviewRequest
 import com.example.exception.*
-import com.example.mappers.toCategoryGroups
-import com.example.mappers.toClientFilter
 import com.example.mappers.toCreate
+import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.app.IAppFoodRepository
 import com.example.repository.edible.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
+import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 import java.util.*
@@ -41,7 +41,7 @@ class PendingFoodService(
 
         return PaginationResult(
             data = paginationQuery.data.map { (pfDao, nutrientList) ->
-                pfDao.toDto(nutrientList.toCategoryGroups())
+                pfDao.toDto(nutrientList.toNutrientsByType())
             },
             totalCount = paginationQuery.totalCount,
             pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
@@ -75,8 +75,8 @@ class PendingFoodService(
 
         pfDao.toDto(
             nutrientList
-                .toClientFilter(isAppFood = true)
-                .toCategoryGroups()
+                .sortBaseNutrients()
+                .toNutrientsByType()
         )
     }
 
@@ -94,8 +94,8 @@ class PendingFoodService(
             )
 
             val nutrients = nutrientList
-                .toClientFilter(isAppFood = true)
-                .toCategoryGroups()
+                .sortBaseNutrients()
+                .toNutrientsByType()
 
             val pendingFood = pfDao.toDto(nutrients)
 
@@ -119,8 +119,8 @@ class PendingFoodService(
 
             val reviewedFood = pfDaoUpdated.toDto(
                 nutrientListUpdated
-                    .toClientFilter(isAppFood = true)
-                    .toCategoryGroups()
+                    .sortBaseNutrients()
+                    .toNutrientsByType()
             )
 
             if (reviewData.isApproved) {
@@ -167,8 +167,8 @@ class PendingFoodService(
             ?: throw EdibleNotFoundException("pending food #$pendingFoodId not found when dismissing review")
 
         val nutrients = nutrientList
-            .toClientFilter(isAppFood = true)
-            .toCategoryGroups()
+            .sortBaseNutrients()
+            .toNutrientsByType()
 
         val pendingFood = pfDao.toDto(nutrients)
 

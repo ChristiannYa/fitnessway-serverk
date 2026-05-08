@@ -3,9 +3,10 @@ package com.example.service
 import com.example.domain.*
 import com.example.dto.EdibleAddRequest
 import com.example.exception.EdibleAlreadyExistsException
-import com.example.mappers.toCategoryGroups
+import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.user.UserEdibleRepository
+import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 
@@ -22,7 +23,11 @@ class UserEdibleService(
 
         return PaginationResult(
             data = pagination.data.map { (ueDao, nutrientList) ->
-                ueDao.toDto(nutrientList.toCategoryGroups())
+                ueDao.toDto(
+                    nutrientList
+                        .sortBaseNutrients()
+                        .toNutrientsByType()
+                )
             },
             totalCount = pagination.totalCount,
             pageCount = paginationCriteria.calcPageCount(pagination.totalCount.toDouble()),
@@ -49,6 +54,6 @@ class UserEdibleService(
             )
         )
 
-        ueDao.toDto(nutrientList.toCategoryGroups())
+        ueDao.toDto(nutrientList.toNutrientsByType())
     }
 }

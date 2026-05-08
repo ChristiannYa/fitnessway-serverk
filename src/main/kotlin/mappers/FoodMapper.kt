@@ -25,7 +25,7 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let { userId ->
         nutrientList = this.information.nutrients
             .toList()
             .map {
-                NutrientIdWithAmount(it.nutrientData.base.id, it.amount)
+                NutrientIdWithAmount(it.data.base.id, it.amount)
             },
         edibleType = this.edibleType
     )

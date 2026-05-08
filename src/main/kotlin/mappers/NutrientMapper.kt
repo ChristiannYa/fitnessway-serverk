@@ -1,6 +1,5 @@
 package com.example.mappers
 
-import com.example.constants.NutrientId
 import com.example.domain.*
 import com.example.mapping.EdibleNutrientTable
 import com.example.mapping.N
@@ -10,7 +9,7 @@ import org.jetbrains.exposed.sql.ResultRow
 fun <N : NutrientGroupable> NutrientsByType<N>.toList() =
     this.basic + this.vitamins + this.minerals
 
-fun <N : NutrientGroupable> List<N>.toCategoryGroups() =
+fun <N : NutrientGroupable> List<N>.toNutrientsByType() =
     this
         .groupBy { it.iNutrientType }
         .let {
@@ -21,27 +20,8 @@ fun <N : NutrientGroupable> List<N>.toCategoryGroups() =
             )
         }
 
-fun List<NutrientDataAmount>.toClientFilter(
-    isAppFood: Boolean = false,
-    isUserPremium: Boolean = false
-) = this
-    .filter { it.nutrientData.preferences.goal != null }
-    .filter { isAppFood || isUserPremium || !it.nutrientData.base.isPremium }
-    .sortedWith(
-        compareBy<NutrientDataAmount> {
-            listOf(
-                NutrientId.CALORIES,
-                NutrientId.CARBS,
-                NutrientId.FATS,
-                NutrientId.PROTEIN
-            )
-                .indexOf(it.nutrientData.base.id)
-                .let { i -> if (i != -1) i else Int.MAX_VALUE }
-        }.thenBy { it.nutrientData.base.id }
-    )
-
 fun ResultRow.toNutrientDataAmount(edibleNutrientTable: EdibleNutrientTable) = NutrientDataAmount(
-    nutrientData = NutrientData(
+    data = NutrientData(
         base = NutrientBase(
             id = this[N.id].value,
             name = this[N.name],

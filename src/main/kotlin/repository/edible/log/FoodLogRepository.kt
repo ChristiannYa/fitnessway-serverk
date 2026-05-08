@@ -261,7 +261,7 @@ class FoodLogRepository : IFoodLogRepository {
         }
         .map { row ->
             NutrientDataAmount(
-                nutrientData = NutrientData(
+                data = NutrientData(
                     base = N.toBase(row),
                     preferences = UNP.toNutrientPreferences(row)
                 ),
