@@ -5,6 +5,7 @@ import io.ktor.server.routing.*
 fun Route.appFoodRoutes() {
     route("/app") {
         findById()
+        findByBarcode()
         search()
     }
 }

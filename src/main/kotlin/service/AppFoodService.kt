@@ -2,6 +2,7 @@ package com.example.service
 
 import com.example.domain.*
 import com.example.mappers.toNutrientsByType
+import com.example.mapping.AEDao
 import com.example.mapping.toDto
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.utils.extensions.sortBaseNutrients
@@ -10,10 +11,8 @@ import java.util.*
 class AppFoodService(
     private val appFoodRepository: AppFoodRepository
 ) {
-    suspend fun findById(id: Int, userId: UUID): AppFood? {
-        val (aeDao, nutrientList) = appFoodRepository
-            .findById(id, userId)
-            ?: return null
+    private suspend fun find(finder: suspend () -> Pair<AEDao, List<NutrientDataAmount>>?): AppFood? {
+        val (aeDao, nutrientList) = finder() ?: return null
 
         return aeDao
             .toDto(
@@ -22,6 +21,12 @@ class AppFoodService(
                     .toNutrientsByType()
             )
     }
+
+    suspend fun findById(id: Int, userId: UUID): AppFood? =
+        find { appFoodRepository.findById(id, userId) }
+
+    suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
+        find { appFoodRepository.findByBarcode(barcode, userId) }
 
     suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>

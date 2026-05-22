@@ -1,19 +1,13 @@
 package com.example.repository.edible.app
 
 import com.example.domain.*
-import com.example.mapping.AE
-import com.example.mapping.AEDao
-import com.example.mapping.AEN
-import com.example.mapping.U
+import com.example.mapping.*
 import com.example.repository.edible.queryNutrientPreviews
 import com.example.repository.edible.queryNutrientsForFood
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.batchInsert
-import org.jetbrains.exposed.sql.lowerCase
+import org.jetbrains.exposed.sql.*
 import java.util.*
 
 class AppFoodRepository : IAppFoodRepository {
@@ -25,6 +19,27 @@ class AppFoodRepository : IAppFoodRepository {
 
         val aeDao = AEDao
             .findById(id)
+            ?: return@suspendTransaction null
+
+        aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
+    }
+
+    override suspend fun findByBarcode(
+        barcode: String,
+        userId: UUID
+    ): Pair<AEDao, List<NutrientDataAmount>>? = suspendTransaction {
+
+        val aeDao: AEDao = AE
+            .join(
+                joinType = JoinType.INNER,
+                otherTable = AEB,
+                onColumn = AE.id,
+                otherColumn = AEB.edibleId
+            )
+            .select(AE.columns)
+            .where { (AEB.barcode eq barcode) }
+            .firstOrNull()
+            ?.let { AEDao.wrapRow(it) }
             ?: return@suspendTransaction null
 
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
