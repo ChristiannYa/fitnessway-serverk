@@ -42,3 +42,9 @@ data class PendingFoodReviewRequest(
     val pendingFoodId: Int,
     val rejectionReason: String?
 )
+
+@Serializable
+data class AddBarcodeRequest(
+    val barcode: String,
+    val edibleId: Int
+)

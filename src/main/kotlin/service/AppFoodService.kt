@@ -28,6 +28,12 @@ class AppFoodService(
     suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
 
+    suspend fun addBarcode(barcode: String, edibleId: Int) {
+        appFoodRepository
+            .addBarcode(barcode, edibleId)
+            .throwIfNotSuccess("edible barcode")
+    }
+
     suspend fun search(
         criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>
     ): PaginationResult<FoodPreview> {

@@ -22,6 +22,7 @@ data class RefreshToken(
     fun isRevoked(): Boolean = revokedAt != null
 }
 
+// @TODO: Rename to make it clear that it related to database querying
 sealed class TokenValidationResult {
     data class Valid(val token: RefreshToken) : TokenValidationResult()
     object NotFound : TokenValidationResult()

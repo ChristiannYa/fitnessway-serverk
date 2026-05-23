@@ -7,7 +7,9 @@ import com.example.repository.edible.queryNutrientsForFood
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
+import org.postgresql.util.PSQLException
 import java.util.*
 
 class AppFoodRepository : IAppFoodRepository {
@@ -43,6 +45,30 @@ class AppFoodRepository : IAppFoodRepository {
             ?: return@suspendTransaction null
 
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
+    }
+
+    override suspend fun addBarcode(
+        barcode: String,
+        edibleId: Int
+    ): DatabaseResult = suspendTransaction {
+        try {
+            val insertCount = AEB
+                .insert {
+                    it[AEB.barcode] = barcode
+                    it[AEB.edibleId] = edibleId
+                }
+                .insertedCount
+
+            if (insertCount != 1) DatabaseResult.UnexpectedInsertCount
+            else DatabaseResult.Success
+
+        } catch (ex: ExposedSQLException) {
+            val cause = ex.cause
+
+            if (cause is PSQLException && cause.sqlState == "23505")
+                DatabaseResult.Duplicate
+            else DatabaseResult.UnexpectedError(ex.message.toString())
+        }
     }
 
     override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {

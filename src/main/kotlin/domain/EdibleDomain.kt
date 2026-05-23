@@ -4,6 +4,9 @@
 package com.example.domain
 
 import com.example.dto.FoodInformationDto
+import com.example.exception.AlreadyExistsException
+import com.example.exception.UnexpectedErrorException
+import com.example.exception.UnexpectedInsertCountException
 import com.example.mapping.UELDao
 import com.example.utils.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -254,3 +257,22 @@ data class UserEdiblesPaginationCriteria(
     val userId: UUID,
     val edibleType: EdibleType
 )
+
+sealed class DatabaseResult {
+    data object Success : DatabaseResult()
+    data object Duplicate : DatabaseResult()
+    data object UnexpectedInsertCount : DatabaseResult()
+    data class UnexpectedError(val error: String) : DatabaseResult()
+
+    fun throwIfNotSuccess(itemDescription: String) {
+        if (this !is Success) {
+            val ex = when (this) {
+                is Duplicate -> AlreadyExistsException(itemDescription)
+                is UnexpectedInsertCount -> UnexpectedInsertCountException()
+                is UnexpectedError -> UnexpectedErrorException("unexpected error: ${this.error}")
+            }
+
+            throw ex
+        }
+    }
+}

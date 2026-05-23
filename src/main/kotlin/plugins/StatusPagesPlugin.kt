@@ -84,6 +84,22 @@ fun Application.configureStatusPages() {
             }
         }
 
+        // -------------------
+        // DATABASE EXCEPTIONS
+        // -------------------
+        handleExceptions<DatabaseException> { ex ->
+            when (ex) {
+                is UnexpectedInsertCountException ->
+                    ex.message.toString() to HttpStatusCode.InternalServerError
+
+                is AlreadyExistsException ->
+                    ex.message.toString() to HttpStatusCode.Conflict
+
+                is UnexpectedErrorException ->
+                    ex.message.toString() to HttpStatusCode.InternalServerError
+            }
+        }
+
         // -----------------
         // TOKEN EXCEPTIONS
         // ----------------
