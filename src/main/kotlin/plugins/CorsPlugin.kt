@@ -7,6 +7,7 @@ import io.ktor.server.plugins.cors.routing.*
 fun Application.configureCors() {
     install(CORS) {
         allowHost("localhost:3000")
+        allowHost("10.0.0.4:3000")
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowMethod(HttpMethod.Put)
