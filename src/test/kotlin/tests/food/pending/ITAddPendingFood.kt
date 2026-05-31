@@ -5,7 +5,9 @@ import com.example.domain.UserType
 import com.example.exception.DailySubmissionLimitExceededException
 import com.example.exception.FoodAlreadyInAppException
 import com.example.exception.FoodAlreadyPendingException
+import com.example.mappers.toAddRequest
 import com.example.mappers.toPrincipal
+import com.example.mappers.toRequest
 import com.example.mapping.PEDao
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
@@ -28,7 +30,10 @@ class ITAddPendingFood : TPendingFoodService() {
         val pendingFoodRequest = buildPendingFoodCreateData(user.id)
 
         // Act - create pending food
-        val createdPendingFood = pendingFoodService.add(pendingFoodRequest)
+        val createdPendingFood = pendingFoodService.add(
+            req = pendingFoodRequest.toAddRequest(),
+            user.toPrincipal()
+        )
 
         suspendTransaction {
             // Assert - food is found in database
@@ -45,15 +50,22 @@ class ITAddPendingFood : TPendingFoodService() {
     fun `submitting more than 5 requests throws DailySubmissionLimitExceededException`() = runTest {
         // Arrange - create user
         val (user, _) = createUserAndGetData(authService, userRepository)
+        val pendingFoodRequest = buildPendingFoodCreateData(user.id)
 
         // Arrange - submit 5 different requests
         repeat(5) {
-            pendingFoodService.add(buildPendingFoodCreateData(user.id))
+            pendingFoodService.add(
+                req = pendingFoodRequest.toAddRequest(),
+                user.toPrincipal()
+            )
         }
 
         // Act & Assert
         assertFailsWith<DailySubmissionLimitExceededException> {
-            pendingFoodService.add(buildPendingFoodCreateData(user.id))
+            pendingFoodService.add(
+                req = pendingFoodRequest.toAddRequest(),
+                user.toPrincipal()
+            )
         }
     }
 
@@ -71,15 +83,24 @@ class ITAddPendingFood : TPendingFoodService() {
         val userCRequest = buildPendingFoodCreateData(userC.id, foodName)
 
         // Act - submit user A request
-        pendingFoodService.add(userARequest)
+        pendingFoodService.add(
+            req = userARequest.toAddRequest(),
+            userPrincipal = userA.toPrincipal()
+        )
 
         // Act & Assert
         assertFailsWith<FoodAlreadyPendingException> {
-            pendingFoodService.add(userBRequest)
+            pendingFoodService.add(
+                req = userBRequest.toAddRequest(),
+                userPrincipal = userB.toPrincipal()
+            )
         }
 
         assertFailsWith<FoodAlreadyPendingException> {
-            pendingFoodService.add(userCRequest)
+            pendingFoodService.add(
+                req = userCRequest.toAddRequest(),
+                userPrincipal = userC.toPrincipal()
+            )
         }
     }
 
@@ -98,21 +119,31 @@ class ITAddPendingFood : TPendingFoodService() {
         val userFoodRequestB = buildPendingFoodCreateData(user.id, "Doritos")
 
         // Arrange - submit user app food request A
-        val createdPendingFoodA = pendingFoodService.add(userFoodRequestA)
+        val createdPendingFoodA = pendingFoodService.add(
+            req = userFoodRequestA.toAddRequest(),
+            userPrincipal = user.toPrincipal()
+        )
 
         // Arrange - build review object
         val reviewA = PendingFoodReview(
+            createdById = user.id,
             pendingFoodId = createdPendingFoodA.id,
             reviewerPrincipal = reviewer.toPrincipal(),
             rejectionReason = null
         )
 
         // Arrange - review pending food A
-        pendingFoodService.review(reviewA)
+        pendingFoodService.review(
+            req = reviewA.toRequest(),
+            reviewerPrincipal = reviewA.reviewerPrincipal
+        )
 
         // Act & Assert
         assertFailsWith<FoodAlreadyInAppException> {
-            pendingFoodService.add(userFoodRequestB)
+            pendingFoodService.add(
+                req = userFoodRequestB.toAddRequest(),
+                userPrincipal = user.toPrincipal()
+            )
         }
     }
 }

@@ -1,19 +1,41 @@
--- =========
--- TYPES
--- =========
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
 
-CREATE TYPE public.app_food_pending_status AS ENUM (
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
+-- Name: app_edible_pending_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.app_edible_pending_status AS ENUM (
     'pending',
     'approved',
     'rejected'
 );
 
-CREATE TYPE public.food_log_category AS ENUM (
-    'breakfast',
-    'lunch',
-    'dinner',
+
+--
+-- Name: edible_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.edible_type AS ENUM (
+    'food',
     'supplement'
 );
+
+
+--
+-- Name: food_sort_by; Type: TYPE; Schema: public; Owner: -
+--
 
 CREATE TYPE public.food_sort_by AS ENUM (
     'alphabetically',
@@ -22,22 +44,43 @@ CREATE TYPE public.food_sort_by AS ENUM (
     'creation_date'
 );
 
-CREATE TYPE public.food_source AS ENUM (
+
+--
+-- Name: log_category; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.log_category AS ENUM (
+    'breakfast',
+    'lunch',
+    'dinner',
+    'supplement'
+);
+
+
+--
+-- Name: log_source; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.log_source AS ENUM (
     'user',
     'app'
 );
 
-CREATE TYPE public.food_status AS ENUM (
-    'present',
-    'updated',
-    'deleted'
-);
+
+--
+-- Name: nutrient_type; Type: TYPE; Schema: public; Owner: -
+--
 
 CREATE TYPE public.nutrient_type AS ENUM (
     'basic',
     'vitamin',
     'mineral'
 );
+
+
+--
+-- Name: serving_unit; Type: TYPE; Schema: public; Owner: -
+--
 
 CREATE TYPE public.serving_unit AS ENUM (
     'g',
@@ -48,11 +91,32 @@ CREATE TYPE public.serving_unit AS ENUM (
     'kcal'
 );
 
+
+--
+-- Name: user_currency_transaction_type; Type: TYPE; Schema: public; Owner: -
+--
+
 CREATE TYPE public.user_currency_transaction_type AS ENUM (
     'food_approval',
     'redeem',
     'food_logged'
 );
+
+
+--
+-- Name: user_edible_snapshot_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.user_edible_snapshot_status AS ENUM (
+    'present',
+    'updated',
+    'deleted'
+);
+
+
+--
+-- Name: user_type; Type: TYPE; Schema: public; Owner: -
+--
 
 CREATE TYPE public.user_type AS ENUM (
     'user',
@@ -60,9 +124,437 @@ CREATE TYPE public.user_type AS ENUM (
     'admin'
 );
 
--- =========
--- TABLES
--- =========
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: app_edible_barcodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.app_edible_barcodes (
+                                            barcode character varying(20) NOT NULL,
+                                            edible_id integer,
+                                            created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: app_edible_nutrients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.app_edible_nutrients (
+                                             app_edible_id integer NOT NULL,
+                                             nutrient_id integer NOT NULL,
+                                             amount numeric(12,4) NOT NULL,
+                                             CONSTRAINT app_edible_nutrients_amount_check CHECK ((amount >= (0)::numeric))
+);
+
+
+--
+-- Name: app_edibles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.app_edibles (
+                                    id integer NOT NULL,
+                                    name character varying(50) NOT NULL,
+                                    brand character varying(50) NOT NULL,
+                                    amount_per_serving numeric(12,4) NOT NULL,
+                                    serving_unit public.serving_unit NOT NULL,
+                                    created_by uuid,
+                                    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                    edible_type public.edible_type NOT NULL,
+                                    CONSTRAINT app_edibles_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric))
+);
+
+
+--
+-- Name: app_edibles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.app_edibles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: app_edibles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.app_edibles_id_seq OWNED BY public.app_edibles.id;
+
+--
+-- Name: goose_db_version; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.goose_db_version (
+                                         id integer NOT NULL,
+                                         version_id bigint NOT NULL,
+                                         is_applied boolean NOT NULL,
+                                         tstamp timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: goose_db_version_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.goose_db_version ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.goose_db_version_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nutrients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nutrients (
+                                  id integer NOT NULL,
+                                  name character varying(50) NOT NULL,
+                                  symbol character varying(4),
+                                  unit public.serving_unit NOT NULL,
+                                  type public.nutrient_type NOT NULL,
+                                  is_premium boolean DEFAULT false NOT NULL,
+                                  CONSTRAINT nutrients_name_check CHECK ((length((name)::text) > 0))
+);
+
+
+--
+-- Name: nutrients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.nutrients_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: nutrients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.nutrients_id_seq OWNED BY public.nutrients.id;
+
+
+--
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.password_reset_tokens (
+                                              id uuid NOT NULL,
+                                              user_id uuid NOT NULL,
+                                              token_hash character varying(255) NOT NULL,
+                                              used boolean DEFAULT false,
+                                              expires_at timestamp with time zone NOT NULL,
+                                              created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: refresh_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.refresh_tokens (
+                                       id uuid NOT NULL,
+                                       user_id uuid NOT NULL,
+                                       device_name character varying(255),
+                                       hash character varying(255) NOT NULL,
+                                       created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                       expires_at timestamp with time zone NOT NULL,
+                                       last_used_at timestamp with time zone,
+                                       revoked_at timestamp without time zone
+);
+
+
+--
+-- Name: user_currency_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_currency_transactions (
+                                                   id integer NOT NULL,
+                                                   user_id uuid NOT NULL,
+                                                   amount numeric(12,2) NOT NULL,
+                                                   transaction_type public.user_currency_transaction_type NOT NULL,
+                                                   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: user_currency_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_currency_transactions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_currency_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_currency_transactions_id_seq OWNED BY public.user_currency_transactions.id;
+
+
+--
+-- Name: user_edible_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_edible_logs (
+                                         id integer NOT NULL,
+                                         user_id uuid NOT NULL,
+                                         edible_id integer,
+                                         edible_snapshot_id integer,
+                                         servings numeric(12,4) NOT NULL,
+                                         category public.log_category NOT NULL,
+                                         "time" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                         logged_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                         source public.log_source NOT NULL,
+                                         CONSTRAINT user_edible_logs_servings_check CHECK ((servings > (0)::numeric))
+);
+
+
+--
+-- Name: user_edible_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_edible_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_edible_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_edible_logs_id_seq OWNED BY public.user_edible_logs.id;
+
+
+--
+-- Name: user_edible_nutrients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_edible_nutrients (
+                                              user_edible_id integer NOT NULL,
+                                              nutrient_id integer NOT NULL,
+                                              amount numeric(12,4) NOT NULL,
+                                              CONSTRAINT user_edible_nutrients_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: user_edible_snapshots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_edible_snapshots (
+                                              id integer NOT NULL,
+                                              original_edible_id integer NOT NULL,
+                                              user_id uuid NOT NULL,
+                                              name text,
+                                              brand text,
+                                              amount_per_serving numeric(12,4),
+                                              serving_unit public.serving_unit NOT NULL,
+                                              snapshot_status public.user_edible_snapshot_status NOT NULL,
+                                              created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: user_edible_snapshots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_edible_snapshots_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_edible_snapshots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_edible_snapshots_id_seq OWNED BY public.user_edible_snapshots.id;
+
+
+--
+-- Name: user_edibles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_edibles (
+                                     id integer NOT NULL,
+                                     user_id uuid NOT NULL,
+                                     name text NOT NULL,
+                                     brand text,
+                                     amount_per_serving numeric(12,4) NOT NULL,
+                                     serving_unit public.serving_unit NOT NULL,
+                                     last_logged_at timestamp without time zone,
+                                     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                     edible_type public.edible_type NOT NULL,
+                                     CONSTRAINT user_edibles_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
+                                     CONSTRAINT user_edibles_brand_check CHECK (((brand IS NULL) OR (length(brand) <= 50))),
+                                     CONSTRAINT user_edibles_name_check CHECK (((length(name) > 0) AND (length(name) <= 50)))
+);
+
+
+--
+-- Name: user_edibles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_edibles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_edibles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_edibles_id_seq OWNED BY public.user_edibles.id;
+
+
+--
+-- Name: user_favorite_app_foods; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_favorite_app_foods (
+                                                user_id uuid NOT NULL,
+                                                app_food_id integer NOT NULL,
+                                                favorited_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: user_nutrient_intake; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_nutrient_intake (
+                                             user_id uuid NOT NULL,
+                                             edible_log_id integer NOT NULL,
+                                             nutrient_id integer NOT NULL,
+                                             amount numeric(12,4) NOT NULL,
+                                             CONSTRAINT user_nutrient_intake_intake_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: user_nutrient_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_nutrient_preferences (
+                                                  user_id uuid NOT NULL,
+                                                  nutrient_id integer NOT NULL,
+                                                  goal numeric(12,4),
+                                                  hex_color character varying(7),
+                                                  CONSTRAINT user_nutrient_preferences_goal_check CHECK ((goal > (0)::numeric))
+);
+
+
+--
+-- Name: user_pending_edible_nutrients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_pending_edible_nutrients (
+                                                      pending_edible_id integer NOT NULL,
+                                                      nutrient_id integer NOT NULL,
+                                                      amount numeric(12,4) NOT NULL,
+                                                      CONSTRAINT user_pending_edible_nutrients_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: user_pending_edibles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_pending_edibles (
+                                             id integer NOT NULL,
+                                             name character varying(50) NOT NULL,
+                                             brand character varying(50) NOT NULL,
+                                             amount_per_serving numeric(12,4) NOT NULL,
+                                             serving_unit public.serving_unit NOT NULL,
+                                             created_by uuid,
+                                             status public.app_edible_pending_status DEFAULT 'pending'::public.app_edible_pending_status NOT NULL,
+                                             reviewed_by uuid,
+                                             reviewed_at timestamp without time zone,
+                                             created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                             rejection_reason text,
+                                             edible_type public.edible_type NOT NULL,
+                                             CONSTRAINT user_pending_edibles_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
+                                             CONSTRAINT user_pending_edibles_rejection_reason_check CHECK (((rejection_reason IS NULL) OR (length(rejection_reason) <= 250)))
+);
+
+
+--
+-- Name: user_pending_edibles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_pending_edibles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_pending_edibles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_pending_edibles_id_seq OWNED BY public.user_pending_edibles.id;
+
+
+--
+-- Name: user_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_preferences (
+                                         user_id uuid NOT NULL,
+                                         food_sort_by public.food_sort_by DEFAULT 'recently_logged'::public.food_sort_by NOT NULL
+);
+
+
+--
+-- Name: user_wallets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_wallets (
+                                     user_id uuid NOT NULL,
+                                     amount numeric(12,2) DEFAULT 0.00 NOT NULL
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
 
 CREATE TABLE public.users (
                               id uuid NOT NULL,
@@ -73,289 +565,583 @@ CREATE TABLE public.users (
                               created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
                               updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
                               type public.user_type DEFAULT 'user'::public.user_type NOT NULL,
-                              PRIMARY KEY (id)
+                              timezone text DEFAULT 'UTC'::text NOT NULL
 );
 
-CREATE TABLE public.nutrients (
-                                  id integer NOT NULL,
-                                  name character varying(50) NOT NULL,
-                                  symbol character varying(4),
-                                  unit public.serving_unit NOT NULL,
-                                  type public.nutrient_type NOT NULL,
-                                  is_premium boolean DEFAULT false NOT NULL,
-                                  PRIMARY KEY (id),
-                                  CONSTRAINT nutrients_name_check CHECK ((length((name)::text) > 0))
-);
 
-CREATE SEQUENCE public.nutrients_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
+--
+-- Name: app_edibles id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-ALTER SEQUENCE public.nutrients_id_seq OWNED BY public.nutrients.id;
+ALTER TABLE ONLY public.app_edibles ALTER COLUMN id SET DEFAULT nextval('public.app_edibles_id_seq'::regclass);
+
+
+--
+-- Name: nutrients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY public.nutrients ALTER COLUMN id SET DEFAULT nextval('public.nutrients_id_seq'::regclass);
 
-CREATE TABLE public.refresh_tokens (
-                                       id uuid NOT NULL,
-                                       user_id uuid NOT NULL,
-                                       device_name character varying(255),
-                                       hash character varying(255) NOT NULL,
-                                       created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                       expires_at timestamp with time zone NOT NULL,
-                                       last_used_at timestamp with time zone,
-                                       revoked_at timestamp without time zone,
-                                       PRIMARY KEY (id),
-                                       FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
-);
 
-CREATE TABLE public.password_reset_tokens (
-                                              id uuid NOT NULL,
-                                              user_id uuid NOT NULL,
-                                              token_hash character varying(255) NOT NULL,
-                                              used boolean DEFAULT false,
-                                              expires_at timestamp with time zone NOT NULL,
-                                              created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                              PRIMARY KEY (id),
-                                              FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
-);
+--
+-- Name: user_currency_transactions id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-CREATE TABLE public.user_wallets (
-                                     user_id uuid NOT NULL,
-                                     amount numeric(12,2) DEFAULT 0.00 NOT NULL,
-                                     PRIMARY KEY (user_id),
-                                     FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE public.user_currency_transactions (
-                                                   id integer NOT NULL,
-                                                   user_id uuid NOT NULL,
-                                                   amount numeric(12,2) NOT NULL,
-                                                   transaction_type public.user_currency_transaction_type NOT NULL,
-                                                   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                                   PRIMARY KEY (id),
-                                                   FOREIGN KEY (user_id) REFERENCES public.users(id)
-);
-
-CREATE SEQUENCE public.user_currency_transactions_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
-
-ALTER SEQUENCE public.user_currency_transactions_id_seq OWNED BY public.user_currency_transactions.id;
 ALTER TABLE ONLY public.user_currency_transactions ALTER COLUMN id SET DEFAULT nextval('public.user_currency_transactions_id_seq'::regclass);
 
-CREATE TABLE public.user_preferences (
-                                         user_id uuid NOT NULL,
-                                         food_sort_by public.food_sort_by DEFAULT 'recently_logged'::public.food_sort_by NOT NULL,
-                                         PRIMARY KEY (user_id),
-                                         FOREIGN KEY (user_id) REFERENCES public.users(id)
-);
 
-CREATE TABLE public.user_nutrient_preferences (
-                                                  user_id uuid NOT NULL,
-                                                  nutrient_id integer NOT NULL,
-                                                  goal numeric(12,4),
-                                                  hex_color character varying(7),
-                                                  PRIMARY KEY (user_id, nutrient_id),
-                                                  FOREIGN KEY (user_id) REFERENCES public.users(id),
-                                                  FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id),
-                                                  CONSTRAINT user_nutrient_preferences_goal_check CHECK ((goal > (0)::numeric))
-);
+--
+-- Name: user_edible_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-CREATE TABLE public.user_foods (
-                                   id integer NOT NULL,
-                                   user_id uuid NOT NULL,
-                                   name text NOT NULL,
-                                   brand text,
-                                   amount_per_serving numeric(12,4) NOT NULL,
-                                   serving_unit public.serving_unit NOT NULL,
-                                   is_favorite boolean DEFAULT false NOT NULL,
-                                   last_logged_at timestamp without time zone,
-                                   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                   PRIMARY KEY (id),
-                                   FOREIGN KEY (user_id) REFERENCES public.users(id),
-                                   CONSTRAINT user_foods_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
-                                   CONSTRAINT user_foods_brand_check CHECK (((brand IS NULL) OR (length(brand) <= 50))),
-                                   CONSTRAINT user_foods_name_check CHECK (((length(name) > 0) AND (length(name) <= 50)))
-);
+ALTER TABLE ONLY public.user_edible_logs ALTER COLUMN id SET DEFAULT nextval('public.user_edible_logs_id_seq'::regclass);
 
-CREATE SEQUENCE public.user_foods_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
 
-ALTER SEQUENCE public.user_foods_id_seq OWNED BY public.user_foods.id;
-ALTER TABLE ONLY public.user_foods ALTER COLUMN id SET DEFAULT nextval('public.user_foods_id_seq'::regclass);
+--
+-- Name: user_edible_snapshots id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-CREATE TABLE public.user_food_nutrients (
-                                            user_food_id integer NOT NULL,
-                                            nutrient_id integer NOT NULL,
-                                            amount numeric(12,4) NOT NULL,
-                                            PRIMARY KEY (user_food_id, nutrient_id),
-                                            FOREIGN KEY (user_food_id) REFERENCES public.user_foods(id) ON DELETE CASCADE,
-                                            FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id),
-                                            CONSTRAINT user_food_nutrients_amount_check CHECK ((amount > (0)::numeric))
-);
+ALTER TABLE ONLY public.user_edible_snapshots ALTER COLUMN id SET DEFAULT nextval('public.user_edible_snapshots_id_seq'::regclass);
 
-CREATE TABLE public.user_food_snapshots (
-                                            id integer NOT NULL,
-                                            original_food_id integer NOT NULL,
-                                            user_id uuid NOT NULL,
-                                            name text,
-                                            brand text,
-                                            amount_per_serving numeric(12,4),
-                                            serving_unit public.serving_unit NOT NULL,
-                                            food_status public.food_status NOT NULL,
-                                            created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                            PRIMARY KEY (id),
-                                            FOREIGN KEY (user_id) REFERENCES public.users(id)
-);
 
-CREATE SEQUENCE public.user_food_snapshots_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
+--
+-- Name: user_edibles id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-ALTER SEQUENCE public.user_food_snapshots_id_seq OWNED BY public.user_food_snapshots.id;
-ALTER TABLE ONLY public.user_food_snapshots ALTER COLUMN id SET DEFAULT nextval('public.user_food_snapshots_id_seq'::regclass);
+ALTER TABLE ONLY public.user_edibles ALTER COLUMN id SET DEFAULT nextval('public.user_edibles_id_seq'::regclass);
 
-CREATE TABLE public.user_food_logs (
-                                       id integer NOT NULL,
-                                       user_id uuid NOT NULL,
-                                       food_id integer,
-                                       food_snapshot_id integer,
-                                       servings numeric(12,4) NOT NULL,
-                                       category public.food_log_category NOT NULL,
-                                       "time" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                       logged_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                       source public.food_source NOT NULL,
-                                       PRIMARY KEY (id),
-                                       FOREIGN KEY (user_id) REFERENCES public.users(id),
-                                       CONSTRAINT user_food_logs_servings_check CHECK ((servings > (0)::numeric))
-);
 
-CREATE SEQUENCE public.user_food_logs_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
+--
+-- Name: user_pending_edibles id; Type: DEFAULT; Schema: public; Owner: -
+--
 
-ALTER SEQUENCE public.user_food_logs_id_seq OWNED BY public.user_food_logs.id;
-ALTER TABLE ONLY public.user_food_logs ALTER COLUMN id SET DEFAULT nextval('public.user_food_logs_id_seq'::regclass);
+ALTER TABLE ONLY public.user_pending_edibles ALTER COLUMN id SET DEFAULT nextval('public.user_pending_edibles_id_seq'::regclass);
 
-CREATE TABLE public.user_nutrient_intake (
-                                             id integer NOT NULL,
-                                             user_id uuid NOT NULL,
-                                             food_log_id integer NOT NULL,
-                                             nutrient_id integer NOT NULL,
-                                             intake_amount numeric(12,4) NOT NULL,
-                                             PRIMARY KEY (id),
-                                             FOREIGN KEY (user_id) REFERENCES public.users(id),
-                                             FOREIGN KEY (food_log_id) REFERENCES public.user_food_logs(id),
-                                             FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id),
-                                             CONSTRAINT user_nutrient_intake_intake_amount_check CHECK ((intake_amount > (0)::numeric))
-);
 
-CREATE SEQUENCE public.user_nutrient_intake_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
+--
+-- Name: app_edible_barcodes app_edible_barcodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
-ALTER SEQUENCE public.user_nutrient_intake_id_seq OWNED BY public.user_nutrient_intake.id;
-ALTER TABLE ONLY public.user_nutrient_intake ALTER COLUMN id SET DEFAULT nextval('public.user_nutrient_intake_id_seq'::regclass);
+ALTER TABLE ONLY public.app_edible_barcodes
+    ADD CONSTRAINT app_edible_barcodes_pkey PRIMARY KEY (barcode);
 
-CREATE TABLE public.app_foods (
-                                  id integer NOT NULL,
-                                  name character varying(50) NOT NULL,
-                                  brand character varying(50) NOT NULL,
-                                  amount_per_serving numeric(12,4) NOT NULL,
-                                  serving_unit public.serving_unit NOT NULL,
-                                  created_by uuid,
-                                  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                  PRIMARY KEY (id),
-                                  FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL,
-                                  CONSTRAINT app_foods_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
-                                  UNIQUE (name, brand, amount_per_serving, serving_unit)
-);
 
-CREATE SEQUENCE public.app_foods_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
+--
+-- Name: app_edible_nutrients app_edible_nutrients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
-ALTER SEQUENCE public.app_foods_id_seq OWNED BY public.app_foods.id;
-ALTER TABLE ONLY public.app_foods ALTER COLUMN id SET DEFAULT nextval('public.app_foods_id_seq'::regclass);
+ALTER TABLE ONLY public.app_edible_nutrients
+    ADD CONSTRAINT app_edible_nutrients_pkey PRIMARY KEY (app_edible_id, nutrient_id);
 
-CREATE TABLE public.app_food_nutrients (
-                                           app_food_id integer NOT NULL,
-                                           nutrient_id integer NOT NULL,
-                                           amount numeric(12,4) NOT NULL,
-                                           PRIMARY KEY (app_food_id, nutrient_id),
-                                           FOREIGN KEY (app_food_id) REFERENCES public.app_foods(id) ON DELETE CASCADE,
-                                           FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id),
-                                           CONSTRAINT app_food_nutrients_amount_check CHECK ((amount >= (0)::numeric))
-);
 
-CREATE TABLE public.user_favorite_app_foods (
-                                                user_id uuid NOT NULL,
-                                                app_food_id integer NOT NULL,
-                                                favorited_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                                PRIMARY KEY (user_id, app_food_id),
-                                                FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
-                                                FOREIGN KEY (app_food_id) REFERENCES public.app_foods(id) ON DELETE CASCADE
-);
+--
+-- Name: app_edibles app_edibles_name_brand_amount_per_serving_serving_unit_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
-CREATE TABLE public.user_pending_foods (
-                                           id integer NOT NULL,
-                                           name character varying(50) NOT NULL,
-                                           brand character varying(50) NOT NULL,
-                                           amount_per_serving numeric(12,4) NOT NULL,
-                                           serving_unit public.serving_unit NOT NULL,
-                                           created_by uuid NOT NULL,
-                                           status public.app_food_pending_status DEFAULT 'pending'::public.app_food_pending_status NOT NULL,
-                                           reviewed_by uuid,
-                                           reviewed_at timestamp without time zone,
-                                           created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                           rejection_reason text,
-                                           PRIMARY KEY (id),
-                                           FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL,
-                                           FOREIGN KEY (reviewed_by) REFERENCES public.users(id),
-                                           CONSTRAINT user_pending_foods_amount_per_serving_check CHECK ((amount_per_serving > (0)::numeric)),
-                                           CONSTRAINT user_pending_foods_rejection_reason_check CHECK (((rejection_reason IS NULL) OR (length(rejection_reason) <= 250)))
-);
+ALTER TABLE ONLY public.app_edibles
+    ADD CONSTRAINT app_edibles_name_brand_amount_per_serving_serving_unit_key UNIQUE (name, brand, amount_per_serving, serving_unit);
 
-CREATE SEQUENCE public.user_pending_foods_id_seq
-    AS integer START WITH 1 INCREMENT BY 1
-    NO MINVALUE NO MAXVALUE CACHE 1;
 
-ALTER SEQUENCE public.user_pending_foods_id_seq OWNED BY public.user_pending_foods.id;
-ALTER TABLE ONLY public.user_pending_foods ALTER COLUMN id SET DEFAULT nextval('public.user_pending_foods_id_seq'::regclass);
+--
+-- Name: app_edibles app_edibles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
-CREATE TABLE public.user_pending_food_nutrients (
-                                                    pending_food_id integer NOT NULL,
-                                                    nutrient_id integer NOT NULL,
-                                                    amount numeric(12,4) NOT NULL,
-                                                    PRIMARY KEY (pending_food_id, nutrient_id),
-                                                    FOREIGN KEY (pending_food_id) REFERENCES public.user_pending_foods(id) ON DELETE CASCADE,
-                                                    FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id),
-                                                    CONSTRAINT user_pending_food_nutrients_amount_check CHECK ((amount > (0)::numeric))
-);
+ALTER TABLE ONLY public.app_edibles
+    ADD CONSTRAINT app_edibles_pkey PRIMARY KEY (id);
 
--- =========
--- SEED DATA
--- =========
+--
+-- Name: goose_db_version goose_db_version_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
-INSERT INTO public.nutrients (id, name, symbol, unit, type, is_premium) VALUES
-                                                                            (1,  'Calories',    NULL, 'kcal', 'basic',   false),
-                                                                            (2,  'Carbs',       NULL, 'g',    'basic',   false),
-                                                                            (3,  'Cholesterol', NULL, 'mg',   'basic',   true),
-                                                                            (4,  'Fats',        NULL, 'g',    'basic',   false),
-                                                                            (5,  'Fiber',       NULL, 'g',    'basic',   true),
-                                                                            (6,  'Protein',     NULL, 'g',    'basic',   false),
-                                                                            (7,  'Sodium',      NULL, 'mg',   'basic',   true),
-                                                                            (8,  'Sugar',       NULL, 'g',    'basic',   true),
-                                                                            (9,  'A',           NULL, 'mcg',  'vitamin', true),
-                                                                            (10, 'B12',         NULL, 'mcg',  'vitamin', false),
-                                                                            (11, 'C',           NULL, 'mg',   'vitamin', false),
-                                                                            (12, 'D',           NULL, 'mcg',  'vitamin', false),
-                                                                            (13, 'Calcium',     NULL, 'mg',   'mineral', true),
-                                                                            (14, 'Iron',        NULL, 'mg',   'mineral', false),
-                                                                            (15, 'Magnesium',   NULL, 'mg',   'mineral', false),
-                                                                            (16, 'Potassium',   NULL, 'mg',   'mineral', false);
+ALTER TABLE ONLY public.goose_db_version
+    ADD CONSTRAINT goose_db_version_pkey PRIMARY KEY (id);
 
--- Reset sequence so next insert starts after our seeded ids
-SELECT setval('public.nutrients_id_seq', 16);
+
+--
+-- Name: nutrients nutrients_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nutrients
+    ADD CONSTRAINT nutrients_name_key UNIQUE (name);
+
+
+--
+-- Name: nutrients nutrients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.nutrients
+    ADD CONSTRAINT nutrients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_token_hash_key UNIQUE (token_hash);
+
+
+--
+-- Name: refresh_tokens refresh_tokens_session_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refresh_tokens
+    ADD CONSTRAINT refresh_tokens_session_id_key UNIQUE (id);
+
+
+--
+-- Name: refresh_tokens refresh_tokens_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refresh_tokens
+    ADD CONSTRAINT refresh_tokens_token_hash_key UNIQUE (hash);
+
+
+--
+-- Name: user_currency_transactions user_currency_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_currency_transactions
+    ADD CONSTRAINT user_currency_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_edible_logs user_edible_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_logs
+    ADD CONSTRAINT user_edible_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_edible_nutrients user_edible_nutrients_user_edible_id_nutrient_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_nutrients
+    ADD CONSTRAINT user_edible_nutrients_user_edible_id_nutrient_id_key UNIQUE (user_edible_id, nutrient_id);
+
+
+--
+-- Name: user_edible_snapshots user_edible_snapshots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_snapshots
+    ADD CONSTRAINT user_edible_snapshots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_edibles user_edibles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edibles
+    ADD CONSTRAINT user_edibles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_edibles user_edibles_user_id_name_brand_amount_per_serving_serving_un_k; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edibles
+    ADD CONSTRAINT user_edibles_user_id_name_brand_amount_per_serving_serving_un_k UNIQUE (user_id, name, brand, amount_per_serving, serving_unit);
+
+
+--
+-- Name: user_favorite_app_foods user_favorite_app_foods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorite_app_foods
+    ADD CONSTRAINT user_favorite_app_foods_pkey PRIMARY KEY (user_id, app_food_id);
+
+
+--
+-- Name: user_nutrient_preferences user_nutrient_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_preferences
+    ADD CONSTRAINT user_nutrient_preferences_pkey PRIMARY KEY (user_id, nutrient_id);
+
+
+--
+-- Name: user_pending_edible_nutrients user_pending_edible_nutrients_pending_edible_id_nutrient_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edible_nutrients
+    ADD CONSTRAINT user_pending_edible_nutrients_pending_edible_id_nutrient_id_key UNIQUE (pending_edible_id, nutrient_id);
+
+
+--
+-- Name: user_pending_edibles user_pending_edibles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edibles
+    ADD CONSTRAINT user_pending_edibles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_pending_edibles user_pending_edibles_submitted_by_name_brand_amount_per_servi_k; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edibles
+    ADD CONSTRAINT user_pending_edibles_submitted_by_name_brand_amount_per_servi_k UNIQUE (created_by, name, brand, amount_per_serving, serving_unit);
+
+
+--
+-- Name: user_preferences user_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences
+    ADD CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: user_wallets user_wallets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_wallets
+    ADD CONSTRAINT user_wallets_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_app_edible_nutrients_edible_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_edible_nutrients_edible_id ON public.app_edible_nutrients USING btree (app_edible_id);
+
+
+--
+-- Name: idx_app_edibles_brand_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_edibles_brand_lower ON public.app_edibles USING btree (lower((brand)::text));
+
+
+--
+-- Name: idx_app_edibles_created_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_edibles_created_by ON public.app_edibles USING btree (created_by) WHERE (created_by IS NOT NULL);
+
+
+--
+-- Name: idx_app_edibles_name_lower; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_edibles_name_lower ON public.app_edibles USING btree (lower((name)::text));
+
+
+--
+-- Name: idx_app_edibles_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_app_edibles_name_trgm ON public.app_edibles USING gin (lower((name)::text) public.gin_trgm_ops);
+
+
+--
+-- Name: idx_nutrient_intake_edible_log; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_nutrient_intake_edible_log ON public.user_nutrient_intake USING btree (edible_log_id);
+
+
+--
+-- Name: idx_user_edible_logs_app_source_logged; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_edible_logs_app_source_logged ON public.user_edible_logs USING btree (user_id, source, edible_id, logged_at DESC) WHERE (source = 'app'::public.log_source);
+
+
+--
+-- Name: idx_user_edible_logs_user_source_logged; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_edible_logs_user_source_logged ON public.user_edible_logs USING btree (user_id, source, edible_id, logged_at DESC) WHERE (source = 'user'::public.log_source);
+
+
+--
+-- Name: idx_user_edibles_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_edibles_created_at ON public.user_edibles USING btree (user_id, created_at DESC);
+
+
+--
+-- Name: idx_user_edibles_last_logged_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_edibles_last_logged_at ON public.user_edibles USING btree (user_id, last_logged_at DESC NULLS LAST);
+
+
+--
+-- Name: idx_user_favorite_app_foods_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_favorite_app_foods_user_id ON public.user_favorite_app_foods USING btree (user_id);
+
+
+--
+-- Name: idx_user_pending_edibles_user_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_user_pending_edibles_user_date ON public.user_pending_edibles USING btree (created_by, created_at);
+
+
+--
+-- Name: app_edible_barcodes app_edible_barcodes_edible_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.app_edible_barcodes
+    ADD CONSTRAINT app_edible_barcodes_edible_id_fkey FOREIGN KEY (edible_id) REFERENCES public.app_edibles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: app_edible_nutrients app_edible_nutrients_app_edible_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.app_edible_nutrients
+    ADD CONSTRAINT app_edible_nutrients_app_edible_id_fkey FOREIGN KEY (app_edible_id) REFERENCES public.app_edibles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: app_edible_nutrients app_edible_nutrients_nutrient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.app_edible_nutrients
+    ADD CONSTRAINT app_edible_nutrients_nutrient_id_fkey FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: app_edibles app_edibles_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.app_edibles
+    ADD CONSTRAINT app_edibles_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: refresh_tokens refresh_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refresh_tokens
+    ADD CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_currency_transactions user_currency_transactions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_currency_transactions
+    ADD CONSTRAINT user_currency_transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: user_edible_logs user_edible_logs_edible_snapshot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_logs
+    ADD CONSTRAINT user_edible_logs_edible_snapshot_id_fkey FOREIGN KEY (edible_snapshot_id) REFERENCES public.user_edible_snapshots(id) ON DELETE SET NULL;
+
+
+--
+-- Name: user_edible_logs user_edible_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_logs
+    ADD CONSTRAINT user_edible_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_edible_nutrients user_edible_nutrients_nutrient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_nutrients
+    ADD CONSTRAINT user_edible_nutrients_nutrient_id_fkey FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_edible_nutrients user_edible_nutrients_user_edible_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_nutrients
+    ADD CONSTRAINT user_edible_nutrients_user_edible_id_fkey FOREIGN KEY (user_edible_id) REFERENCES public.user_edibles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_edible_snapshots user_edible_snapshots_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edible_snapshots
+    ADD CONSTRAINT user_edible_snapshots_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_edibles user_edibles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_edibles
+    ADD CONSTRAINT user_edibles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_favorite_app_foods user_favorite_app_edibles_app_edible_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorite_app_foods
+    ADD CONSTRAINT user_favorite_app_edibles_app_edible_id_fkey FOREIGN KEY (app_food_id) REFERENCES public.app_edibles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_favorite_app_foods user_favorite_app_foods_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorite_app_foods
+    ADD CONSTRAINT user_favorite_app_foods_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_nutrient_intake user_nutrient_intake_edible_log_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_intake
+    ADD CONSTRAINT user_nutrient_intake_edible_log_id_fkey FOREIGN KEY (edible_log_id) REFERENCES public.user_edible_logs(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_nutrient_intake user_nutrient_intake_nutrient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_intake
+    ADD CONSTRAINT user_nutrient_intake_nutrient_id_fkey FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_nutrient_intake user_nutrient_intake_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_intake
+    ADD CONSTRAINT user_nutrient_intake_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_nutrient_preferences user_nutrient_preferences_nutrient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_preferences
+    ADD CONSTRAINT user_nutrient_preferences_nutrient_id_fkey FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_nutrient_preferences user_nutrient_preferences_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_nutrient_preferences
+    ADD CONSTRAINT user_nutrient_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_pending_edible_nutrients user_pending_edible_nutrients_nutrient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edible_nutrients
+    ADD CONSTRAINT user_pending_edible_nutrients_nutrient_id_fkey FOREIGN KEY (nutrient_id) REFERENCES public.nutrients(id);
+
+
+--
+-- Name: user_pending_edible_nutrients user_pending_edible_nutrients_pending_edible_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edible_nutrients
+    ADD CONSTRAINT user_pending_edible_nutrients_pending_edible_id_fkey FOREIGN KEY (pending_edible_id) REFERENCES public.user_pending_edibles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_pending_edibles user_pending_edibles_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edibles
+    ADD CONSTRAINT user_pending_edibles_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(id);
+
+
+--
+-- Name: user_pending_edibles user_pending_edibles_submitted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_pending_edibles
+    ADD CONSTRAINT user_pending_edibles_submitted_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
+
+
+--
+-- Name: user_preferences user_preferences_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences
+    ADD CONSTRAINT user_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_wallets user_wallets_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_wallets
+    ADD CONSTRAINT user_wallets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+--
+-- Data for Name: nutrients; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.nutrients (id, name, symbol, unit, type, is_premium) FROM stdin;
+1	Calories	\N	kcal	basic	f
+2	Carbs	\N	g	basic	f
+3	Cholesterol	\N	mg	basic	t
+4	Fats	\N	g	basic	f
+5	Fiber	\N	g	basic	t
+6	Protein	\N	g	basic	f
+7	Sodium	\N	mg	basic	t
+8	Sugar	\N	g	basic	t
+9	A	A	mcg	vitamin	t
+10	B12	B12	mcg	vitamin	f
+11	C	C	mg	vitamin	f
+12	D	D	mcg	vitamin	f
+13	Calcium	Ca	mg	mineral	t
+14	Iron	Fe	mg	mineral	f
+15	Magnesium	Mg	mg	mineral	f
+16	Potassium	K	mg	mineral	f
+\.
+
+
+--
+-- Name: nutrients_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.nutrients_id_seq', 16, true);

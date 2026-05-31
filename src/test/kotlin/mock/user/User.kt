@@ -25,7 +25,8 @@ fun buildUser(
         isPremium = isPremium,
         createdAt = Clock.System.now(),
         updatedAt = null,
-        type = userType
+        type = userType,
+        timezone = ""
     )
 }
 

@@ -1,6 +1,8 @@
 package com.example.mappers
 
 import com.example.domain.*
+import com.example.dto.EdibleAddRequest
+import com.example.dto.PendingFoodReviewRequest
 
 fun List<FoodLog>.toCategory(): FoodLogsCategorized {
     val grouped = this.groupBy { it.category }
@@ -30,3 +32,15 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let { userId ->
         edibleType = this.edibleType
     )
 }
+
+fun PendingFoodCreate.toAddRequest() = EdibleAddRequest(
+    base = this.base,
+    nutrients = this.nutrientList,
+    edibleType = this.edibleType.toString()
+)
+
+fun PendingFoodReview.toRequest() = PendingFoodReviewRequest(
+    createdById = this.createdById.toString(),
+    pendingFoodId = this.pendingFoodId,
+    rejectionReason = this.rejectionReason
+)

@@ -31,7 +31,10 @@ object TestDatabase {
 
     // Cleans up database after each test
     fun tearDown() {
-        pgContainer?.configureFlyWay()?.load()?.clean()
+        pgContainer
+            ?.configureFlyWay()
+            ?.load()
+            ?.clean()
     }
 
     fun shutDown() {

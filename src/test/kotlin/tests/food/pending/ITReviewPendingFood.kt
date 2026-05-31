@@ -5,6 +5,8 @@ import com.example.domain.*
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.PendingFoodAlreadyReviewedException
 import com.example.exception.UserNotFoundException
+import com.example.mappers.toPrincipal
+import com.example.mappers.toRequest
 import com.example.mapping.*
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
@@ -17,7 +19,6 @@ import utils.createUserAndGetData
 import utils.notNullMessage
 import utils.nullMessage
 import kotlin.test.*
-
 
 class ITReviewPendingFood : TPendingFoodService() {
     private suspend fun createAuthorAndReviewer(
@@ -40,9 +41,10 @@ class ITReviewPendingFood : TPendingFoodService() {
      */
     private suspend fun arrangeTest(data: PendingFoodArrangeIn): PendingFoodArrangeOut = data.let {
         val (author, reviewer) = createAuthorAndReviewer(it.author.type, it.reviewer.type)
-        val createdPendingFood = submitPendingFood(author.id)
+        val createdPendingFood = submitPendingFood(author.toPrincipal())
 
         val review = PendingFoodReview(
+            createdById = author.id,
             pendingFoodId = createdPendingFood.id,
             reviewerPrincipal = reviewer.toPrincipal(),
             rejectionReason = it.rejectionReason
@@ -70,7 +72,10 @@ class ITReviewPendingFood : TPendingFoodService() {
         )
 
         // Act - review pending food
-        val pendingFoodReviewed = pendingFoodService.review(arrange.review)
+        val pendingFoodReviewed = pendingFoodService.review(
+            req = arrange.review.toRequest(),
+            reviewerPrincipal = arrange.reviewer.toPrincipal()
+        )
 
         // Assert - pending food review is present
         assertNotNull(pendingFoodReviewed, notNullMessage("pendingFoodReviewed"))
@@ -149,7 +154,10 @@ class ITReviewPendingFood : TPendingFoodService() {
         )
 
         // Act - review pending food
-        val pendingFoodReviewed = pendingFoodService.review(arrange.review)
+        val pendingFoodReviewed = pendingFoodService.review(
+            req = arrange.review.toRequest(),
+            reviewerPrincipal = arrange.reviewer.toPrincipal()
+        )
 
         // Assert - pending food review is present
         assertNotNull(pendingFoodReviewed, notNullMessage("pendingFoodReviewed"))
@@ -224,7 +232,10 @@ class ITReviewPendingFood : TPendingFoodService() {
         )
 
         // Act - review pending food
-        val pendingFoodReviewed = pendingFoodService.review(arrange.review)
+        val pendingFoodReviewed = pendingFoodService.review(
+            req = arrange.review.toRequest(),
+            reviewerPrincipal = arrange.reviewer.toPrincipal()
+        )
 
         // Assert - pending food review is present
         assertNotNull(pendingFoodReviewed, notNullMessage("pendingFoodReviewed"))
@@ -281,9 +292,10 @@ class ITReviewPendingFood : TPendingFoodService() {
     fun `pending food not found during revision should throws PendingFoodNotFoundException`() = runTest {
         // Arrange
         val (author, reviewer) = createAuthorAndReviewer()
-        val createdPendingFood = submitPendingFood(author.id)
+        val createdPendingFood = submitPendingFood(author.toPrincipal())
 
         val review = PendingFoodReview(
+            createdById = author.id,
             pendingFoodId = createdPendingFood.id + (1..10).random(),
             reviewerPrincipal = reviewer.toPrincipal(),
             rejectionReason = null
@@ -291,7 +303,10 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         // Act & Assert
         assertFailsWith<EdibleNotFoundException> {
-            pendingFoodService.review(review)
+            pendingFoodService.review(
+                req = review.toRequest(),
+                reviewerPrincipal = reviewer.toPrincipal()
+            )
         }
     }
 
@@ -305,7 +320,10 @@ class ITReviewPendingFood : TPendingFoodService() {
         )
 
         // Act - review pending food
-        pendingFoodService.review(arrange.review)
+        pendingFoodService.review(
+            req = arrange.review.toRequest(),
+            reviewerPrincipal = arrange.reviewer.toPrincipal()
+        )
 
         suspendTransaction {
             // Assert - wallet is present
@@ -320,7 +338,10 @@ class ITReviewPendingFood : TPendingFoodService() {
 
             // Act && Assert - reviewing the same pending food throws `PendingFoodAlreadyReviewedException`
             assertFailsWith<PendingFoodAlreadyReviewedException> {
-                pendingFoodService.review(arrange.review)
+                pendingFoodService.review(
+                    req = arrange.review.toRequest(),
+                    reviewerPrincipal = arrange.reviewer.toPrincipal()
+                )
             }
 
             // Assert - wallet was not updated
@@ -353,7 +374,10 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         // Act & Assert - constraint violation propagates out of the transaction
         assertFailsWith<Exception> {
-            pendingFoodService.review(arrange.review)
+            pendingFoodService.review(
+                req = arrange.review.toRequest(),
+                reviewerPrincipal = arrange.reviewer.toPrincipal()
+            )
         }
 
         suspendTransaction {
@@ -403,7 +427,10 @@ class ITReviewPendingFood : TPendingFoodService() {
 
         // Act & Assert
         assertFailsWith<UserNotFoundException> {
-            pendingFoodService.review(arrange.review)
+            pendingFoodService.review(
+                req = arrange.review.toRequest(),
+                reviewerPrincipal = arrange.reviewer.toPrincipal()
+            )
         }
 
         suspendTransaction {

@@ -1,8 +1,10 @@
 package tests.food.pending
 
 import com.example.domain.PendingFood
+import com.example.domain.UserPrincipal
+import com.example.mappers.toAddRequest
+import com.example.repository.edible.app.AppFoodRepository
 import com.example.repository.edible.pending.PendingFoodRepository
-import com.example.repository.foods.app.AppFoodRepository
 import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
 import com.example.repository.user.wallets.UserWalletRepository
@@ -16,7 +18,6 @@ import org.jetbrains.exposed.sql.Database
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Before
-import java.util.*
 
 abstract class TPendingFoodService {
     private lateinit var db: Database
@@ -62,8 +63,13 @@ abstract class TPendingFoodService {
     }
 
     protected suspend fun submitPendingFood(
-        submittedBy: UUID = UUID.randomUUID(),
+        userPrincipal: UserPrincipal,
         name: String = "food number ${(1000..9999).random()}"
-    ): PendingFood = buildPendingFoodCreateData(submittedBy, name)
-        .let { pendingFoodService.add(it) }
+    ): PendingFood = buildPendingFoodCreateData(userPrincipal.id, name)
+        .let {
+            pendingFoodService.add(
+                req = it.toAddRequest(),
+                userPrincipal = userPrincipal
+            )
+        }
 }
