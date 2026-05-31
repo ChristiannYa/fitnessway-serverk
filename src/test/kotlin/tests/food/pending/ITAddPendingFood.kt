@@ -50,12 +50,11 @@ class ITAddPendingFood : TPendingFoodService() {
     fun `submitting more than 5 requests throws DailySubmissionLimitExceededException`() = runTest {
         // Arrange - create user
         val (user, _) = createUserAndGetData(authService, userRepository)
-        val pendingFoodRequest = buildPendingFoodCreateData(user.id)
 
         // Arrange - submit 5 different requests
         repeat(5) {
             pendingFoodService.add(
-                req = pendingFoodRequest.toAddRequest(),
+                req = buildPendingFoodCreateData(user.id).toAddRequest(),
                 user.toPrincipal()
             )
         }
@@ -63,7 +62,7 @@ class ITAddPendingFood : TPendingFoodService() {
         // Act & Assert
         assertFailsWith<DailySubmissionLimitExceededException> {
             pendingFoodService.add(
-                req = pendingFoodRequest.toAddRequest(),
+                req = buildPendingFoodCreateData(user.id).toAddRequest(),
                 user.toPrincipal()
             )
         }

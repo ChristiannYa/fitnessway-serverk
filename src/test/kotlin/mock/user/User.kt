@@ -26,7 +26,7 @@ fun buildUser(
         createdAt = Clock.System.now(),
         updatedAt = null,
         type = userType,
-        timezone = ""
+        timezone = "America/Chicago"
     )
 }
 

@@ -1098,7 +1098,7 @@ ALTER TABLE ONLY public.user_pending_edibles
 --
 
 ALTER TABLE ONLY public.user_pending_edibles
-    ADD CONSTRAINT user_pending_edibles_submitted_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
+    ADD CONSTRAINT user_pending_edibles_submitted_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -1114,7 +1114,7 @@ ALTER TABLE ONLY public.user_preferences
 --
 
 ALTER TABLE ONLY public.user_wallets
-    ADD CONSTRAINT user_wallets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT user_wallets_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 --
 -- Data for Name: nutrients; Type: TABLE DATA; Schema: public; Owner: -

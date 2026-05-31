@@ -19,7 +19,7 @@ object U : UUIDTable("users") {
     val isPremium = bool("is_premium")
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at").nullable()
-    val timezone = varchar("timezone", 50)
+    val timezone = varchar("timezone", 50).default("UTC")
 }
 
 class UDao(id: EntityID<UUID>) : UUIDEntity(id) {

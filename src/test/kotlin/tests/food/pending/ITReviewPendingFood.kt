@@ -21,6 +21,7 @@ import utils.nullMessage
 import kotlin.test.*
 
 class ITReviewPendingFood : TPendingFoodService() {
+
     private suspend fun createAuthorAndReviewer(
         authorType: UserType = UserType.USER,
         reviewerType: UserType = UserType.ADMIN
@@ -31,7 +32,21 @@ class ITReviewPendingFood : TPendingFoodService() {
         val (author, _) = createUserAndGetData(authService, userRepository, authorRegisterData)
         val (reviewer, _) = createUserAndGetData(authService, userRepository, reviewerRegisterData)
 
-        return author to reviewer
+        // Update user types in database if not USER
+        suspendTransaction {
+            if (authorType != UserType.USER) {
+                UDao.findById(author.id)?.userType = authorType
+            }
+            if (reviewerType != UserType.USER) {
+                UDao.findById(reviewer.id)?.userType = reviewerType
+            }
+        }
+
+        // Re-fetch updated users from database
+        val updatedAuthor = userRepository.findById(author.id)!!
+        val updatedReviewer = userRepository.findById(reviewer.id)!!
+
+        return updatedAuthor to updatedReviewer
     }
 
     /**
@@ -102,11 +117,11 @@ class ITReviewPendingFood : TPendingFoodService() {
             assertNotNull(peDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food moved to database
-            val AEDao = AEDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(AEDao, notNullMessage("appFoodDao"))
+            val aeDao = AEDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(aeDao, notNullMessage("appFoodDao"))
 
             // Assert - food created by value is present
-            val appFoodAuthor = AEDao.createdBy?.value
+            val appFoodAuthor = aeDao.createdBy?.value
             assertNotNull(appFoodAuthor, notNullMessage("appFoodAuthor"))
 
             // Assert - author id is correctly set
@@ -115,7 +130,7 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AEN
                 .selectAll()
-                .where { AEN.edibleId eq AEDao.id }
+                .where { AEN.edibleId eq aeDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 
@@ -184,11 +199,11 @@ class ITReviewPendingFood : TPendingFoodService() {
             assertNotNull(peDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food moved to database
-            val AEDao = AEDao.findById(arrange.createdPendingFood.id)
-            assertNotNull(AEDao, notNullMessage("appFoodDao"))
+            val aeDao = AEDao.findById(arrange.createdPendingFood.id)
+            assertNotNull(aeDao, notNullMessage("appFoodDao"))
 
             // Assert - food created by value is present
-            val appFoodAuthor = AEDao.createdBy?.value
+            val appFoodAuthor = aeDao.createdBy?.value
             assertNotNull(appFoodAuthor, notNullMessage("appFoodAuthor"))
 
             // Assert - author id is correctly set
@@ -197,7 +212,7 @@ class ITReviewPendingFood : TPendingFoodService() {
             // Assert - nutrients list is not empty
             val nutrients = AEN
                 .selectAll()
-                .where { AEN.edibleId eq AEDao.id }
+                .where { AEN.edibleId eq aeDao.id }
                 .toList()
             assertTrue(nutrients.isNotEmpty())
 
@@ -335,16 +350,23 @@ class ITReviewPendingFood : TPendingFoodService() {
 
             // Assert - wallet was updated
             assertEquals(RewardConfig.FOOD_APPROVAL_REWARD.toBigDecimal().setScale(2), wallet[UW.amount])
+        }
 
-            // Act && Assert - reviewing the same pending food throws `PendingFoodAlreadyReviewedException`
-            assertFailsWith<PendingFoodAlreadyReviewedException> {
-                pendingFoodService.review(
-                    req = arrange.review.toRequest(),
-                    reviewerPrincipal = arrange.reviewer.toPrincipal()
-                )
-            }
+        // Act && Assert - reviewing the same pending food throws PendingFoodAlreadyReviewedException
+        assertFailsWith<PendingFoodAlreadyReviewedException> {
+            pendingFoodService.review(
+                req = arrange.review.toRequest(),
+                reviewerPrincipal = arrange.reviewer.toPrincipal()
+            )
+        }
 
+        suspendTransaction {
             // Assert - wallet was not updated
+            val wallet = UW
+                .selectAll()
+                .where { UW.userId eq arrange.author.id }
+                .firstOrNull()
+            assertNotNull(wallet, notNullMessage("wallet"))
             assertEquals(RewardConfig.FOOD_APPROVAL_REWARD.toBigDecimal().setScale(2), wallet[UW.amount])
         }
     }
@@ -368,6 +390,7 @@ class ITReviewPendingFood : TPendingFoodService() {
                     amountPerServing = it.amountPerServing.toBigDecimal()
                     servingUnit = it.servingUnit
                     createdBy = EntityID(arrange.author.id, U)
+                    edibleType = EdibleType.FOOD
                 }
             }
         }
@@ -446,8 +469,8 @@ class ITReviewPendingFood : TPendingFoodService() {
             assertNull(peDao.reviewedAt, nullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food was NOT moved to app_foods (toMove() failed before moveToAppFoods() was called)
-            val AEDao = AEDao.findById(arrange.createdPendingFood.id)
-            assertNull(AEDao, nullMessage("appFoodDao"))
+            val aeDao = AEDao.findById(arrange.createdPendingFood.id)
+            assertNull(aeDao, nullMessage("appFoodDao"))
 
             // Assert - no user transaction was created
             val uctDao = UCTDao.find {

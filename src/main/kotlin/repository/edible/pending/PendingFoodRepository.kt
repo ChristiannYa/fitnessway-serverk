@@ -22,10 +22,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         createdById: UUID,
         reviewerId: UUID?
     ): Pair<PEDao, List<NutrientDataAmount>>? = suspendTransaction {
-        val peDao = PEDao.find {
-            (PE.id eq id) and
-            (PE.createdBy eq createdById)
-        }.firstOrNull() ?: return@suspendTransaction null
+        val peDao = PEDao.findById(id) ?: return@suspendTransaction null
 
         val nutrients = queryNutrientsForFood(UPEN, peDao.id.value, reviewerId ?: createdById)
 
@@ -119,10 +116,8 @@ class PendingFoodRepository : IPendingFoodRepository {
     override suspend fun updateStatus(
         pendingFoodReview: PendingFoodReview
     ): Pair<PEDao, List<NutrientDataAmount>>? = suspendTransaction {
-        val peDao = PEDao.find {
-            (PE.id eq pendingFoodReview.pendingFoodId) and
-            (PE.createdBy eq pendingFoodReview.createdById)
-        }.firstOrNull() ?: return@suspendTransaction null
+        val peDao = PEDao.findById(pendingFoodReview.pendingFoodId)
+            ?: return@suspendTransaction null
 
         peDao.apply {
             status = pendingFoodReview.approvalStatus
