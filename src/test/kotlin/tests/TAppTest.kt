@@ -1,8 +1,5 @@
-package tests.food.pending
+package tests
 
-import com.example.domain.PendingFood
-import com.example.domain.UserPrincipal
-import com.example.mappers.toAddRequest
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.repository.edible.pending.PendingFoodRepository
 import com.example.repository.refresh.RefreshRepository
@@ -13,13 +10,12 @@ import com.example.service.JwtService
 import com.example.service.PendingFoodService
 import config.TestDatabase
 import mock.auth.createJwtService
-import mock.food.buildPendingFoodCreateData
 import org.jetbrains.exposed.sql.Database
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Before
 
-abstract class TPendingFoodService {
+open class TAppTest {
     private lateinit var db: Database
 
     protected lateinit var refreshRepository: RefreshRepository
@@ -61,15 +57,4 @@ abstract class TPendingFoodService {
     fun tearDown() {
         TestDatabase.tearDown()
     }
-
-    protected suspend fun submitPendingFood(
-        userPrincipal: UserPrincipal,
-        name: String = "food number ${(1000..9999).random()}"
-    ): PendingFood = buildPendingFoodCreateData(userPrincipal.id, name)
-        .let {
-            pendingFoodService.add(
-                req = it.toAddRequest(),
-                userPrincipal = userPrincipal
-            )
-        }
 }

@@ -1,4 +1,4 @@
-package tests.food.pending
+package tests.edible.pending
 
 import com.example.config.RewardConfig
 import com.example.domain.*

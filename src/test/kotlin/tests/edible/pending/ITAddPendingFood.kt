@@ -1,4 +1,4 @@
-package tests.food.pending
+package tests.edible.pending
 
 import com.example.domain.PendingFoodReview
 import com.example.domain.UserType
