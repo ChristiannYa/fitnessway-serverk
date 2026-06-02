@@ -18,10 +18,11 @@ enum class NutrientType {
 sealed class NutrientEntry
 
 /**
- * Represents nutrient information that can be grouped by [NutrientType]
+ * Represents nutrient information that can be grouped a property
  */
 interface NutrientGroupable {
-    val iNutrientType: NutrientType
+    val byId: Int
+    val byType: NutrientType
 }
 
 typealias NutrientIntakes = NutrientsByType<NutrientDataAmount>
@@ -29,8 +30,8 @@ typealias NutrientIntakes = NutrientsByType<NutrientDataAmount>
 @Serializable
 data class NutrientsByType<N : NutrientGroupable>(
     val basic: List<N>,
-    val vitamins: List<N>,
-    val minerals: List<N>
+    val vitamin: List<N>,
+    val mineral: List<N>
 )
 
 @Serializable
@@ -54,7 +55,11 @@ data class NutrientData(
     val base: NutrientBase,
     val preferences: NutrientPreferences
 ) : NutrientGroupable {
-    override val iNutrientType: NutrientType
+
+    override val byId: Int
+        get() = this.base.id
+
+    override val byType: NutrientType
         get() = this.base.type
 }
 
@@ -63,7 +68,11 @@ data class NutrientDataAmount(
     val data: NutrientData,
     val amount: Double
 ) : NutrientEntry(), NutrientGroupable {
-    override val iNutrientType: NutrientType
+
+    override val byId: Int
+        get() = this.data.base.id
+
+    override val byType: NutrientType
         get() = this.data.base.type
 }
 

@@ -2,6 +2,7 @@ package com.example.utils.extensions
 
 import com.example.constants.NutrientId
 import com.example.domain.NutrientDataAmount
+import com.example.domain.NutrientGroupable
 
 fun List<NutrientDataAmount>.filterAccesibility(
     isAppFood: Boolean = false,
@@ -10,17 +11,18 @@ fun List<NutrientDataAmount>.filterAccesibility(
     .filter { it.data.preferences.goal != null }
     .filter { isAppFood || isUserPremium || !it.data.base.isPremium }
 
-fun List<NutrientDataAmount>.sortBaseNutrients() =
-    this.sortedWith(
-        compareBy<NutrientDataAmount> { nutrient ->
-            listOf<Int>(
-                NutrientId.CALORIES,
-                NutrientId.CARBS,
-                NutrientId.FATS,
-                NutrientId.PROTEIN
-            )
-                .indexOf(nutrient.data.base.id)
-                .let { if (it != -1) it else Int.MAX_VALUE }
+fun <T : NutrientGroupable> List<T>.sortBaseNutrients() =
+    this
+        .sortedWith(
+            compareBy<T> { nutrient ->
+                listOf<Int>(
+                    NutrientId.CALORIES,
+                    NutrientId.CARBS,
+                    NutrientId.FATS,
+                    NutrientId.PROTEIN
+                )
+                    .indexOf(nutrient.byId)
+                    .let { if (it != -1) it else Int.MAX_VALUE }
 
-        }.thenBy { it.data.base.id }
-    )
+            }.thenBy { it.byId }
+        )

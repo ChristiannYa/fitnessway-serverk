@@ -8,5 +8,7 @@ fun Route.nutrientRoutes() {
         route("/intake") {
             getIntakes()
         }
+
+        getByType()
     }
 }

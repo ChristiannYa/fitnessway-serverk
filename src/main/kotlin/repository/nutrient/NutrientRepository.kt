@@ -11,7 +11,8 @@ import org.jetbrains.exposed.sql.selectAll
 import java.util.*
 
 class NutrientRepository : INutrientRepository {
-    override suspend fun findAllWithData(userId: UUID): List<NutrientData> = suspendTransaction {
+
+    override suspend fun getNutrientDataList(userId: UUID): List<NutrientData> = suspendTransaction {
         N
             .join(
                 otherTable = UNP,

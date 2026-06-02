@@ -4,5 +4,5 @@ import com.example.domain.NutrientData
 import java.util.*
 
 interface INutrientRepository {
-    suspend fun findAllWithData(userId: UUID): List<NutrientData>
+    suspend fun getNutrientDataList(userId: UUID): List<NutrientData>
 }

@@ -34,7 +34,7 @@ fun Application.configureDependencies() {
     val jwtService = JwtService(this)
     val authService = AuthService(userRepository, refreshRepository, jwtService, userWalletsRepository)
     val userService = UserService(userRepository)
-    val nutrientIntakeService = NutrientIntakeService(
+    val nutrientService = NutrientService(
         nutrientRepository,
         nutrientIntakeRepository,
         timeConverter
@@ -57,7 +57,7 @@ fun Application.configureDependencies() {
     this.attributes.put(JwtServiceKey, jwtService)
     this.attributes.put(AuthServiceKey, authService)
     this.attributes.put(UserServiceKey, userService)
-    this.attributes.put(NutrientIntakeServiceKey, nutrientIntakeService)
+    this.attributes.put(NutrientServiceKey, nutrientService)
     this.attributes.put(AppEdibleServiceKey, appFoodService)
     this.attributes.put(UserEdibleServiceKey, userEdibleService)
     this.attributes.put(PendingFoodServiceKey, pendingFoodService)

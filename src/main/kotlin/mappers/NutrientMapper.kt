@@ -7,16 +7,16 @@ import com.example.mapping.UNP
 import org.jetbrains.exposed.sql.ResultRow
 
 fun <N : NutrientGroupable> NutrientsByType<N>.toList() =
-    this.basic + this.vitamins + this.minerals
+    this.basic + this.vitamin + this.mineral
 
 fun <N : NutrientGroupable> List<N>.toNutrientsByType() =
     this
-        .groupBy { it.iNutrientType }
+        .groupBy { it.byType }
         .let {
             NutrientsByType(
                 basic = it[NutrientType.BASIC] ?: emptyList(),
-                vitamins = it[NutrientType.VITAMIN] ?: emptyList(),
-                minerals = it[NutrientType.MINERAL] ?: emptyList()
+                vitamin = it[NutrientType.VITAMIN] ?: emptyList(),
+                mineral = it[NutrientType.MINERAL] ?: emptyList()
             )
         }
 
