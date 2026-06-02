@@ -22,3 +22,8 @@ class InvalidEdibleTypeException(
     message: String = "invalid edible type",
     cause: Throwable? = null
 ) : EdibleExceptions(message, cause)
+
+class InvalidEdibleBarcodeException(
+    message: String = "invalid edible barcode",
+    cause: Throwable? = null
+) : EdibleExceptions(message, cause)

@@ -258,12 +258,18 @@ data class UserEdiblesPaginationCriteria(
     val edibleType: EdibleType
 )
 
+// @TODO: Move to App domain
 sealed class DatabaseResult {
     data object Success : DatabaseResult()
     data object Duplicate : DatabaseResult()
     data object UnexpectedInsertCount : DatabaseResult()
     data class UnexpectedError(val error: String) : DatabaseResult()
 
+    /**
+     * @throws [AlreadyExistsException]
+     * @throws [UnexpectedInsertCountException]
+     * @throws [UnexpectedErrorException]
+     */
     fun throwIfNotSuccess(itemDescription: String) {
         if (this !is Success) {
             val ex = when (this) {

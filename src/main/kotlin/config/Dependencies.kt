@@ -58,7 +58,7 @@ fun Application.configureDependencies() {
     this.attributes.put(AuthServiceKey, authService)
     this.attributes.put(UserServiceKey, userService)
     this.attributes.put(NutrientIntakeServiceKey, nutrientIntakeService)
-    this.attributes.put(AppFoodServiceKey, appFoodService)
+    this.attributes.put(AppEdibleServiceKey, appFoodService)
     this.attributes.put(UserEdibleServiceKey, userEdibleService)
     this.attributes.put(PendingFoodServiceKey, pendingFoodService)
     this.attributes.put(EdibleLogServiceKey, edibleLogService)

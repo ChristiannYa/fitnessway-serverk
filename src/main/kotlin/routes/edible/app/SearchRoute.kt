@@ -1,6 +1,6 @@
 package com.example.routes.edible.app
 
-import com.example.config.AppFoodServiceKey
+import com.example.config.AppEdibleServiceKey
 import com.example.config.UserPrincipalKey
 import com.example.domain.AppFoodSearchPaginationCriteria
 import com.example.domain.EdibleType
@@ -17,7 +17,7 @@ import io.ktor.server.routing.*
 fun Route.search() {
     get("/search") {
         val userPrincipal = call.attributes[UserPrincipalKey]
-        val appFoodService = application.attributes[AppFoodServiceKey]
+        val appFoodService = application.attributes[AppEdibleServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
 

@@ -15,7 +15,7 @@ import mock.user.buildUserRegisterData
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.selectAll
 import org.junit.Test
-import utils.createUserAndGetData
+import utils.createAndGetUserData
 import utils.notNullMessage
 import utils.nullMessage
 import kotlin.test.*
@@ -29,8 +29,8 @@ class ITReviewPendingFood : TPendingFoodService() {
         val authorRegisterData = buildUserRegisterData(userType = authorType)
         val reviewerRegisterData = buildUserRegisterData(userType = reviewerType)
 
-        val (author, _) = createUserAndGetData(authService, userRepository, authorRegisterData)
-        val (reviewer, _) = createUserAndGetData(authService, userRepository, reviewerRegisterData)
+        val (author, _) = createAndGetUserData(authService, userRepository, authorRegisterData)
+        val (reviewer, _) = createAndGetUserData(authService, userRepository, reviewerRegisterData)
 
         // Update user types in database if not USER
         suspendTransaction {
@@ -277,8 +277,8 @@ class ITReviewPendingFood : TPendingFoodService() {
             assertNotNull(peDao.reviewedAt, notNullMessage("pendingFoodDao.reviewedAt"))
 
             // Assert - food is NOT moved to database
-            val AEDao = AEDao.findById(arrange.createdPendingFood.id)
-            assertNull(AEDao, nullMessage("afDao"))
+            val aeDao = AEDao.findById(arrange.createdPendingFood.id)
+            assertNull(aeDao, nullMessage("afDao"))
 
             // Assert - NO user transaction was created
             val uctDao = UCTDao.find {

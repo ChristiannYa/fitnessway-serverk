@@ -47,7 +47,31 @@ class AppFoodRepository : IAppFoodRepository {
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
     }
 
-    override suspend fun addBarcode(
+    override suspend fun submit(
+        foodToCreate: AppFoodCreate
+    ): Pair<AEDao, List<NutrientDataAmount>> = suspendTransaction {
+
+        val aeDao = foodToCreate.base.let { foodBase ->
+            AEDao.new {
+                this.name = foodBase.name
+                this.brand = foodBase.brand.toString()
+                this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
+                this.servingUnit = foodBase.servingUnit
+                this.edibleType = foodToCreate.edibleType
+                this.createdBy = EntityID(foodToCreate.createdBy, U)
+            }
+        }
+
+        AEN.batchInsert(foodToCreate.nutrientList) { nutrient ->
+            this[AEN.edibleId] = aeDao.id.value
+            this[AEN.nutrientId] = nutrient.nutrientId
+            this[AEN.amount] = nutrient.amount.toBigDecimal()
+        }
+
+        aeDao to queryNutrientsForFood(AEN, aeDao.id.value, foodToCreate.createdBy)
+    }
+
+    override suspend fun setBarcode(
         barcode: String,
         edibleId: Int
     ): DatabaseResult = suspendTransaction {
@@ -69,27 +93,6 @@ class AppFoodRepository : IAppFoodRepository {
                 DatabaseResult.Duplicate
             else DatabaseResult.UnexpectedError(ex.message.toString())
         }
-    }
-
-    override suspend fun create(foodToCreate: AppFoodCreate): Int = suspendTransaction {
-        val aeDao = foodToCreate.base.let { foodBase ->
-            AEDao.new {
-                this.name = foodBase.name
-                this.brand = foodBase.brand.toString()
-                this.amountPerServing = foodBase.amountPerServing.toBigDecimal()
-                this.servingUnit = foodBase.servingUnit
-                this.edibleType = foodToCreate.edibleType
-                this.createdBy = EntityID(foodToCreate.createdBy, U)
-            }
-        }
-
-        AEN.batchInsert(foodToCreate.nutrientList) { nutrient ->
-            this[AEN.edibleId] = aeDao.id.value
-            this[AEN.nutrientId] = nutrient.nutrientId
-            this[AEN.amount] = nutrient.amount.toBigDecimal()
-        }
-
-        aeDao.id.value
     }
 
     override suspend fun isDuplicate(

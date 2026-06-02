@@ -174,6 +174,9 @@ fun Application.configureStatusPages() {
 
                 is EdibleAlreadyExistsException ->
                     ex.message.toString() to HttpStatusCode.Conflict
+
+                is InvalidEdibleBarcodeException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
             }
         }
 

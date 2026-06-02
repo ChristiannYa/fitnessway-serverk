@@ -11,10 +11,10 @@ import com.example.mappers.toRequest
 import com.example.mapping.PEDao
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.test.runTest
-import mock.food.buildPendingFoodCreateData
+import mock.edible.buildPendingFoodCreateData
 import mock.user.buildUserRegisterData
 import org.junit.Test
-import utils.createUserAndGetData
+import utils.createAndGetUserData
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
@@ -26,7 +26,7 @@ class ITAddPendingFood : TPendingFoodService() {
     @Test
     fun `pending food request is saved into the database`() = runTest {
         // Arrange - create user
-        val (user, _) = createUserAndGetData(authService, userRepository)
+        val (user, _) = createAndGetUserData(authService, userRepository)
         val pendingFoodRequest = buildPendingFoodCreateData(user.id)
 
         // Act - create pending food
@@ -49,7 +49,7 @@ class ITAddPendingFood : TPendingFoodService() {
     @Test
     fun `submitting more than 5 requests throws DailySubmissionLimitExceededException`() = runTest {
         // Arrange - create user
-        val (user, _) = createUserAndGetData(authService, userRepository)
+        val (user, _) = createAndGetUserData(authService, userRepository)
 
         // Arrange - submit 5 different requests
         repeat(5) {
@@ -71,9 +71,9 @@ class ITAddPendingFood : TPendingFoodService() {
     @Test
     fun `submitting an already pending food throws FoodAlreadyPendingException`() = runTest {
         // Arrange - create user
-        val (userA, _) = createUserAndGetData(authService, userRepository)
-        val (userB, _) = createUserAndGetData(authService, userRepository)
-        val (userC, _) = createUserAndGetData(authService, userRepository)
+        val (userA, _) = createAndGetUserData(authService, userRepository)
+        val (userB, _) = createAndGetUserData(authService, userRepository)
+        val (userC, _) = createAndGetUserData(authService, userRepository)
 
         // Arrange - build users' requests
         val foodName = "Doritos"
@@ -106,8 +106,8 @@ class ITAddPendingFood : TPendingFoodService() {
     @Test
     fun `submitting an already app food throws FoodAlreadyInAppException`() = runTest {
         // Arrange - create user and reviewer
-        val (user, _) = createUserAndGetData(authService, userRepository)
-        val (reviewer, _) = createUserAndGetData(
+        val (user, _) = createAndGetUserData(authService, userRepository)
+        val (reviewer, _) = createAndGetUserData(
             authService,
             userRepository,
             buildUserRegisterData(userType = UserType.ADMIN)

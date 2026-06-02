@@ -3,7 +3,7 @@ package tests.edible.pending
 import com.example.domain.PendingFood
 import com.example.domain.UserPrincipal
 import com.example.mappers.toAddRequest
-import mock.food.buildPendingFoodCreateData
+import mock.edible.buildPendingFoodCreateData
 import tests.TAppTest
 
 abstract class TPendingFoodService : TAppTest() {

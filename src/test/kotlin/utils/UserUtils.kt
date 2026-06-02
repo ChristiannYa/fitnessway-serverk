@@ -6,7 +6,7 @@ import com.example.domain.UserRegisterData
 import com.example.repository.user.UserRepository
 import com.example.service.AuthService
 
-suspend fun createUserAndGetData(
+suspend fun createAndGetUserData(
     authService: AuthService,
     userRepository: UserRepository,
     userRegisterData: UserRegisterData = mock.user.buildUserRegisterData(),

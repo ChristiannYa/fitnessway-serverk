@@ -7,11 +7,11 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.experimental.withSuspendTransaction
 import org.postgresql.util.PGobject
 
-suspend fun <T> suspendTransaction(
-    block: suspend Transaction.() -> T
-): T = TransactionManager
-    .currentOrNull()?.withSuspendTransaction(statement = block)
-    ?: newSuspendedTransaction(Dispatchers.IO, statement = block)
+suspend fun <T> suspendTransaction(block: suspend Transaction.() -> T): T =
+    TransactionManager
+        .currentOrNull()
+        ?.withSuspendTransaction(statement = block)
+        ?: newSuspendedTransaction(Dispatchers.IO, statement = block)
 
 class PgEnum<T : Enum<T>>(
     private val enumClass: Class<T>,

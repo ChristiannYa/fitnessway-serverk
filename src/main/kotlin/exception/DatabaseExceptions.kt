@@ -5,6 +5,9 @@ sealed class DatabaseException(
     cause: Throwable? = null
 ) : Exception(message, cause)
 
+/**
+ * @param item builds the following error message: [item] already exists
+ */
 class AlreadyExistsException(
     item: String,
     cause: Throwable? = null

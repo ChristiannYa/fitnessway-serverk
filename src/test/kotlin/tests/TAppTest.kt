@@ -5,6 +5,7 @@ import com.example.repository.edible.pending.PendingFoodRepository
 import com.example.repository.refresh.RefreshRepository
 import com.example.repository.user.UserRepository
 import com.example.repository.user.wallets.UserWalletRepository
+import com.example.service.AppFoodService
 import com.example.service.AuthService
 import com.example.service.JwtService
 import com.example.service.PendingFoodService
@@ -25,6 +26,7 @@ open class TAppTest {
     protected lateinit var appFoodRepository: AppFoodRepository
     protected lateinit var jwtService: JwtService
     protected lateinit var authService: AuthService
+    protected lateinit var appEdibleService: AppFoodService
     protected lateinit var pendingFoodService: PendingFoodService
 
     companion object {
@@ -38,13 +40,18 @@ open class TAppTest {
     @Before
     fun setUp() {
         db = TestDatabase.setUp()
-        refreshRepository = RefreshRepository()
+
         userRepository = UserRepository()
         userWalletRepository = UserWalletRepository()
-        pendingFoodRepository = PendingFoodRepository()
-        appFoodRepository = AppFoodRepository()
+
         jwtService = createJwtService()
+        refreshRepository = RefreshRepository()
         authService = AuthService(userRepository, refreshRepository, jwtService, userWalletRepository)
+
+        appFoodRepository = AppFoodRepository()
+        appEdibleService = AppFoodService(appFoodRepository)
+
+        pendingFoodRepository = PendingFoodRepository()
         pendingFoodService = PendingFoodService(
             pendingFoodRepository,
             userWalletRepository,

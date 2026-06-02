@@ -129,7 +129,7 @@ class PendingFoodService(
                         "pending food author not found when mapping data to create app food"
                     )
 
-                appFoodRepository.create(appFoodCreateData)
+                appFoodRepository.submit(appFoodCreateData)
 
                 // Obtain author information for potential multiplier
                 val pendingFoodAuthor = userRepository.findById(appFoodCreateData.createdBy)

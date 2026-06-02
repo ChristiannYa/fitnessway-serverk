@@ -37,6 +37,12 @@ data class EdibleAddRequest(
 )
 
 @Serializable
+data class AppEdibleSubmitRequest(
+    val edibleRequest: EdibleAddRequest,
+    val barcode: String
+)
+
+@Serializable
 data class PendingFoodReviewRequest(
     val createdById: String,
     val pendingFoodId: Int,
