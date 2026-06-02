@@ -69,7 +69,7 @@ data class NutrientDataAmount(
 
 @Serializable
 data class NutrientIdWithAmount(
-    val nutrientId: Int,
+    val id: Int,
     val amount: Double
 ) : NutrientEntry()
 

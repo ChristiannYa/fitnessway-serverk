@@ -64,7 +64,7 @@ class AppFoodRepository : IAppFoodRepository {
 
         AEN.batchInsert(foodToCreate.nutrientList) { nutrient ->
             this[AEN.edibleId] = aeDao.id.value
-            this[AEN.nutrientId] = nutrient.nutrientId
+            this[AEN.nutrientId] = nutrient.id
             this[AEN.amount] = nutrient.amount.toBigDecimal()
         }
 
@@ -113,7 +113,7 @@ class AppFoodRepository : IAppFoodRepository {
                 .where { AEN.edibleId eq appFoodDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
-                        nutrientId = row[AEN.nutrientId].value,
+                        id = row[AEN.nutrientId].value,
                         amount = row[AEN.amount].toDouble()
                     )
                 }

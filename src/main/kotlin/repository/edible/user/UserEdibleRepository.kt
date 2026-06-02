@@ -101,7 +101,7 @@ class UserEdibleRepository : IUserEdibleRepository {
 
         UEN.batchInsert(createData.nutrientList) { n ->
             this[UEN.edibleId] = ueDao.id
-            this[UEN.nutrientId] = n.nutrientId
+            this[UEN.nutrientId] = n.id
             this[UEN.amount] = n.amount.toBigDecimal()
         }
 

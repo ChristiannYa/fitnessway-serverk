@@ -20,23 +20,23 @@ fun buildPendingFoodCreateData(
         ),
         nutrientList = listOf(
             NutrientIdWithAmount(
-                nutrientId = 1,
+                id = 1,
                 amount = 220.0
             ),
             NutrientIdWithAmount(
-                nutrientId = 2,
+                id = 2,
                 amount = 12.0
             ),
             NutrientIdWithAmount(
-                nutrientId = 4,
+                id = 4,
                 amount = 6.2
             ),
             NutrientIdWithAmount(
-                nutrientId = 6,
+                id = 6,
                 amount = 4.24
             ),
             NutrientIdWithAmount(
-                nutrientId = 16,
+                id = 16,
                 amount = 128.8
             )
         ),
@@ -54,23 +54,23 @@ fun buildEdibleRequestData(name: String): EdibleAddRequest {
         ),
         nutrients = listOf(
             NutrientIdWithAmount(
-                nutrientId = 1,
+                id = 1,
                 amount = 220.0
             ),
             NutrientIdWithAmount(
-                nutrientId = 2,
+                id = 2,
                 amount = 12.0
             ),
             NutrientIdWithAmount(
-                nutrientId = 4,
+                id = 4,
                 amount = 6.2
             ),
             NutrientIdWithAmount(
-                nutrientId = 6,
+                id = 6,
                 amount = 4.24
             ),
             NutrientIdWithAmount(
-                nutrientId = 16,
+                id = 16,
                 amount = 128.8
             )
         ),

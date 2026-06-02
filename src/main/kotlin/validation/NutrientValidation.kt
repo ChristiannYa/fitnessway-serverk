@@ -9,7 +9,7 @@ fun List<NutrientIdWithAmount>.validate(): ValidationResult {
     }
 
     this.forEach {
-        if (it.nutrientId <= 0) {
+        if (it.id <= 0) {
             return ValidationResult.Invalid("nutrient id is invalid")
         }
 
