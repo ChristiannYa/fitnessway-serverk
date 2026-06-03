@@ -8,7 +8,6 @@ import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
-    // Load .env variables
     loadDotenv()
     io.ktor.server.netty.EngineMain.main(args)
 }
@@ -35,7 +34,7 @@ fun Application.module() {
 
 private fun loadDotenv() {
     val dotenv = dotenv {
-        ignoreIfMissing = false
+        ignoreIfMissing = true
     }
 
     dotenv.entries().forEach { entry ->
