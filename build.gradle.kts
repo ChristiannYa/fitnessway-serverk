@@ -12,13 +12,8 @@ application {
     mainClass = "io.ktor.server.netty.EngineMain"
 }
 
-ktor {
-    fatJar {
-        archiveFileName = "fitnessway.jar"
-    }
-}
-
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildFatJar") {
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().configureEach {
+    archiveFileName = "fitnessway.jar"
     mergeServiceFiles()
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
