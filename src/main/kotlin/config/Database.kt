@@ -33,10 +33,6 @@ fun Application.configureDatabase() {
         .configure()
         .dataSource(dataSource)
         .locations("classpath:db/migration")
-        .javaMigrationClassProvider(null)
-        .sqlMigrationPrefix("V")
-        .sqlMigrationSeparator("__")
-        .sqlMigrationSuffixes(".sql")
 
     flyway
         .load()
