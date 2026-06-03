@@ -1120,25 +1120,23 @@ ALTER TABLE ONLY public.user_wallets
 -- Data for Name: nutrients; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.nutrients (id, name, symbol, unit, type, is_premium) FROM stdin;
-1	Calories	\N	kcal	basic	f
-2	Carbs	\N	g	basic	f
-3	Cholesterol	\N	mg	basic	t
-4	Fats	\N	g	basic	f
-5	Fiber	\N	g	basic	t
-6	Protein	\N	g	basic	f
-7	Sodium	\N	mg	basic	t
-8	Sugar	\N	g	basic	t
-9	A	A	mcg	vitamin	t
-10	B12	B12	mcg	vitamin	f
-11	C	C	mg	vitamin	f
-12	D	D	mcg	vitamin	f
-13	Calcium	Ca	mg	mineral	t
-14	Iron	Fe	mg	mineral	f
-15	Magnesium	Mg	mg	mineral	f
-16	Potassium	K	mg	mineral	f
-\.
-
+INSERT INTO public.nutrients (id, name, symbol, unit, type, is_premium) VALUES
+    (1, 'Calories', NULL, 'kcal', 'basic', false),
+    (2, 'Carbs', NULL, 'g', 'basic', false),
+    (3, 'Cholesterol', NULL, 'mg', 'basic', true),
+    (4, 'Fats', NULL, 'g', 'basic', false),
+    (5, 'Fiber', NULL, 'g', 'basic', true),
+    (6, 'Protein', NULL, 'g', 'basic', false),
+    (7, 'Sodium', NULL, 'mg', 'basic', true),
+    (8, 'Sugar', NULL, 'g', 'basic', true),
+    (9, 'A', 'A', 'mcg', 'vitamin', true),
+    (10, 'B12', 'B12', 'mcg', 'vitamin', false),
+    (11, 'C', 'C', 'mg', 'vitamin', false),
+    (12, 'D', 'D', 'mcg', 'vitamin', false),
+    (13, 'Calcium', 'Ca', 'mg', 'mineral', true),
+    (14, 'Iron', 'Fe', 'mg', 'mineral', false),
+    (15, 'Magnesium', 'Mg', 'mg', 'mineral', false),
+    (16, 'Potassium', 'K', 'mg', 'mineral', false);
 
 --
 -- Name: nutrients_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
