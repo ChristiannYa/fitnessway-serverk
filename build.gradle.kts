@@ -18,8 +18,9 @@ ktor {
     }
 }
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().configureEach {
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("buildFatJar") {
     mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 kotlin {
