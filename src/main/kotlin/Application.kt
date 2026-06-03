@@ -6,17 +6,10 @@ import com.example.config.configureDependencies
 import com.example.plugins.*
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 
 fun main(args: Array<String>) {
     loadDotenv()
-
-    val port = System.getenv("PORT")?.toInt()
-        ?: System.getProperty("PORT")?.toInt()
-        ?: 8080
-
-    embeddedServer(Netty, port = port, module = Application::module).start(wait = true)
+    io.ktor.server.netty.EngineMain.main(args)
 }
 
 @Suppress("unused")
@@ -44,7 +37,9 @@ private fun loadDotenv() {
         ignoreIfMissing = true
     }
 
-    dotenv.entries().forEach { entry ->
-        System.setProperty(entry.key, entry.value)
-    }
+    dotenv
+        .entries()
+        .forEach { entry ->
+            System.setProperty(entry.key, entry.value)
+        }
 }
