@@ -11,6 +11,12 @@ application {
     mainClass = "io.ktor.server.netty.EngineMain"
 }
 
+ktor {
+    fatJar {
+        archiveFileName = "fitnessway.jar"
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }
