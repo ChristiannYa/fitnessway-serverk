@@ -1,1 +1,1 @@
-web: java -jar build/libs/fitnessway.jar
+web: java -jar build/libs/fitnessway.jar -port=$PORT
