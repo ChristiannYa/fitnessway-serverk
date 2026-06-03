@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "com.example"
@@ -15,6 +16,10 @@ ktor {
     fatJar {
         archiveFileName = "fitnessway.jar"
     }
+}
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().configureEach {
+    mergeServiceFiles()
 }
 
 kotlin {
