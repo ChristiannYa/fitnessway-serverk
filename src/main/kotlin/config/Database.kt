@@ -33,6 +33,7 @@ fun Application.configureDatabase() {
         .configure()
         .dataSource(dataSource)
         .locations("classpath:db/migration")
+        .validateMigrationNaming(true)
 
     flyway
         .load()
