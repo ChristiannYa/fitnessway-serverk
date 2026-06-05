@@ -3,7 +3,7 @@ package tests.edible.pending
 import com.example.domain.PendingFoodReview
 import com.example.domain.UserType
 import com.example.exception.DailySubmissionLimitExceededException
-import com.example.exception.FoodAlreadyInAppException
+import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.FoodAlreadyPendingException
 import com.example.mappers.toAddRequest
 import com.example.mappers.toPrincipal
@@ -138,7 +138,7 @@ class ITAddPendingFood : TPendingFoodService() {
         )
 
         // Act & Assert
-        assertFailsWith<FoodAlreadyInAppException> {
+        assertFailsWith<EdibleAlreadyExistsException> {
             pendingFoodService.add(
                 req = userFoodRequestB.toAddRequest(),
                 userPrincipal = user.toPrincipal()

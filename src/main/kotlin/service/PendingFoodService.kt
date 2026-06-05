@@ -59,7 +59,7 @@ class PendingFoodService(
         if (submissionCount >= dailyLimit) throw DailySubmissionLimitExceededException(dailyLimit)
 
         val isAlreadyInApp = appFoodRepository.isDuplicate(req.base, req.nutrients)
-        if (isAlreadyInApp) throw FoodAlreadyInAppException()
+        if (isAlreadyInApp) throw EdibleAlreadyExistsException(req.edibleType.toEnum())
 
         val isAlreadyPending = pendingFoodRepository.isDuplicate(req.base, req.nutrients)
         if (isAlreadyPending) throw FoodAlreadyPendingException()

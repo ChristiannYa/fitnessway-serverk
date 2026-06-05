@@ -2,6 +2,7 @@ package com.example.service
 
 import com.example.domain.*
 import com.example.dto.AppEdibleSubmitRequest
+import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.InvalidEdibleBarcodeException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.AEDao
@@ -57,14 +58,15 @@ class AppFoodService(
     suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
 
-    // @TODO: Check if the edible already exists before adding it
     suspend fun submit(
         req: AppEdibleSubmitRequest,
         userId: UUID
     ): AppFood = suspendTransaction {
 
-        if (!isBarcodeValid(req.barcode))
-            throw InvalidEdibleBarcodeException()
+        if (!isBarcodeValid(req.barcode)) throw InvalidEdibleBarcodeException()
+
+        val isAlreadyInApp = appFoodRepository.isDuplicate(req.edibleRequest.base, req.edibleRequest.nutrients)
+        if (isAlreadyInApp) throw EdibleAlreadyExistsException(req.edibleRequest.edibleType.toEnum())
 
         val (aeDao, nutrientList) = appFoodRepository.submit(
             foodToCreate = AppFoodCreate(
@@ -89,7 +91,7 @@ class AppFoodService(
 
         appEdible
     }
-    
+
     suspend fun setBarcode(
         barcode: String,
         edibleId: Int,

@@ -25,14 +25,6 @@ class FoodAlreadyPendingException(
 ) : PendingFoodsException(message, cause)
 
 /**
- * Thrown when a user tries to submit a food what is already in the app's table
- */
-class FoodAlreadyInAppException(
-    message: String = "this food is already in the app",
-    cause: Throwable? = null
-) : PendingFoodsException(message, cause)
-
-/**
  * Thrown when the reviewer tries to review a pending food that has already been
  * reviewed
  */

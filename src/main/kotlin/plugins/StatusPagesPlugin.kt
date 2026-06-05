@@ -194,9 +194,6 @@ fun Application.configureStatusPages() {
                 is PendingFoodAlreadyReviewedException
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
-                is FoodAlreadyInAppException
-                    -> ex.message.toString() to HttpStatusCode.Conflict
-
                 is CannotDismissPendingFoodException
                     -> ex.message.toString() to HttpStatusCode.Conflict
 
