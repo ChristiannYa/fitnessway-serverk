@@ -57,6 +57,7 @@ class AppFoodService(
     suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
 
+    // @TODO: Check if the edible already exists before adding it
     suspend fun submit(
         req: AppEdibleSubmitRequest,
         userId: UUID
@@ -80,17 +81,25 @@ class AppFoodService(
                 .toNutrientsByType()
         )
 
-        setBarcode(req.barcode, appEdible.id)
+        setBarcode(
+            barcode = req.barcode,
+            edibleId = appEdible.id,
+            edibleType = req.edibleRequest.edibleType.toEnum()
+        )
 
         appEdible
     }
-
-    suspend fun setBarcode(barcode: String, edibleId: Int) {
+    
+    suspend fun setBarcode(
+        barcode: String,
+        edibleId: Int,
+        edibleType: EdibleType
+    ) {
         if (!isBarcodeValid(barcode)) throw InvalidEdibleBarcodeException()
 
         appFoodRepository
             .setBarcode(barcode, edibleId)
-            .throwIfNotSuccess("edible barcode")
+            .throwIfNotSuccess("${edibleType.toString().lowercase()} barcode")
     }
 
     suspend fun search(
