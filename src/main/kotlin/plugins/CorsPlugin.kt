@@ -11,8 +11,6 @@ fun Application.configureCors() {
             ?.split(",")
             ?: listOf("localhost:3000", "10.0.0.4:3000")
 
-    println("CORS allowed origins: $allowedOrigins")
-
     install(CORS) {
         allowedOrigins.forEach {
             allowHost(it, schemes = listOf("https", "http"))
