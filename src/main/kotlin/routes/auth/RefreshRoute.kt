@@ -16,10 +16,8 @@ fun Route.refresh() {
         val req = call.receive<RefreshRequest>()
         val authService = application.attributes[AuthServiceKey]
 
-        // Refresh user's token
         val newAccessToken = authService.refreshAccessToken(req.refreshToken)
 
-        // Send the user the new access
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success(

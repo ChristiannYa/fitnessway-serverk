@@ -16,13 +16,11 @@ fun Route.login() {
         val req = call.receive<LoginRequest>()
         val authService = application.attributes[AuthServiceKey]
 
-        // Login and obtain tokens
         val tokens = authService.login(
             UserLoginData(req.email, req.password),
             req.deviceName
         )
 
-        // Send user the tokens data
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success(

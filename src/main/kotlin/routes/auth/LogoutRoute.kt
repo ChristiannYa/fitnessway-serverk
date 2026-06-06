@@ -16,10 +16,8 @@ fun Route.logout() {
         val req = call.receive<LogoutRequest>()
         val authService = application.attributes[AuthServiceKey]
 
-        // Log out user
         authService.logout(req.refreshToken)
 
-        // Send successful response
         call.respond(
             HttpStatusCode.OK,
             DtoRes.success<Unit>("user logged out successfully")

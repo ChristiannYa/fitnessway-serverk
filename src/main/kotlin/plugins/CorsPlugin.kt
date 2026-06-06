@@ -5,9 +5,15 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.routing.*
 
 fun Application.configureCors() {
+    val allowedOrigins =
+        (System.getProperty("CORS_ALLOWED_ORIGINS")
+            ?: System.getenv("CORS_ALLOWED_ORIGINS")) // Railway uses `.getenv`
+            ?.split(",")
+            ?: listOf("localhost:3000", "10.0.0.4:3000")
+
     install(CORS) {
-        allowHost("localhost:3000")
-        allowHost("10.0.0.4:3000")
+        allowedOrigins.forEach { allowHost(it) }
+
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowMethod(HttpMethod.Put)
