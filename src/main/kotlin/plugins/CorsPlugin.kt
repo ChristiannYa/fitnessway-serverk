@@ -12,7 +12,9 @@ fun Application.configureCors() {
             ?: listOf("localhost:3000", "10.0.0.4:3000")
 
     install(CORS) {
-        allowedOrigins.forEach { allowHost(it) }
+        allowedOrigins.forEach {
+            allowHost(it, schemes = listOf("https", "http"))
+        }
 
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
