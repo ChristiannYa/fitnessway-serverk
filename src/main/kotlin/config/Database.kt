@@ -21,9 +21,10 @@ fun Application.configureDatabase() {
         driverClassName = dbDriver
         maximumPoolSize = 10
         minimumIdle = 2
-        idleTimeout = 600_000      // 10 minutes
+        idleTimeout = 180_000      // 3 minutes
+        maxLifetime = 600_000      // 10 minutes
+        keepaliveTime = 60_000     // 1 minute
         connectionTimeout = 30_000 // 30 seconds
-        maxLifetime = 1_800_000    // 30 minutes
     }
 
     val dataSource = HikariDataSource(hikariConfig)
