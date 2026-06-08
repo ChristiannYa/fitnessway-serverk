@@ -237,7 +237,14 @@ private inline fun <reified T : Throwable> StatusPagesConfig.handleExceptions(
 private fun Throwable.logDetails() {
     val exceptionName = this::class.simpleName ?: "Unknown Exception"
 
+    val message: String = when (this) {
+        is RequestValidationException -> "Validation failed. Reasons: ${this.reasons.joinToString(", ")}"
+        else -> this.message ?: "null"
+    }
+
+    val cause = this.cause?.javaClass?.simpleName ?: "null"
+
     println("> $exceptionName")
-    println("> Message: ${this.message}")
-    println("> Cause: ${this.cause}")
+    println("> Message: $message")
+    println("> Cause: $cause")
 }
