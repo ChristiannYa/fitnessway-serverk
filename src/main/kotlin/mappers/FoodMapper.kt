@@ -1,7 +1,7 @@
 package com.example.mappers
 
 import com.example.domain.*
-import com.example.dto.EdibleAddRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.dto.PendingFoodReviewRequest
 
 fun List<FoodLog>.toCategory(): FoodLogsCategorized {
@@ -33,7 +33,7 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let { userId ->
     )
 }
 
-fun PendingFoodCreate.toAddRequest() = EdibleAddRequest(
+fun PendingFoodCreate.toAddRequest() = EdibleWriteRequest(
     base = this.base,
     nutrients = this.nutrientList,
     edibleType = this.edibleType.toString()

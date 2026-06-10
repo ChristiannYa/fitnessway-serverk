@@ -8,6 +8,7 @@ fun Route.appFoodRoutes() {
         withAdmin {
             findPagination()
             submit()
+            update()
             setBarcode()
         }
 

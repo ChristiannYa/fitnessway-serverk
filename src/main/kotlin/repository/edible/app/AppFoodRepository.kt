@@ -141,6 +141,47 @@ class AppFoodRepository : IAppFoodRepository {
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, foodToCreate.createdBy)
     }
 
+    override suspend fun updateBase(
+        edibleId: Int,
+        base: EdibleBase
+    ) = suspendTransaction {
+
+        AE.update(where = { (AE.id eq edibleId) }) {
+            it[AE.name] = base.name
+            it[AE.brand] = base.brand.toString()
+            it[AE.amountPerServing] = base.amountPerServing.toBigDecimal()
+            it[AE.servingUnit] = base.servingUnit
+        }
+
+        Unit
+    }
+
+    override suspend fun updateNutrients(
+        edibleId: Int,
+        nutrients: List<NutrientIdWithAmount>
+    ) = suspendTransaction {
+
+        AEN.batchUpsert(nutrients) { nutrient ->
+            this[AEN.edibleId] = edibleId
+            this[AEN.nutrientId] = nutrient.id
+            this[AEN.amount] = nutrient.amount.toBigDecimal()
+        }
+
+        Unit
+    }
+
+    override suspend fun updateType(
+        edibleId: Int,
+        type: EdibleType
+    ) = suspendTransaction {
+
+        AE.update(where = { (AE.id eq edibleId) }) {
+            it[AE.edibleType] = type
+        }
+
+        Unit
+    }
+
     override suspend fun setBarcode(
         barcode: String,
         edibleId: Int

@@ -1,7 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
-import com.example.dto.EdibleAddRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
@@ -37,7 +37,7 @@ class UserEdibleService(
     }
 
     suspend fun add(
-        req: EdibleAddRequest,
+        req: EdibleWriteRequest,
         userPrincipal: UserPrincipal
     ): UserEdible = suspendTransaction {
 

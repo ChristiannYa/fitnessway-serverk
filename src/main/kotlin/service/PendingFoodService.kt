@@ -3,7 +3,7 @@ package com.example.service
 import com.example.config.RewardConfig
 import com.example.domain.*
 import com.example.domain.UserType.*
-import com.example.dto.EdibleAddRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.dto.PendingFoodReviewRequest
 import com.example.exception.*
 import com.example.mappers.toCreate
@@ -50,7 +50,7 @@ class PendingFoodService(
     }
 
     suspend fun add(
-        req: EdibleAddRequest,
+        req: EdibleWriteRequest,
         userPrincipal: UserPrincipal
     ): PendingFood = suspendTransaction {
         val dailyLimit = userPrincipal.type.getDailyLimit()

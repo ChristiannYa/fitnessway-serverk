@@ -30,7 +30,7 @@ data class FoodLogUpdateRequest(
 )
 
 @Serializable
-data class EdibleAddRequest(
+data class EdibleWriteRequest(
     val base: EdibleBase,
     val nutrients: List<NutrientIdWithAmount>,
     val edibleType: String
@@ -38,7 +38,7 @@ data class EdibleAddRequest(
 
 @Serializable
 data class AppEdibleSubmitRequest(
-    val edibleRequest: EdibleAddRequest,
+    val edibleRequest: EdibleWriteRequest,
     val barcode: String
 )
 

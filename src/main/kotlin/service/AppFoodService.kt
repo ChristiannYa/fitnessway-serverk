@@ -2,7 +2,9 @@ package com.example.service
 
 import com.example.domain.*
 import com.example.dto.AppEdibleSubmitRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.exception.EdibleAlreadyExistsException
+import com.example.exception.EdibleNotFoundException
 import com.example.exception.InvalidEdibleBarcodeException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.AEDao
@@ -136,6 +138,29 @@ class AppFoodService(
         )
 
         appEdible
+    }
+
+    suspend fun update(
+        userId: UUID,
+        edibleId: Int,
+        updateInfo: EdibleWriteRequest
+    ) = suspendTransaction {
+
+        val (originalDao, originalNutrients) = appFoodRepository
+            .findById(edibleId, userId)
+            ?: throw EdibleNotFoundException("app edible #$edibleId not found when updating")
+
+        val originalAppEdible = originalDao.toDto(originalNutrients.toNutrientsByType())
+
+        if (originalAppEdible.information.base != updateInfo.base) {
+            appFoodRepository.updateBase(edibleId, updateInfo.base)
+        }
+
+        if (originalDao.edibleType != updateInfo.edibleType.toEnum<EdibleType>()) {
+            appFoodRepository.updateType(edibleId, updateInfo.edibleType.toEnum())
+        }
+
+        appFoodRepository.updateNutrients(edibleId, updateInfo.nutrients)
     }
 
     suspend fun setBarcode(

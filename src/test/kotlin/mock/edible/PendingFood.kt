@@ -1,7 +1,7 @@
 package mock.edible
 
 import com.example.domain.*
-import com.example.dto.EdibleAddRequest
+import com.example.dto.EdibleWriteRequest
 import java.util.*
 
 fun buildPendingFoodCreateData(
@@ -44,8 +44,8 @@ fun buildPendingFoodCreateData(
     )
 }
 
-fun buildEdibleRequestData(name: String): EdibleAddRequest {
-    return EdibleAddRequest(
+fun buildEdibleRequestData(name: String): EdibleWriteRequest {
+    return EdibleWriteRequest(
         base = EdibleBase(
             name = name,
             brand = "Edibly",
