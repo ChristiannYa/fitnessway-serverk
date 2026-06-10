@@ -51,7 +51,7 @@ class AppFoodRepository : IAppFoodRepository {
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
     }
 
-    override suspend fun findPagination(
+    override suspend fun findAdminSubmissions(
         paginationCriteria: PaginationCriteria<AppEdiblePaginationCriteria>
     ): Result<PaginationQuery<Pair<AppEdibleRepoResult, String>>> = suspendTransaction {
 

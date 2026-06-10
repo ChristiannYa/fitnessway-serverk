@@ -9,15 +9,15 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.findPagination() {
-    get("/pagination") {
+fun Route.findAdminSubmissions() {
+    get("/admin-submissions") {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val appEdibleService = application.attributes[AppEdibleServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
         val createdAt = call.extractQueryParamOrNull("createdAt")
 
-        val pagination = appEdibleService.findPagination(
+        val pagination = appEdibleService.findAdminSubmissions(
             userPrincipal = userPrincipal,
             createdAt = createdAt,
             limit = limit,

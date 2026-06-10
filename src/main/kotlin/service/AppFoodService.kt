@@ -63,7 +63,7 @@ class AppFoodService(
     suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
 
-    suspend fun findPagination(
+    suspend fun findAdminSubmissions(
         userPrincipal: UserPrincipal,
         createdAt: String?,
         limit: Int,
@@ -90,7 +90,7 @@ class AppFoodService(
         )
 
         val paginationQuery = appFoodRepository
-            .findPagination(paginationCriteria)
+            .findAdminSubmissions(paginationCriteria)
             .getOrThrow()
 
         return PaginationResult(
