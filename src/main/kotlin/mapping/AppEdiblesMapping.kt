@@ -3,12 +3,10 @@ package com.example.mapping
 import com.example.domain.*
 import com.example.dto.FoodInformationDto
 import com.example.utils.pgEnum
-import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.javatime.timestamp
-import java.time.Instant
+import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 import kotlin.time.toKotlinInstant
 
 object AE : IntIdTable("app_edibles") {
@@ -18,11 +16,11 @@ object AE : IntIdTable("app_edibles") {
     val servingUnit = pgEnum<ServingUnit>("serving_unit", "serving_unit")
     val edibleType = pgEnum<EdibleType>("edible_type", "edible_type")
     val createdBy = reference("created_by", U).nullable()
-    val createdAt = timestamp("created_at").clientDefault { Instant.now() }
-    val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
+    val createdAt = timestampWithTimeZone("created_at")
+    val updatedAt = timestampWithTimeZone("updated_at").nullable()
 }
 
-class AEDao(id: EntityID<Int>) : IntEntity(id) {
+class AEDao(id: EntityID<Int>) : EdibleDao(id) {
     companion object : IntEntityClass<AEDao>(AE)
 
     var name by AE.name
@@ -49,6 +47,6 @@ fun AEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
         nutrients = nutrients
     ),
     createdBy = this.createdBy?.value,
-    createdAt = this.createdAt.toKotlinInstant(),
-    updatedAt = this.updatedAt.toKotlinInstant()
+    createdAt = this.createdAt.toInstant().toKotlinInstant(),
+    updatedAt = this.updatedAt?.toInstant()?.toKotlinInstant()
 )

@@ -42,8 +42,8 @@ class FoodLogRepository : IFoodLogRepository {
 
         UELDao.find {
             (UEL.userId eq userId) and
-            (UEL.time greaterEq range.start.toJavaInstant().atOffset(ZoneOffset.UTC)) and
-            (UEL.time less range.end.toJavaInstant().atOffset(ZoneOffset.UTC))
+            (UEL.time greaterEq range.startOffset) and
+            (UEL.time less range.endOffset)
         }.forEach { uelDao ->
             val (edibleBase, snapshotStatus) = uelDao
                 .getEdibleBaseToSnapshotPairResult(userId)

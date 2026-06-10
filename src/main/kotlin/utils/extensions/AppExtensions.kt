@@ -47,6 +47,6 @@ fun ApplicationCall.extractQueryParamOrThrow(name: String) =
  * @return The path parameter value as a [String]
  * @throws MissingPathParameterException if the parameter is missing or blank
  */
-fun ApplicationCall.extractPathParamOrThrow(name: String) =
+fun ApplicationCall.extractPathParamOrThrow(name: String): String =
     this.parameters[name]?.takeIf { it.isNotBlank() }
         ?: throw MissingPathParameterException(name)

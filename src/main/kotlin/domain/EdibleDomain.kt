@@ -78,6 +78,12 @@ data class AppFood(
 )
 
 @Serializable
+data class AppEdibleData(
+    val edible: AppFood,
+    val barcode: String
+)
+
+@Serializable
 data class PendingFood(
     val id: Int,
     val information: FoodInformationDto,
@@ -221,6 +227,11 @@ data class PendingFoodReview(
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
 }
+
+data class AppEdiblePaginationCriteria(
+    val createdBy: UUID,
+    val createdAt: InstantRange? = null
+)
 
 /**
  * Represents the criteria by which [AppFood] paginated queries can be filtered

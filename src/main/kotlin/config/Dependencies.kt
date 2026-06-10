@@ -39,7 +39,7 @@ fun Application.configureDependencies() {
         nutrientIntakeRepository,
         timeConverter
     )
-    val appFoodService = AppFoodService(appFoodRepository)
+    val appFoodService = AppFoodService(appFoodRepository, timeConverter)
     val userEdibleService = UserEdibleService(userEdibleRepository)
     val pendingFoodService = PendingFoodService(
         pendingFoodRepository,

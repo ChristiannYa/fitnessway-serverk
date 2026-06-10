@@ -8,13 +8,16 @@ import com.example.mappers.toNutrientsByType
 import com.example.mapping.AEDao
 import com.example.mapping.toDto
 import com.example.repository.edible.app.AppFoodRepository
+import com.example.utils.date_time.TimeConverter
 import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
+import io.ktor.server.plugins.*
 import java.util.*
 
 class AppFoodService(
-    private val appFoodRepository: AppFoodRepository
+    private val appFoodRepository: AppFoodRepository,
+    private val timeConverter: TimeConverter
 ) {
     private fun isBarcodeValid(barcode: String): Boolean {
         // Must be 12 (UPC-A) or 13 (EAN-13) digits
@@ -57,6 +60,49 @@ class AppFoodService(
 
     suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
+
+    suspend fun findPagination(
+        userPrincipal: UserPrincipal,
+        createdAt: String?,
+        limit: Int,
+        offset: Long
+    ): PaginationResult<AppEdibleData> {
+
+        val createdAtRange = createdAt?.let {
+            timeConverter
+                .toUtcRangeResult(it, userPrincipal.timezone)
+                .getOrElse { ex ->
+                    throw BadRequestException(
+                        "user time convertion failed: ${ex.message}"
+                    )
+                }
+        }
+
+        val paginationCriteria = PaginationCriteria(
+            data = AppEdiblePaginationCriteria(
+                createdBy = userPrincipal.id,
+                createdAt = createdAtRange,
+            ),
+            limit = limit,
+            offset = offset
+        )
+
+        val paginationQuery = appFoodRepository
+            .findPagination(paginationCriteria)
+            .getOrThrow()
+
+        return PaginationResult(
+            data = paginationQuery.data.map { (repoRes, barcode) ->
+                AppEdibleData(
+                    edible = repoRes.edibleDao.toDto(repoRes.nutrients.toNutrientsByType()),
+                    barcode = barcode
+                )
+            },
+            totalCount = paginationQuery.totalCount,
+            pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
+            currentPage = paginationCriteria.calcCurrentPage()
+        )
+    }
 
     suspend fun submit(
         req: AppEdibleSubmitRequest,

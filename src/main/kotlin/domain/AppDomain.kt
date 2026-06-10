@@ -1,8 +1,11 @@
 package com.example.domain
 
 import kotlinx.serialization.Serializable
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlin.math.ceil
 import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 /**
  * Represents the final pagination result returned to the client,
@@ -42,4 +45,16 @@ data class PaginationQuery<T>(
     val totalCount: Long
 )
 
-data class InstantRange(val start: Instant, val end: Instant)
+// @TODO: Move to repository domain
+data class InstantRange(val start: Instant, val end: Instant) {
+
+    val startOffset: OffsetDateTime
+        get() = this.start
+            .toJavaInstant()
+            .atOffset(ZoneOffset.UTC)
+
+    val endOffset: OffsetDateTime
+        get() = this.end
+            .toJavaInstant()
+            .atOffset(ZoneOffset.UTC)
+}

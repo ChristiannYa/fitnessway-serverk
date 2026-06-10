@@ -6,8 +6,9 @@ import io.ktor.server.routing.*
 fun Route.appFoodRoutes() {
     route("/app") {
         withAdmin {
-            setBarcode()
+            findPagination()
             submit()
+            setBarcode()
         }
 
         findById()
