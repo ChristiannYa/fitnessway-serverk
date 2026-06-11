@@ -80,7 +80,7 @@ data class AppFood(
 @Serializable
 data class AppEdibleData(
     val edible: AppFood,
-    val barcode: String
+    val barcode: String,
 )
 
 @Serializable
@@ -88,7 +88,6 @@ data class PendingFood(
     val id: Int,
     val information: FoodInformationDto,
     val status: PendingFoodStatus,
-    val edibleType: EdibleType,
     val createdBy: UUID?,
     val reviewedBy: UUID? = null,
     val reviewedAt: Instant? = null,

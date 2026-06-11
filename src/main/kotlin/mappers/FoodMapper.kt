@@ -4,6 +4,11 @@ import com.example.domain.*
 import com.example.dto.EdibleWriteRequest
 import com.example.dto.PendingFoodReviewRequest
 
+fun LogCategory.toEdibleType(): EdibleType = when (this) {
+    LogCategory.SUPPLEMENT -> EdibleType.SUPPLEMENT
+    else -> EdibleType.FOOD
+}
+
 fun List<FoodLog>.toCategory(): FoodLogsCategorized {
     val grouped = this.groupBy { it.category }
 
@@ -29,7 +34,7 @@ fun PendingFood.toCreate(): AppFoodCreate? = this.createdBy?.let { userId ->
             .map {
                 NutrientIdWithAmount(it.data.base.id, it.amount)
             },
-        edibleType = this.edibleType
+        edibleType = this.information.type
     )
 }
 

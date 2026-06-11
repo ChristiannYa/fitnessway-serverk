@@ -7,6 +7,7 @@ import com.example.exception.EdibleNotFoundException
 import com.example.exception.FoodLogNotFoundException
 import com.example.exception.NutrientIntakesNotFoundException
 import com.example.mappers.toCategory
+import com.example.mappers.toEdibleType
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.log.IFoodLogRepository
@@ -27,7 +28,8 @@ class EdibleLogService(
             userEdibleSnapshotStatus = this.snapshotStatus,
             foodInformationDto = FoodInformationDto(
                 base = this.edibleBase,
-                nutrients = this.nutrientList.toNutrientsByType()
+                nutrients = this.nutrientList.toNutrientsByType(),
+                type = this.dao.category.toEdibleType()
             )
         )
 

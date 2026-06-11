@@ -1,15 +1,13 @@
 package com.example.dto
 
-import com.example.domain.EdibleBase
-import com.example.domain.NutrientDataAmount
-import com.example.domain.NutrientIdWithAmount
-import com.example.domain.NutrientsByType
+import com.example.domain.*
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class FoodInformationDto(
     val base: EdibleBase,
-    val nutrients: NutrientsByType<NutrientDataAmount>
+    val nutrients: NutrientsByType<NutrientDataAmount>,
+    val type: EdibleType
 )
 
 @Serializable
@@ -37,7 +35,7 @@ data class EdibleWriteRequest(
 )
 
 @Serializable
-data class AppEdibleSubmitRequest(
+data class AppEdibleWriteRequest(
     val edibleRequest: EdibleWriteRequest,
     val barcode: String
 )

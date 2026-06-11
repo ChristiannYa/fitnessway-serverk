@@ -44,7 +44,8 @@ fun AEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
     id = this.id.value,
     information = FoodInformationDto(
         base = this.toBase(),
-        nutrients = nutrients
+        nutrients = nutrients,
+        type = this.edibleType
     ),
     createdBy = this.createdBy?.value,
     createdAt = this.createdAt.toInstant().toKotlinInstant(),

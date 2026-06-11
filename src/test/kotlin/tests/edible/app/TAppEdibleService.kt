@@ -1,7 +1,7 @@
 package tests.edible.app
 
 import com.example.domain.AppFood
-import com.example.dto.AppEdibleSubmitRequest
+import com.example.dto.AppEdibleWriteRequest
 import mock.edible.buildEdibleRequestData
 import tests.TAppTest
 import java.util.*
@@ -14,7 +14,7 @@ abstract class TAppEdibleService : TAppTest() {
         barcode: String = "011110150974"
     ): AppFood = buildEdibleRequestData(name).let {
         appEdibleService.submit(
-            req = AppEdibleSubmitRequest(
+            req = AppEdibleWriteRequest(
                 edibleRequest = it,
                 barcode = barcode
             ),

@@ -1,8 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
-import com.example.dto.AppEdibleSubmitRequest
-import com.example.dto.EdibleWriteRequest
+import com.example.dto.AppEdibleWriteRequest
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.InvalidEdibleBarcodeException
@@ -107,7 +106,7 @@ class AppFoodService(
     }
 
     suspend fun submit(
-        req: AppEdibleSubmitRequest,
+        req: AppEdibleWriteRequest,
         userId: UUID
     ): AppFood = suspendTransaction {
 
@@ -143,7 +142,7 @@ class AppFoodService(
     suspend fun update(
         userId: UUID,
         edibleId: Int,
-        updateInfo: EdibleWriteRequest
+        updateInfo: AppEdibleWriteRequest
     ) = suspendTransaction {
 
         val (originalDao, originalNutrients) = appFoodRepository
@@ -152,15 +151,15 @@ class AppFoodService(
 
         val originalAppEdible = originalDao.toDto(originalNutrients.toNutrientsByType())
 
-        if (originalAppEdible.information.base != updateInfo.base) {
-            appFoodRepository.updateBase(edibleId, updateInfo.base)
+        if (originalAppEdible.information.base != updateInfo.edibleRequest.base) {
+            appFoodRepository.updateBase(edibleId, updateInfo.edibleRequest.base)
         }
 
-        if (originalDao.edibleType != updateInfo.edibleType.toEnum<EdibleType>()) {
-            appFoodRepository.updateType(edibleId, updateInfo.edibleType.toEnum())
+        if (originalDao.edibleType != updateInfo.edibleRequest.edibleType.toEnum<EdibleType>()) {
+            appFoodRepository.updateType(edibleId, updateInfo.edibleRequest.edibleType.toEnum())
         }
 
-        appFoodRepository.updateNutrients(edibleId, updateInfo.nutrients)
+        appFoodRepository.updateNutrients(edibleId, updateInfo.edibleRequest.nutrients)
     }
 
     suspend fun setBarcode(

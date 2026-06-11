@@ -48,6 +48,7 @@ fun UEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = UserEdible(
     information = FoodInformationDto(
         base = this.toBase(),
         nutrients = nutrients,
+        type = this.edibleType
     ),
     lastLoggedAt = this.lastLoggedAt?.toKotlinInstant(),
     createdAt = this.createdAt.toKotlinInstant(),

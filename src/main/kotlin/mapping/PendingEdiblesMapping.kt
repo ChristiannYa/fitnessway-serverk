@@ -49,9 +49,9 @@ fun PEDao.toDto(nutrients: NutrientsByType<NutrientDataAmount>) = PendingFood(
             amountPerServing = this.amountPerServing.toDouble(),
             servingUnit = this.servingUnit
         ),
-        nutrients = nutrients
+        nutrients = nutrients,
+        type = this.edibleType
     ),
-    edibleType = this.edibleType,
     createdBy = this.createdBy?.value,
     status = this.status,
     reviewedBy = this.reviewedBy?.value,

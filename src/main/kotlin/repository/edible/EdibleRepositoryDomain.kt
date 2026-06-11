@@ -6,7 +6,7 @@ import com.example.mapping.EdibleDao
 
 data class EdibleRepoResult<E : EdibleDao, N : NutrientEntry>(
     val edibleDao: E,
-    val nutrients: List<N>
+    val nutrients: List<N>,
 )
 
 typealias AppEdibleRepoResult = EdibleRepoResult<AEDao, NutrientDataAmount>

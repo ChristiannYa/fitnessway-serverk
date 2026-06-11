@@ -9,6 +9,8 @@ import com.example.service.AppFoodService
 import com.example.service.AuthService
 import com.example.service.JwtService
 import com.example.service.PendingFoodService
+import com.example.utils.date_time.DateTimeParser
+import com.example.utils.date_time.TimeConverter
 import config.TestDatabase
 import mock.auth.createJwtService
 import org.jetbrains.exposed.sql.Database
@@ -19,6 +21,8 @@ import org.junit.Before
 open class TAppTest {
     private lateinit var db: Database
 
+    protected lateinit var dateTimeParser: DateTimeParser
+    protected lateinit var timeConverter: TimeConverter
     protected lateinit var refreshRepository: RefreshRepository
     protected lateinit var userRepository: UserRepository
     protected lateinit var userWalletRepository: UserWalletRepository
@@ -41,6 +45,9 @@ open class TAppTest {
     fun setUp() {
         db = TestDatabase.setUp()
 
+        dateTimeParser = DateTimeParser()
+        timeConverter = TimeConverter(dateTimeParser)
+
         userRepository = UserRepository()
         userWalletRepository = UserWalletRepository()
 
@@ -49,7 +56,7 @@ open class TAppTest {
         authService = AuthService(userRepository, refreshRepository, jwtService, userWalletRepository)
 
         appFoodRepository = AppFoodRepository()
-        appEdibleService = AppFoodService(appFoodRepository)
+        appEdibleService = AppFoodService(appFoodRepository, timeConverter)
 
         pendingFoodRepository = PendingFoodRepository()
         pendingFoodService = PendingFoodService(
