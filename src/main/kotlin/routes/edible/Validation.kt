@@ -1,6 +1,7 @@
 package com.example.routes.edible
 
 import com.example.domain.EdibleType
+import com.example.dto.AppEdibleWriteRequest
 import com.example.dto.EdibleWriteRequest
 import com.example.validation.toValidationResult
 import com.example.validation.validate
@@ -22,4 +23,11 @@ fun EdibleWriteRequest.validate(): ValidationResult {
     }
 
     return ValidationResult.Valid
+}
+
+fun AppEdibleWriteRequest.validate(): ValidationResult {
+    if (this.barcode.isBlank())
+        return ValidationResult.Invalid("barcode must be provided")
+
+    return this.edibleRequest.validate()
 }

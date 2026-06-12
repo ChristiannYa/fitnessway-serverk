@@ -28,6 +28,7 @@ fun Application.configureRequestValidation() {
         // EDIBLE (GENERAL)
         // ----------------
         validate<EdibleWriteRequest> { it.validate() }
+        validate<AppEdibleWriteRequest> { it.validate() }
 
         // ------------
         // PENDING EDIBLE
