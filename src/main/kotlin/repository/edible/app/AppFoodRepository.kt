@@ -21,34 +21,49 @@ class AppFoodRepository : IAppFoodRepository {
     override suspend fun findById(
         id: Int,
         userId: UUID
-    ): Pair<AEDao, List<NutrientDataAmount>>? = suspendTransaction {
+    ): Pair<AppEdibleRepoResult, String>? = suspendTransaction {
 
-        val aeDao = AEDao
-            .findById(id)
+        val barcodesJoin = AE.join(
+            joinType = JoinType.INNER,
+            otherTable = AEB,
+            onColumn = AE.id,
+            otherColumn = AEB.edibleId
+        )
+
+        val (aeDao, barcode) = barcodesJoin
+            .select(AE.columns + AEB.columns)
+            .where { AE.id eq id }
+            .map { AEDao.wrapRow(it) to it[AEB.barcode] }
+            .firstOrNull()
             ?: return@suspendTransaction null
 
-        aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
+        val nutrients = queryNutrientsForFood(AEN, aeDao.id.value, userId)
+
+        AppEdibleRepoResult(aeDao, nutrients) to barcode
     }
 
     override suspend fun findByBarcode(
         barcode: String,
         userId: UUID
-    ): Pair<AEDao, List<NutrientDataAmount>>? = suspendTransaction {
+    ): Pair<AppEdibleRepoResult, String>? = suspendTransaction {
 
-        val aeDao: AEDao = AE
-            .join(
-                joinType = JoinType.INNER,
-                otherTable = AEB,
-                onColumn = AE.id,
-                otherColumn = AEB.edibleId
-            )
-            .select(AE.columns)
-            .where { (AEB.barcode eq barcode) }
+        val barcodesJoin = AE.join(
+            joinType = JoinType.INNER,
+            otherTable = AEB,
+            onColumn = AE.id,
+            otherColumn = AEB.edibleId
+        )
+
+        val (aeDao, barcode) = barcodesJoin
+            .select(AE.columns + AEB.columns)
+            .where { AEB.barcode eq barcode }
+            .map { AEDao.wrapRow(it) to it[AEB.barcode] }
             .firstOrNull()
-            ?.let { AEDao.wrapRow(it) }
             ?: return@suspendTransaction null
 
-        aeDao to queryNutrientsForFood(AEN, aeDao.id.value, userId)
+        val nutrients = queryNutrientsForFood(AEN, aeDao.id.value, userId)
+
+        AppEdibleRepoResult(aeDao, nutrients) to barcode
     }
 
     override suspend fun findAdminSubmissions(

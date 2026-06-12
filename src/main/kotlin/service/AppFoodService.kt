@@ -6,8 +6,8 @@ import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.InvalidEdibleBarcodeException
 import com.example.mappers.toNutrientsByType
-import com.example.mapping.AEDao
 import com.example.mapping.toDto
+import com.example.repository.edible.AppEdibleRepoResult
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.extensions.sortBaseNutrients
@@ -45,21 +45,23 @@ class AppFoodService(
         return (10 - sum % 10) % 10 == checkDigit
     }
 
-    private suspend fun find(finder: suspend () -> Pair<AEDao, List<NutrientDataAmount>>?): AppFood? {
-        val (aeDao, nutrientList) = finder() ?: return null
-
-        return aeDao
-            .toDto(
-                nutrients = nutrientList
+    private suspend fun find(
+        finder: suspend () -> Pair<AppEdibleRepoResult, String>?
+    ): AppEdibleData? = finder()?.let { (repoResult, barcode) ->
+        AppEdibleData(
+            edible = repoResult.edibleDao.toDto(
+                nutrients = repoResult.nutrients
                     .sortBaseNutrients()
                     .toNutrientsByType()
-            )
+            ),
+            barcode
+        )
     }
 
-    suspend fun findById(id: Int, userId: UUID): AppFood? =
+    suspend fun findById(id: Int, userId: UUID): AppEdibleData? =
         find { appFoodRepository.findById(id, userId) }
 
-    suspend fun findByBarCode(barcode: String, userId: UUID): AppFood? =
+    suspend fun findByBarCode(barcode: String, userId: UUID): AppEdibleData? =
         find { appFoodRepository.findByBarcode(barcode, userId) }
 
     suspend fun findAdminSubmissions(
@@ -145,17 +147,17 @@ class AppFoodService(
         updateInfo: AppEdibleWriteRequest
     ) = suspendTransaction {
 
-        val (originalDao, originalNutrients) = appFoodRepository
+        val (repoResult, _) = appFoodRepository
             .findById(edibleId, userId)
             ?: throw EdibleNotFoundException("app edible #$edibleId not found when updating")
 
-        val originalAppEdible = originalDao.toDto(originalNutrients.toNutrientsByType())
+        val originalAppEdible = repoResult.edibleDao.toDto(repoResult.nutrients.toNutrientsByType())
 
         if (originalAppEdible.information.base != updateInfo.edibleRequest.base) {
             appFoodRepository.updateBase(edibleId, updateInfo.edibleRequest.base)
         }
 
-        if (originalDao.edibleType != updateInfo.edibleRequest.edibleType.toEnum<EdibleType>()) {
+        if (repoResult.edibleDao.edibleType != updateInfo.edibleRequest.edibleType.toEnum<EdibleType>()) {
             appFoodRepository.updateType(edibleId, updateInfo.edibleRequest.edibleType.toEnum())
         }
 
