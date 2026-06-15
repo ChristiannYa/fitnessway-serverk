@@ -9,7 +9,6 @@ import com.example.repository.nutrient.INutrientRepository
 import com.example.repository.nutrient.intake.INutrientIntakeRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.extensions.filterAccesibility
-import com.example.utils.extensions.sortBaseNutrients
 import io.ktor.server.plugins.*
 import java.util.*
 
@@ -22,7 +21,7 @@ class NutrientService(
     suspend fun getAllByType(userId: UUID): NutrientsByType<NutrientData> =
         nutrientRepository
             .getNutrientDataList(userId)
-            .sortBaseNutrients()
+            .sortedBy { it.bySortOrder }
             .toNutrientsByType()
 
     suspend fun findIntakesByDate(userPrincipal: UserPrincipal, date: String): NutrientIntakes {
@@ -35,7 +34,7 @@ class NutrientService(
         return nutrientIntakeRepository
             .findByDate(userPrincipal.id, range, nutrientDataList)
             .filterAccesibility(isUserPremium = userPrincipal.isPremium)
-            .sortBaseNutrients()
+            .sortedBy { it.bySortOrder }
             .toNutrientsByType()
     }
 }

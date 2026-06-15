@@ -13,7 +13,6 @@ import com.example.repository.edible.app.IAppFoodRepository
 import com.example.repository.edible.pending.IPendingFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
-import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 import java.util.*
@@ -75,7 +74,7 @@ class PendingFoodService(
 
         pfDao.toDto(
             nutrientList
-                .sortBaseNutrients()
+                .sortedBy { it.bySortOrder }
                 .toNutrientsByType()
         )
     }
@@ -94,7 +93,7 @@ class PendingFoodService(
             )
 
             val nutrients = nutrientList
-                .sortBaseNutrients()
+                .sortedBy { it.bySortOrder }
                 .toNutrientsByType()
 
             val pendingFood = pfDao.toDto(nutrients)
@@ -119,7 +118,7 @@ class PendingFoodService(
 
             val reviewedFood = pfDaoUpdated.toDto(
                 nutrientListUpdated
-                    .sortBaseNutrients()
+                    .sortedBy { it.bySortOrder }
                     .toNutrientsByType()
             )
 
@@ -167,7 +166,7 @@ class PendingFoodService(
             ?: throw EdibleNotFoundException("pending food #$pendingFoodId not found when dismissing review")
 
         val nutrients = nutrientList
-            .sortBaseNutrients()
+            .sortedBy { it.bySortOrder }
             .toNutrientsByType()
 
         val pendingFood = pfDao.toDto(nutrients)

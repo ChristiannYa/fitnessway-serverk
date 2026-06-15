@@ -23,6 +23,7 @@ sealed class NutrientEntry
 interface NutrientGroupable {
     val byId: Int
     val byType: NutrientType
+    val bySortOrder: Int
 }
 
 typealias NutrientIntakes = NutrientsByType<NutrientDataAmount>
@@ -51,9 +52,17 @@ data class NutrientPreferences(
 )
 
 @Serializable
+data class NutrientConfiguration(
+    // val nutrientId: Int,
+    val parentId: Int? = null,
+    val sortOrder: Int
+)
+
+@Serializable
 data class NutrientData(
     val base: NutrientBase,
-    val preferences: NutrientPreferences
+    val preferences: NutrientPreferences,
+    val configuration: NutrientConfiguration
 ) : NutrientGroupable {
 
     override val byId: Int
@@ -61,6 +70,9 @@ data class NutrientData(
 
     override val byType: NutrientType
         get() = this.base.type
+
+    override val bySortOrder: Int
+        get() = this.configuration.sortOrder
 }
 
 @Serializable
@@ -74,6 +86,9 @@ data class NutrientDataAmount(
 
     override val byType: NutrientType
         get() = this.data.base.type
+
+    override val bySortOrder: Int
+        get() = this.data.configuration.sortOrder
 }
 
 @Serializable

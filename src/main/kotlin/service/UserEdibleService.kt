@@ -6,7 +6,6 @@ import com.example.exception.EdibleAlreadyExistsException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.user.UserEdibleRepository
-import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 
@@ -25,7 +24,7 @@ class UserEdibleService(
             data = pagination.data.map { (ueDao, nutrientList) ->
                 ueDao.toDto(
                     nutrientList
-                        .sortBaseNutrients()
+                        .sortedBy { it.bySortOrder }
                         .toNutrientsByType()
                 )
             },

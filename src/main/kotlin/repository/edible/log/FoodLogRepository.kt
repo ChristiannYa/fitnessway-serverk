@@ -3,6 +3,8 @@ package com.example.repository.edible.log
 import com.example.domain.*
 import com.example.mapping.*
 import com.example.repository.edible.queryNutrientPreviews
+import com.example.repository.nutrient.nutrientDataJoins
+import com.example.repository.nutrient.toNutrientDataAmount
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
@@ -246,26 +248,13 @@ class FoodLogRepository : IFoodLogRepository {
         return Result.success(edibleBase to snapshotStatus)
     }
 
-    private fun UELDao.getNutrients(): List<NutrientDataAmount> = (UNI innerJoin N)
-        .join(
-            joinType = JoinType.LEFT,
-            otherTable = UNP,
-            onColumn = N.id,
-            otherColumn = UNP.nutrientId,
-            additionalConstraint = { UNP.userId eq userId }
-        )
-        .selectAll()
-        .where {
-            (UNI.edibleLogId eq this@getNutrients.id.value) and
-            (UNI.userId eq userId)
-        }
-        .map { row ->
-            NutrientDataAmount(
-                data = NutrientData(
-                    base = N.toBase(row),
-                    preferences = UNP.toNutrientPreferences(row)
-                ),
-                amount = row[UNI.intakeAmount].toDouble()
-            )
-        }
+    private fun UELDao.getNutrients(): List<NutrientDataAmount> =
+        (UNI innerJoin N)
+            .nutrientDataJoins(userId.value)
+            .selectAll()
+            .where {
+                (UNI.edibleLogId eq this@getNutrients.id.value) and
+                (UNI.userId eq userId)
+            }
+            .map { it.toNutrientDataAmount(UNI.intakeAmount) }
 }

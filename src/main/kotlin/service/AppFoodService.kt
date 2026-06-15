@@ -10,7 +10,6 @@ import com.example.mapping.toDto
 import com.example.repository.edible.AppEdibleRepoResult
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.utils.date_time.TimeConverter
-import com.example.utils.extensions.sortBaseNutrients
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 import io.ktor.server.plugins.*
@@ -51,7 +50,7 @@ class AppFoodService(
         AppEdibleData(
             edible = repoResult.edibleDao.toDto(
                 nutrients = repoResult.nutrients
-                    .sortBaseNutrients()
+                    .sortedBy { it.bySortOrder }
                     .toNutrientsByType()
             ),
             barcode
@@ -97,7 +96,11 @@ class AppFoodService(
         return PaginationResult(
             data = paginationQuery.data.map { (repoRes, barcode) ->
                 AppEdibleData(
-                    edible = repoRes.edibleDao.toDto(repoRes.nutrients.toNutrientsByType()),
+                    edible = repoRes.edibleDao.toDto(
+                        repoRes.nutrients
+                            .sortedBy { it.bySortOrder }
+                            .toNutrientsByType()
+                    ),
                     barcode = barcode
                 )
             },
@@ -128,7 +131,7 @@ class AppFoodService(
 
         val appEdible = aeDao.toDto(
             nutrientList
-                .sortBaseNutrients()
+                .sortedBy { it.bySortOrder }
                 .toNutrientsByType()
         )
 

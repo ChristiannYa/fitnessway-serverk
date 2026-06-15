@@ -4,11 +4,11 @@ import com.example.constants.NutrientId
 import com.example.domain.NutrientAmountWithColor
 import com.example.domain.NutrientDataAmount
 import com.example.domain.NutrientPreview
-import com.example.mappers.toNutrientDataAmount
 import com.example.mapping.EdibleNutrientTable
 import com.example.mapping.N
 import com.example.mapping.UNP
-import org.jetbrains.exposed.sql.JoinType
+import com.example.repository.nutrient.nutrientDataJoins
+import com.example.repository.nutrient.toNutrientDataAmount
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -20,16 +20,10 @@ fun <T> queryNutrientsForFood(
     userId: UUID
 ): List<NutrientDataAmount> where T : Table, T : EdibleNutrientTable =
     (foodNutrientTable innerJoin N)
-        .join(
-            joinType = JoinType.LEFT,
-            otherTable = UNP,
-            onColumn = N.id,
-            otherColumn = UNP.nutrientId,
-            additionalConstraint = { UNP.userId eq userId }
-        )
+        .nutrientDataJoins(userId)
         .selectAll()
         .where { foodNutrientTable.edibleId eq foodId }
-        .map { row -> row.toNutrientDataAmount(foodNutrientTable) }
+        .map { it.toNutrientDataAmount(foodNutrientTable.amount) }
 
 fun <T> queryNutrientsForFoods(
     foodNutrientTable: T,
@@ -37,18 +31,12 @@ fun <T> queryNutrientsForFoods(
     userId: UUID
 ): Map<Int, List<NutrientDataAmount>?> where T : Table, T : EdibleNutrientTable =
     (foodNutrientTable innerJoin N)
-        .join(
-            joinType = JoinType.LEFT,
-            otherTable = UNP,
-            onColumn = N.id,
-            otherColumn = UNP.nutrientId,
-            additionalConstraint = { UNP.userId eq userId }
-        )
+        .nutrientDataJoins(userId)
         .selectAll()
         .where { (foodNutrientTable.edibleId inList foodIds) }
         .groupBy(
-            keySelector = { row -> row[foodNutrientTable.edibleId].value },
-            valueTransform = { row -> row.toNutrientDataAmount(foodNutrientTable) }
+            keySelector = { it[foodNutrientTable.edibleId].value },
+            valueTransform = { it.toNutrientDataAmount(foodNutrientTable.amount) }
         )
 
 fun <T> queryNutrientPreviews(
@@ -64,19 +52,13 @@ fun <T> queryNutrientPreviews(
     )
 
     val foodRows = (foodNutrientTable innerJoin N)
-        .join(
-            joinType = JoinType.LEFT,
-            otherTable = UNP,
-            onColumn = N.id,
-            otherColumn = UNP.nutrientId,
-            additionalConstraint = { UNP.userId eq userId }
-        )
+        .nutrientDataJoins(userId)
         .selectAll()
         .where {
             (foodNutrientTable.edibleId inList foodIds) and
             (foodNutrientTable.nutrientId inList previewIds)
         }
-        .groupBy { row -> row[foodNutrientTable.edibleId].value }
+        .groupBy { it[foodNutrientTable.edibleId].value }
 
     return foodIds.associateWith { foodId ->
         val nutrientData = foodRows[foodId]
