@@ -23,14 +23,8 @@ class AppFoodRepository : IAppFoodRepository {
         userId: UUID
     ): Pair<AppEdibleRepoResult, String>? = suspendTransaction {
 
-        val barcodesJoin = AE.join(
-            joinType = JoinType.INNER,
-            otherTable = AEB,
-            onColumn = AE.id,
-            otherColumn = AEB.edibleId
-        )
-
-        val (aeDao, barcode) = barcodesJoin
+        val (aeDao, barcode) = AE
+            .barcodesJoin()
             .select(AE.columns + AEB.columns)
             .where { AE.id eq id }
             .map { AEDao.wrapRow(it) to it[AEB.barcode] }
@@ -47,14 +41,8 @@ class AppFoodRepository : IAppFoodRepository {
         userId: UUID
     ): Pair<AppEdibleRepoResult, String>? = suspendTransaction {
 
-        val barcodesJoin = AE.join(
-            joinType = JoinType.INNER,
-            otherTable = AEB,
-            onColumn = AE.id,
-            otherColumn = AEB.edibleId
-        )
-
-        val (aeDao, barcode) = barcodesJoin
+        val (aeDao, barcode) = AE
+            .barcodesJoin()
             .select(AE.columns + AEB.columns)
             .where { AEB.barcode eq barcode }
             .map { AEDao.wrapRow(it) to it[AEB.barcode] }
@@ -72,14 +60,8 @@ class AppFoodRepository : IAppFoodRepository {
 
         val criteria = paginationCriteria.data
 
-        val barcodesJoin = AE.join(
-            joinType = JoinType.INNER,
-            otherTable = AEB,
-            onColumn = AE.id,
-            otherColumn = AEB.edibleId
-        )
-
-        val query = barcodesJoin
+        val query = AE
+            .barcodesJoin()
             .select(AE.columns + AEB.columns)
             .where { AE.createdBy eq criteria.createdBy }
             .apply {
@@ -94,11 +76,10 @@ class AppFoodRepository : IAppFoodRepository {
         val queryTotalCount = query.count()
 
         val aeDaoToBarcodeList = query
+            .orderBy(AE.createdAt to SortOrder.DESC, AE.id to SortOrder.DESC)
             .limit(paginationCriteria.limit)
             .offset(paginationCriteria.offset)
-            .map { row ->
-                AEDao.wrapRow(row) to row[AEB.barcode]
-            }
+            .map { AEDao.wrapRow(it) to it[AEB.barcode] }
 
         val appEdibleIds = aeDaoToBarcodeList.map { (aeDao, _) -> aeDao.id.value }
 
