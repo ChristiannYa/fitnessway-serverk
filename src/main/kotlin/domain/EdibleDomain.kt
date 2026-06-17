@@ -21,7 +21,8 @@ enum class ServingUnit {
     MCG,
     ML,
     OZ,
-    KCAL
+    KCAL,
+    UNIT
 }
 
 @Serializable
