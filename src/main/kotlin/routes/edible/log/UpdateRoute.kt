@@ -19,7 +19,7 @@ fun Route.update() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val foodLogService = application.attributes[EdibleLogServiceKey]
 
-        val foodLog = foodLogService.update(
+        foodLogService.update(
             FoodLogUpdate(
                 userId = userPrincipal.id,
                 isUserPremium = userPrincipal.isPremium,
@@ -31,10 +31,7 @@ fun Route.update() {
 
         call.respond(
             HttpStatusCode.OK,
-            DtoRes.success(
-                "food log updated successfully",
-                mapOf("food_log_updated" to foodLog)
-            )
+            DtoRes.success<Unit>("food log updated successfully")
         )
     }
 }

@@ -21,14 +21,11 @@ fun Route.add() {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val foodLogService = application.attributes[EdibleLogServiceKey]
 
-        val foodLog = foodLogService.add(userPrincipal, req)
+        foodLogService.add(userPrincipal, req)
 
         call.respond(
             HttpStatusCode.Created,
-            DtoRes.success(
-                "${req.edibleType} log added successfully",
-                mapOf("food_log_added" to foodLog)
-            )
+            DtoRes.success<Unit>("${req.edibleType} log added successfully")
         )
     }
 }

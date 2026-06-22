@@ -60,8 +60,10 @@ class AppFoodService(
     suspend fun findById(id: Int, userId: UUID): AppEdibleData? =
         find { appFoodRepository.findById(id, userId) }
 
-    suspend fun findByBarCode(barcode: String, userId: UUID): AppEdibleData? =
-        find { appFoodRepository.findByBarcode(barcode, userId) }
+    suspend fun findByBarCode(barcode: String, userId: UUID): AppEdibleData? {
+        val k = find { appFoodRepository.findByBarcode(barcode, userId) }
+        return k
+    }
 
     suspend fun findAdminSubmissions(
         userPrincipal: UserPrincipal,
