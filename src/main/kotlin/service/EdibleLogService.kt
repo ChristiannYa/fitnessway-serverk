@@ -28,7 +28,9 @@ class EdibleLogService(
             userEdibleSnapshotStatus = this.snapshotStatus,
             foodInformationDto = FoodInformationDto(
                 base = this.edibleBase,
-                nutrients = this.nutrientList.toNutrientsByType(),
+                nutrients = this.nutrientList
+                    .sortedBy { it.bySortOrder }
+                    .toNutrientsByType(),
                 type = this.dao.category.toEdibleType()
             )
         )
