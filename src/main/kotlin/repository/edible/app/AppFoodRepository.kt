@@ -2,10 +2,7 @@ package com.example.repository.edible.app
 
 import com.example.domain.*
 import com.example.mapping.*
-import com.example.repository.edible.AppEdibleRepoResult
-import com.example.repository.edible.queryNutrientPreviews
-import com.example.repository.edible.queryNutrientsForFood
-import com.example.repository.edible.queryNutrientsForFoods
+import com.example.repository.edible.*
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.id.EntityID
@@ -267,5 +264,14 @@ class AppFoodRepository : IAppFoodRepository {
         }
 
         PaginationQuery(data, count)
+    }
+
+    override suspend fun report(report: AppEdibleReportWrite): AERDao = suspendTransaction {
+        AERDao.new {
+            this.edibleId = EntityID(report.edibleId, AE)
+            this.reportedBy = EntityID(report.reportedBy, U)
+            this.reason = report.reason
+            this.notes = report.notes
+        }
     }
 }

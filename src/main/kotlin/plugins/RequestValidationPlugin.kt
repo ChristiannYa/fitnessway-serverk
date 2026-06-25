@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.dto.*
 import com.example.routes.auth.validate
+import com.example.routes.edible.app.validate
 import com.example.routes.edible.log.validate
 import com.example.routes.edible.pending.validate
 import com.example.routes.edible.validate
@@ -29,6 +30,7 @@ fun Application.configureRequestValidation() {
         // ----------------
         validate<EdibleWriteRequest> { it.validate() }
         validate<AppEdibleWriteRequest> { it.validate() }
+        validate<AppEdibleReportRequest> { it.validate() }
 
         // ------------
         // PENDING EDIBLE

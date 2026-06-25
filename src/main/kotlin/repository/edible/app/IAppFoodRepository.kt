@@ -2,7 +2,9 @@ package com.example.repository.edible.app
 
 import com.example.domain.*
 import com.example.mapping.AEDao
+import com.example.mapping.AERDao
 import com.example.repository.edible.AppEdibleRepoResult
+import com.example.repository.edible.AppEdibleReportWrite
 import java.util.*
 
 interface IAppFoodRepository {
@@ -16,4 +18,5 @@ interface IAppFoodRepository {
     suspend fun setBarcode(barcode: String, edibleId: Int): DatabaseResult
     suspend fun isDuplicate(base: EdibleBase, nutrientList: List<NutrientIdWithAmount>): Boolean
     suspend fun search(criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>): PaginationQuery<FoodPreview>
+    suspend fun report(report: AppEdibleReportWrite): AERDao
 }

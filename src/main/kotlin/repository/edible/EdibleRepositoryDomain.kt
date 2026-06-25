@@ -3,6 +3,7 @@ package com.example.repository.edible
 import com.example.domain.*
 import com.example.mapping.AEDao
 import com.example.mapping.EdibleDao
+import java.util.*
 
 data class EdibleRepoResult<E : EdibleDao, N : NutrientEntry>(
     val edibleDao: E,
@@ -11,11 +12,15 @@ data class EdibleRepoResult<E : EdibleDao, N : NutrientEntry>(
 
 typealias AppEdibleRepoResult = EdibleRepoResult<AEDao, NutrientDataAmount>
 
-/**
- * Holds required data that the repository needs to perform an update/submission
- */
-data class AppEdibleRepoWrite(
+data class AppEdibleWrite(
     val base: EdibleBase,
     val nutrientList: List<NutrientIdWithAmount>,
     val edibleType: EdibleType
+)
+
+data class AppEdibleReportWrite(
+    val edibleId: Int,
+    val reportedBy: UUID,
+    val reason: String,
+    val notes: String?
 )

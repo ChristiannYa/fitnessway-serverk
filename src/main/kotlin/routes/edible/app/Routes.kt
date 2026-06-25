@@ -16,5 +16,6 @@ fun Route.appFoodRoutes() {
         findByBarcode()
 
         search()
+        report()
     }
 }

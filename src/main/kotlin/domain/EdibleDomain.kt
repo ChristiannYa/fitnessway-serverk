@@ -79,6 +79,30 @@ data class AppFood(
 )
 
 @Serializable
+data class AppEdibleReport(
+    val id: Int,
+    val edibleId: Int,
+    val reportedBy: UUID?,
+    val reason: Reason,
+    val notes: String?,
+    val status: Status,
+    val createdAt: Instant,
+    val reviewedAt: Instant?,
+    val reviewedBy: UUID?
+) {
+    enum class Reason {
+        INCORRECT_INFO,
+        INCORRECT_NUTRIENTS,
+        INCORRECT_BARCODE
+    }
+
+    enum class Status {
+        PENDING,
+        REVIEWED
+    }
+}
+
+@Serializable
 data class AppEdibleData(
     val edible: AppFood,
     val barcode: String,
@@ -152,11 +176,6 @@ data class EdibleLogBuildData(
     val edibleBase: EdibleBase,
     val nutrientList: List<NutrientDataAmount>,
     val snapshotStatus: UserEdibleSnapshotStatus?
-)
-
-data class FoodInformation<N : NutrientEntry>(
-    val base: EdibleBase,
-    val nutrients: List<N>
 )
 
 /**

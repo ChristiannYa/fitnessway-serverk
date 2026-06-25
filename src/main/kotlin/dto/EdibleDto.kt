@@ -41,6 +41,13 @@ data class AppEdibleWriteRequest(
 )
 
 @Serializable
+data class AppEdibleReportRequest(
+    val edibleId: Int,
+    val reason: String,
+    val notes: String?
+)
+
+@Serializable
 data class PendingFoodReviewRequest(
     val createdById: String,
     val pendingFoodId: Int,

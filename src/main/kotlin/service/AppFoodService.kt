@@ -1,6 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.EdibleNotFoundException
@@ -8,6 +9,7 @@ import com.example.exception.InvalidEdibleBarcodeException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.AppEdibleRepoResult
+import com.example.repository.edible.AppEdibleReportWrite
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
@@ -60,10 +62,8 @@ class AppFoodService(
     suspend fun findById(id: Int, userId: UUID): AppEdibleData? =
         find { appFoodRepository.findById(id, userId) }
 
-    suspend fun findByBarCode(barcode: String, userId: UUID): AppEdibleData? {
-        val k = find { appFoodRepository.findByBarcode(barcode, userId) }
-        return k
-    }
+    suspend fun findByBarCode(barcode: String, userId: UUID): AppEdibleData? =
+        find { appFoodRepository.findByBarcode(barcode, userId) }
 
     suspend fun findAdminSubmissions(
         userPrincipal: UserPrincipal,
@@ -193,4 +193,16 @@ class AppFoodService(
             currentPage = criteria.calcCurrentPage()
         )
     }
+
+    suspend fun report(req: AppEdibleReportRequest, userId: UUID): AppEdibleReport =
+        appFoodRepository
+            .report(
+                AppEdibleReportWrite(
+                    edibleId = req.edibleId,
+                    reportedBy = userId,
+                    reason = req.reason,
+                    notes = req.notes
+                )
+            )
+            .toDto()
 }
