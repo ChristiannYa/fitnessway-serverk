@@ -6,6 +6,8 @@ import io.ktor.server.application.*
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 
+private fun minToMs(min: Double): Long = (min * 60_000).toLong()
+
 fun Application.configureDatabase() {
     val config = environment.config
 
@@ -19,23 +21,22 @@ fun Application.configureDatabase() {
         username = dbUser
         password = dbPassword
         driverClassName = dbDriver
-        maximumPoolSize = 10
-        minimumIdle = 2
-        idleTimeout = 180_000      // 3 minutes
-        maxLifetime = 600_000      // 10 minutes
-        keepaliveTime = 60_000     // 1 minute
-        connectionTimeout = 30_000 // 30 seconds
+        initializationFailTimeout = -1
+        maximumPoolSize = 5
+        minimumIdle = 0
+        keepaliveTime = 0
+        idleTimeout = minToMs(1.0)
+        maxLifetime = minToMs(5.0)
+        connectionTimeout = minToMs(0.5)
     }
 
     val dataSource = HikariDataSource(hikariConfig)
 
     // Run Flyway migrations before connecting Exposed
-    val flyway = Flyway
+    Flyway
         .configure()
         .dataSource(dataSource)
         .locations("classpath:db/migration")
-
-    flyway
         .load()
         .migrate()
 
