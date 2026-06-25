@@ -27,3 +27,11 @@ class InvalidEdibleBarcodeException(
     message: String = "invalid edible barcode",
     cause: Throwable? = null
 ) : EdibleExceptions(message, cause)
+
+class AppEdibleReportNotFoundException(id: Int) : EdibleExceptions(
+    "app edible report #$id not found"
+)
+
+class AppEdibleReportAlreadyReviewedException(id: Int) : EdibleExceptions(
+    "app edible report #$id has already been reviewed"
+)

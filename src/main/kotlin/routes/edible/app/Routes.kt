@@ -16,6 +16,13 @@ fun Route.appFoodRoutes() {
         findByBarcode()
 
         search()
-        report()
+
+        route("/report") {
+            report()
+            
+            withAdmin {
+                reviewReport()
+            }
+        }
     }
 }

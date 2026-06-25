@@ -3,12 +3,14 @@ package com.example.service
 import com.example.domain.*
 import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
+import com.example.exception.AppEdibleReportNotFoundException
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.EdibleNotFoundException
 import com.example.exception.InvalidEdibleBarcodeException
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.toDto
 import com.example.repository.edible.AppEdibleRepoResult
+import com.example.repository.edible.AppEdibleReportReview
 import com.example.repository.edible.AppEdibleReportWrite
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.utils.date_time.TimeConverter
@@ -194,6 +196,7 @@ class AppFoodService(
         )
     }
 
+    // @TODO: Reward user with some credits
     suspend fun report(req: AppEdibleReportRequest, userId: UUID): AppEdibleReport =
         appFoodRepository
             .report(
@@ -205,4 +208,10 @@ class AppFoodService(
                 )
             )
             .toDto()
+
+    suspend fun reviewReport(reportId: Int, reviewerId: UUID): AppEdibleReport =
+        appFoodRepository
+            .reviewReport(AppEdibleReportReview(reportId, reviewerId))
+            ?.toDto()
+            ?: throw AppEdibleReportNotFoundException(reportId)
 }

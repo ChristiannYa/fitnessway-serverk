@@ -24,3 +24,8 @@ data class AppEdibleReportWrite(
     val reason: String,
     val notes: String?
 )
+
+data class AppEdibleReportReview(
+    val id: Int,
+    val reviewedBy: UUID
+)

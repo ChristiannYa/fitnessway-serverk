@@ -1,6 +1,7 @@
 package com.example.repository.edible.app
 
 import com.example.domain.*
+import com.example.exception.AppEdibleReportAlreadyReviewedException
 import com.example.mapping.*
 import com.example.repository.edible.*
 import com.example.utils.similarity
@@ -109,6 +110,10 @@ class AppFoodRepository : IAppFoodRepository {
         Result.success(PaginationQuery(appEdiblesData, queryTotalCount))
     }
 
+    override suspend fun findReportById(id: Int): AERDao? = suspendTransaction {
+        AERDao.findById(id)
+    }
+
     override suspend fun submit(
         foodToCreate: AppFoodCreate
     ): Pair<AEDao, List<NutrientDataAmount>> = suspendTransaction {
@@ -134,6 +139,7 @@ class AppFoodRepository : IAppFoodRepository {
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, foodToCreate.createdBy)
     }
 
+    // @TODO: update the `updatedAt` field as well
     override suspend fun updateBase(
         edibleId: Int,
         base: EdibleBase
@@ -273,5 +279,23 @@ class AppFoodRepository : IAppFoodRepository {
             this.reason = report.reason
             this.notes = report.notes
         }
+    }
+
+    /**
+     * Also checks if the report has already been reviewed to avoid having
+     * the service layer make a DB call to find it and check for it
+     * @throws AppEdibleReportAlreadyReviewedException
+     */
+    override suspend fun reviewReport(reportReview: AppEdibleReportReview): AERDao? = suspendTransaction {
+        AERDao
+            .findById(reportReview.id)
+            ?.also {
+                if (it.reviewedAt != null)
+                    throw AppEdibleReportAlreadyReviewedException(reportReview.id)
+            }
+            ?.apply {
+                this.reviewedAt = Instant.now().atOffset(ZoneOffset.UTC)
+                this.reviewedBy = EntityID(reportReview.reviewedBy, U)
+            }
     }
 }

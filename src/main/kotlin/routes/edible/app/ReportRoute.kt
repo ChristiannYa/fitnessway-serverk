@@ -14,7 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.report() {
-    post("/report") {
+    post {
         val req = call.receive<AppEdibleReportRequest>()
         val userId = call.attributes[UserPrincipalKey].id
         val service = application.attributes[AppEdibleServiceKey]
