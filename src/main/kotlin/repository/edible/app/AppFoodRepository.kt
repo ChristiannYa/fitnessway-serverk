@@ -296,6 +296,7 @@ class AppFoodRepository : IAppFoodRepository {
             ?.apply {
                 this.reviewedAt = Instant.now().atOffset(ZoneOffset.UTC)
                 this.reviewedBy = EntityID(reportReview.reviewedBy, U)
+                this.status = AppEdibleReport.Status.REVIEWED.toString().lowercase()
             }
     }
 }

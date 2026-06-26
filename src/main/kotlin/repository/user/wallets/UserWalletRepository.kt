@@ -30,12 +30,10 @@ class UserWalletRepository : IUserWalletRepository {
 
     override suspend fun addCurrency(currencyToAdd: UserAddCurrency): Unit = suspendTransaction {
         currencyToAdd.let {
-            // Update user existing balance
             UW.update(where = { UW.userId eq it.userId }) { t ->
                 t[UW.amount] = UW.amount plus it.amount.toBigDecimal()
             }
 
-            // Record the transaction
             UCTDao.new {
                 this.userId = EntityID(it.userId, U)
                 this.amount = it.amount.toBigDecimal()

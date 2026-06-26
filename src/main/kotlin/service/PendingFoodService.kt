@@ -24,7 +24,7 @@ class PendingFoodService(
     private val appFoodRepository: IAppFoodRepository
 ) {
     companion object {
-        fun UserType.getDailyLimit() = when (this) {
+        private fun UserType.getDailyLimit() = when (this) {
             USER -> 5
             CONTRIBUTOR -> 15
             ADMIN -> 100

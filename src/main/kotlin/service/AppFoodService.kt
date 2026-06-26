@@ -1,5 +1,7 @@
 package com.example.service
 
+import com.example.config.RewardConfig
+import com.example.config.RewardConfig.applyMultiplier
 import com.example.domain.*
 import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
@@ -12,17 +14,40 @@ import com.example.mapping.toDto
 import com.example.repository.edible.AppEdibleRepoResult
 import com.example.repository.edible.AppEdibleReportReview
 import com.example.repository.edible.AppEdibleReportWrite
-import com.example.repository.edible.app.AppFoodRepository
+import com.example.repository.edible.app.IAppFoodRepository
+import com.example.repository.user.IUserRepository
+import com.example.repository.user.wallets.IUserWalletRepository
 import com.example.utils.date_time.TimeConverter
 import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 import io.ktor.server.plugins.*
 import java.util.*
 
+private data class ReportData(
+    val reward: Double,
+    val transactionType: UserTransactionType
+)
+
 class AppFoodService(
-    private val appFoodRepository: AppFoodRepository,
+    private val appFoodRepository: IAppFoodRepository,
+    private val userRepository: IUserRepository,
+    private val userWalletRepository: IUserWalletRepository,
     private val timeConverter: TimeConverter
 ) {
+
+    companion object {
+        private fun UserType.getReportData() =
+            ReportData(
+                reward = when (this) {
+                    UserType.USER -> 1.0
+                    UserType.CONTRIBUTOR -> 1.5
+                    UserType.ADMIN -> 1.0
+                },
+                transactionType = UserTransactionType.APP_EDIBLE_REPORT_CONTRIBUTION
+            )
+
+    }
+
     private fun isBarcodeValid(barcode: String): Boolean {
         // Must be 12 (UPC-A) or 13 (EAN-13) digits
         if (!barcode.matches(Regex("^\\d{12,13}$"))) return false
@@ -196,7 +221,6 @@ class AppFoodService(
         )
     }
 
-    // @TODO: Reward user with some credits
     suspend fun report(req: AppEdibleReportRequest, userId: UUID): AppEdibleReport =
         appFoodRepository
             .report(
@@ -209,9 +233,28 @@ class AppFoodService(
             )
             .toDto()
 
-    suspend fun reviewReport(reportId: Int, reviewerId: UUID): AppEdibleReport =
-        appFoodRepository
+    suspend fun reviewReport(reportId: Int, reviewerId: UUID): AppEdibleReport = suspendTransaction {
+
+        val report = appFoodRepository
             .reviewReport(AppEdibleReportReview(reportId, reviewerId))
             ?.toDto()
             ?: throw AppEdibleReportNotFoundException(reportId)
+
+        report.reportedBy?.let {
+            userRepository
+                .findById(it)
+                ?.let { reporterFound ->
+
+                    userWalletRepository.addCurrency(
+                        UserAddCurrency(
+                            userId = reporterFound.id,
+                            amount = RewardConfig.APP_EDIBLE_REPORT_REWARD.applyMultiplier(reporterFound.type),
+                            transactionType = UserTransactionType.APP_EDIBLE_REPORT_CONTRIBUTION
+                        )
+                    )
+                }
+        }
+
+        report
+    }
 }

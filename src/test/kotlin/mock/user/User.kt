@@ -32,8 +32,7 @@ fun buildUser(
 
 fun buildUserRegisterData(
     userDiv: String = randomUUIDAndChop().second,
-    password: String = "Pas123!!",
-    userType: UserType = UserType.USER
+    password: String = "Pas123!!"
 ) = UserRegisterData(
     name = "user-$userDiv",
     email = "user.${userDiv}@gmail.com",

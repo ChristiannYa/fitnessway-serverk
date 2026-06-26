@@ -7,6 +7,8 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlin.time.toKotlinInstant
 
 object AER : IntIdTable("app_edible_reports") {
@@ -14,8 +16,8 @@ object AER : IntIdTable("app_edible_reports") {
     val reportedBy = reference("reported_by", U).nullable()
     val reason = text("reason")
     val notes = text("notes").nullable()
-    val status = text("status")
-    val createdAt = timestampWithTimeZone("created_at")
+    val status = text("status").default(AppEdibleReport.Status.PENDING.toString().lowercase())
+    val createdAt = timestampWithTimeZone("created_at").clientDefault { OffsetDateTime.now(ZoneOffset.UTC) }
     val reviewedAt = timestampWithTimeZone("reviewed_at").nullable()
     val reviewedBy = reference("reviewed_by", U).nullable()
 }

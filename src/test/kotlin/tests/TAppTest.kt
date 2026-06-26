@@ -1,5 +1,10 @@
 package tests
 
+import com.example.domain.User
+import com.example.domain.UserRegisterData
+import com.example.domain.UserType
+import com.example.mapping.UDao
+import com.example.mapping.toDto
 import com.example.repository.edible.app.AppFoodRepository
 import com.example.repository.edible.pending.PendingFoodRepository
 import com.example.repository.refresh.RefreshRepository
@@ -11,6 +16,7 @@ import com.example.service.JwtService
 import com.example.service.PendingFoodService
 import com.example.utils.date_time.DateTimeParser
 import com.example.utils.date_time.TimeConverter
+import com.example.utils.suspendTransaction
 import config.TestDatabase
 import mock.auth.createJwtService
 import org.jetbrains.exposed.sql.Database
@@ -56,7 +62,7 @@ open class TAppTest {
         authService = AuthService(userRepository, refreshRepository, jwtService, userWalletRepository)
 
         appFoodRepository = AppFoodRepository()
-        appEdibleService = AppFoodService(appFoodRepository, timeConverter)
+        appEdibleService = AppFoodService(appFoodRepository, userRepository, userWalletRepository, timeConverter)
 
         pendingFoodRepository = PendingFoodRepository()
         pendingFoodService = PendingFoodService(
@@ -70,5 +76,24 @@ open class TAppTest {
     @After
     fun tearDown() {
         TestDatabase.tearDown()
+    }
+
+    suspend fun createUser(
+        registerData: UserRegisterData = mock.user.buildUserRegisterData(),
+        userType: UserType = UserType.USER
+    ): User {
+        authService.register(registerData, "HP Envy x360 TEST")
+        var user = userRepository.findByEmail(registerData.email)!!
+
+        if (userType != UserType.USER) {
+            user = suspendTransaction {
+                UDao
+                    .findById(user.id)
+                    ?.apply { this.userType = userType }
+
+            }?.toDto()!!
+        }
+
+        return user
     }
 }

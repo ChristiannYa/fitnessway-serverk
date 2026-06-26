@@ -1,7 +1,6 @@
 package tests.edible.pending
 
 import com.example.domain.PendingFoodReview
-import com.example.domain.UserType
 import com.example.exception.DailySubmissionLimitExceededException
 import com.example.exception.EdibleAlreadyExistsException
 import com.example.exception.FoodAlreadyPendingException
@@ -110,7 +109,7 @@ class ITAddPendingFood : TPendingFoodService() {
         val (reviewer, _) = createAndGetUserData(
             authService,
             userRepository,
-            buildUserRegisterData(userType = UserType.ADMIN)
+            buildUserRegisterData()
         )
 
         // Arrange - build user food register requests

@@ -20,7 +20,8 @@ enum class UserType {
 enum class UserTransactionType {
     FOOD_APPROVAL,
     REDEEM,
-    FOOD_LOGGED
+    FOOD_LOGGED,
+    APP_EDIBLE_REPORT_CONTRIBUTION
 }
 
 @Serializable

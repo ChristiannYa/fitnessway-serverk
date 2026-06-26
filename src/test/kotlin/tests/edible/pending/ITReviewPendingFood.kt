@@ -26,8 +26,8 @@ class ITReviewPendingFood : TPendingFoodService() {
         authorType: UserType = UserType.USER,
         reviewerType: UserType = UserType.ADMIN
     ): Pair<User, User> {
-        val authorRegisterData = buildUserRegisterData(userType = authorType)
-        val reviewerRegisterData = buildUserRegisterData(userType = reviewerType)
+        val authorRegisterData = buildUserRegisterData()
+        val reviewerRegisterData = buildUserRegisterData()
 
         val (author, _) = createAndGetUserData(authService, userRepository, authorRegisterData)
         val (reviewer, _) = createAndGetUserData(authService, userRepository, reviewerRegisterData)
@@ -371,6 +371,7 @@ class ITReviewPendingFood : TPendingFoodService() {
         }
     }
 
+    // @TODO: Fix
     @Test
     fun `transaction rollback when moveToAppFoods fails should leave database untouched`() = runTest {
         // Arrange
