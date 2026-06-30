@@ -83,7 +83,7 @@ data class AppEdibleReport(
     val id: Int,
     val edibleId: Int,
     val reportedBy: UUID?,
-    val reason: Reason,
+    val reasons: List<Reason>,
     val notes: String?,
     val status: Status,
     val createdAt: Instant,
@@ -93,7 +93,8 @@ data class AppEdibleReport(
     enum class Reason {
         INCORRECT_INFO,
         INCORRECT_NUTRIENTS,
-        INCORRECT_BARCODE
+        INCORRECT_BARCODE,
+        INCORRECT_TYPE
     }
 
     enum class Status {

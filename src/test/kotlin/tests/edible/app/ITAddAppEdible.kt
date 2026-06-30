@@ -44,14 +44,14 @@ class ITAddAppEdible : TAppEdibleService() {
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
-                reason = AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase(),
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
                 notes = null
             ),
             userId = reporter.id
         )
 
         // Assert - report is found
-        val reportDaoById = appFoodRepository.findReportById(report.id)
+        val (reportDaoById, _) = appFoodRepository.findReportById(report.id) ?: (null to null)
         assertNotNull(reportDaoById, notNullMessage("reportById"))
 
         // Assert - reported by matches
@@ -67,7 +67,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
-                reason = AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase(),
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
                 notes = null
             ),
             userId = reporter.id
@@ -97,7 +97,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val reportAFromUser = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdibleA.id,
-                reason = AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase(),
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
                 notes = null
             ),
             userId = reporterAsUser.id
@@ -105,7 +105,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val reportAFromContributor = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdibleB.id,
-                reason = AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase(),
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
                 notes = null
             ),
             userId = reporterAsContributor.id
@@ -113,7 +113,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val reportBFromContributor = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdibleC.id,
-                reason = AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase(),
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
                 notes = null
             ),
             userId = reporterAsContributor.id

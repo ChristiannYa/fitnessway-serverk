@@ -43,7 +43,7 @@ data class AppEdibleWriteRequest(
 @Serializable
 data class AppEdibleReportRequest(
     val edibleId: Int,
-    val reason: String,
+    val reasons: List<String>,
     val notes: String?
 )
 

@@ -6,6 +6,7 @@ import com.example.mapping.*
 import com.example.repository.edible.*
 import com.example.utils.similarity
 import com.example.utils.suspendTransaction
+import com.example.utils.toEnum
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
@@ -110,9 +111,11 @@ class AppFoodRepository : IAppFoodRepository {
         Result.success(PaginationQuery(appEdiblesData, queryTotalCount))
     }
 
-    override suspend fun findReportById(id: Int): AERDao? = suspendTransaction {
-        AERDao.findById(id)
-    }
+    override suspend fun findReportById(id: Int): Pair<AERDao, List<AppEdibleReport.Reason>>? =
+        suspendTransaction {
+            val aerDao = AERDao.findById(id) ?: return@suspendTransaction null
+            aerDao to queryReportReasons(aerDao.id.value)
+        }
 
     override suspend fun submit(
         foodToCreate: AppFoodCreate
@@ -273,12 +276,18 @@ class AppFoodRepository : IAppFoodRepository {
     }
 
     override suspend fun report(report: AppEdibleReportWrite): AERDao = suspendTransaction {
-        AERDao.new {
+        val aerDao = AERDao.new {
             this.edibleId = EntityID(report.edibleId, AE)
             this.reportedBy = EntityID(report.reportedBy, U)
-            this.reason = report.reason
             this.notes = report.notes
         }
+
+        AERR.batchInsert(report.reasons) { reason ->
+            this[AERR.reportId] = aerDao.id
+            this[AERR.reason] = reason
+        }
+
+        aerDao
     }
 
     /**
@@ -286,17 +295,29 @@ class AppFoodRepository : IAppFoodRepository {
      * the service layer make a DB call to find it and check for it
      * @throws AppEdibleReportAlreadyReviewedException
      */
-    override suspend fun reviewReport(reportReview: AppEdibleReportReview): AERDao? = suspendTransaction {
-        AERDao
-            .findById(reportReview.id)
-            ?.also {
-                if (it.reviewedAt != null)
-                    throw AppEdibleReportAlreadyReviewedException(reportReview.id)
-            }
-            ?.apply {
-                this.reviewedAt = Instant.now().atOffset(ZoneOffset.UTC)
-                this.reviewedBy = EntityID(reportReview.reviewedBy, U)
-                this.status = AppEdibleReport.Status.REVIEWED.toString().lowercase()
-            }
-    }
+    override suspend fun reviewReport(reportReview: AppEdibleReportReview): Pair<AERDao, List<AppEdibleReport.Reason>>? =
+        suspendTransaction {
+            val aerDao = AERDao
+                .findById(reportReview.id)
+                ?.also {
+                    if (it.reviewedAt != null)
+                        throw AppEdibleReportAlreadyReviewedException(reportReview.id)
+                }
+                ?.apply {
+                    this.reviewedAt = Instant.now().atOffset(ZoneOffset.UTC)
+                    this.reviewedBy = EntityID(reportReview.reviewedBy, U)
+                    this.status = AppEdibleReport.Status.REVIEWED.toString().lowercase()
+                }
+                ?: return@suspendTransaction null
+
+            aerDao to queryReportReasons(aerDao.id.value)
+        }
+
+    private suspend fun queryReportReasons(reportId: Int): List<AppEdibleReport.Reason> =
+        suspendTransaction {
+            AERR
+                .selectAll()
+                .where { AERR.reportId eq reportId }
+                .map { it[AERR.reason].toEnum() }
+        }
 }

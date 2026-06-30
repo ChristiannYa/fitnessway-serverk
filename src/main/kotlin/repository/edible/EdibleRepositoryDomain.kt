@@ -21,7 +21,7 @@ data class AppEdibleWrite(
 data class AppEdibleReportWrite(
     val edibleId: Int,
     val reportedBy: UUID,
-    val reason: String,
+    val reasons: List<String>,
     val notes: String?
 )
 

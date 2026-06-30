@@ -14,7 +14,6 @@ import kotlin.time.toKotlinInstant
 object AER : IntIdTable("app_edible_reports") {
     val edibleId = reference("edible_id", AE)
     val reportedBy = reference("reported_by", U).nullable()
-    val reason = text("reason")
     val notes = text("notes").nullable()
     val status = text("status").default(AppEdibleReport.Status.PENDING.toString().lowercase())
     val createdAt = timestampWithTimeZone("created_at").clientDefault { OffsetDateTime.now(ZoneOffset.UTC) }
@@ -27,7 +26,6 @@ class AERDao(id: EntityID<Int>) : IntEntity(id) {
 
     var edibleId by AER.edibleId
     var reportedBy by AER.reportedBy
-    var reason by AER.reason
     var notes by AER.notes
     var status by AER.status
     var createdAt by AER.createdAt
@@ -35,11 +33,11 @@ class AERDao(id: EntityID<Int>) : IntEntity(id) {
     var reviewedBy by AER.reviewedBy
 }
 
-fun AERDao.toDto() = AppEdibleReport(
+fun AERDao.toDto(reasons: List<AppEdibleReport.Reason>) = AppEdibleReport(
     id = this.id.value,
     edibleId = this.edibleId.value,
     reportedBy = this.reportedBy?.value,
-    reason = this.reason.toEnum(),
+    reasons = reasons,
     notes = this.notes,
     status = this.status.toEnum(),
     createdAt = this.createdAt.toInstant().toKotlinInstant(),

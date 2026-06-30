@@ -227,17 +227,17 @@ class AppFoodService(
                 AppEdibleReportWrite(
                     edibleId = req.edibleId,
                     reportedBy = userId,
-                    reason = req.reason,
+                    reasons = req.reasons,
                     notes = req.notes
                 )
             )
-            .toDto()
+            .toDto(req.reasons.map { it.toEnum() })
 
     suspend fun reviewReport(reportId: Int, reviewerId: UUID): AppEdibleReport = suspendTransaction {
 
         val report = appFoodRepository
             .reviewReport(AppEdibleReportReview(reportId, reviewerId))
-            ?.toDto()
+            ?.let { (aerDao, reasons) -> aerDao.toDto(reasons) }
             ?: throw AppEdibleReportNotFoundException(reportId)
 
         report.reportedBy?.let {

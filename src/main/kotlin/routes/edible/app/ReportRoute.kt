@@ -32,10 +32,15 @@ fun Route.report() {
 }
 
 fun AppEdibleReportRequest.validate(): ValidationResult {
-    this.reason
-        .validate("reason") { it.isEnumValidated<AppEdibleReport.Reason>() }
-        .toValidationResult()
-        .let { if (it is ValidationResult.Invalid) return it }
+    if (this.reasons.isEmpty())
+        return ValidationResult.Invalid("reasons cannot be empty")
+
+    this.reasons.forEachIndexed { i, reason ->
+        reason
+            .validate("reason #$i") { it.isEnumValidated<AppEdibleReport.Reason>() }
+            .toValidationResult()
+            .let { if (it is ValidationResult.Invalid) return it }
+    }
 
     this.notes
         ?.validate("notes") { it.hasMaxLen(100) }

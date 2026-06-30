@@ -12,7 +12,7 @@ interface IAppFoodRepository {
     suspend fun findById(id: Int, userId: UUID): Pair<AppEdibleRepoResult, String>?
     suspend fun findByBarcode(barcode: String, userId: UUID): Pair<AppEdibleRepoResult, String>?
     suspend fun findAdminSubmissions(paginationCriteria: PaginationCriteria<AppEdiblePaginationCriteria>): Result<PaginationQuery<Pair<AppEdibleRepoResult, String>>>
-    suspend fun findReportById(id: Int): AERDao?
+    suspend fun findReportById(id: Int): Pair<AERDao, List<AppEdibleReport.Reason>>?
     suspend fun submit(foodToCreate: AppFoodCreate): Pair<AEDao, List<NutrientDataAmount>>
     suspend fun updateBase(edibleId: Int, base: EdibleBase)
     suspend fun updateType(edibleId: Int, type: EdibleType)
@@ -21,5 +21,5 @@ interface IAppFoodRepository {
     suspend fun isDuplicate(base: EdibleBase, nutrientList: List<NutrientIdWithAmount>): Boolean
     suspend fun search(criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>): PaginationQuery<FoodPreview>
     suspend fun report(report: AppEdibleReportWrite): AERDao
-    suspend fun reviewReport(reportReview: AppEdibleReportReview): AERDao?
+    suspend fun reviewReport(reportReview: AppEdibleReportReview): Pair<AERDao, List<AppEdibleReport.Reason>>?
 }
