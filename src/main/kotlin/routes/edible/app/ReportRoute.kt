@@ -19,14 +19,11 @@ fun Route.report() {
         val userId = call.attributes[UserPrincipalKey].id
         val service = application.attributes[AppEdibleServiceKey]
 
-        val report = service.report(req, userId)
+        service.report(req, userId)
 
         call.respond(
             HttpStatusCode.OK,
-            DtoRes.success(
-                "report submitted successfully",
-                mapOf("report" to report)
-            )
+            DtoRes.success<Unit>("report submitted successfully")
         )
     }
 }
