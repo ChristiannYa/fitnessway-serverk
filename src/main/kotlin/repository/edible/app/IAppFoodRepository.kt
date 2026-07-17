@@ -4,6 +4,7 @@ import com.example.domain.*
 import com.example.mapping.AEDao
 import com.example.mapping.AERDao
 import com.example.repository.edible.AppEdibleRepoResult
+import com.example.repository.edible.AppEdibleReportQuery
 import com.example.repository.edible.AppEdibleReportReview
 import com.example.repository.edible.AppEdibleReportWrite
 import java.util.*
@@ -13,6 +14,7 @@ interface IAppFoodRepository {
     suspend fun findByBarcode(barcode: String, userId: UUID): Pair<AppEdibleRepoResult, String>?
     suspend fun findAdminSubmissions(paginationCriteria: PaginationCriteria<AppEdiblePaginationCriteria>): Result<PaginationQuery<Pair<AppEdibleRepoResult, String>>>
     suspend fun findReportById(id: Int): Pair<AERDao, List<AppEdibleReport.Reason>>?
+    suspend fun getReports(paginationCriteria: PaginationCriteria<AppEdibleReportListPaginationCriteria>): Result<PaginationQuery<AppEdibleReportQuery>>
     suspend fun submit(foodToCreate: AppFoodCreate): Pair<AEDao, List<NutrientDataAmount>>
     suspend fun updateBase(edibleId: Int, base: EdibleBase)
     suspend fun updateType(edibleId: Int, type: EdibleType)

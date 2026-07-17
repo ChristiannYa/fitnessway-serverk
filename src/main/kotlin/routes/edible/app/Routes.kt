@@ -7,6 +7,7 @@ fun Route.appFoodRoutes() {
     route("/app") {
         withAdmin {
             findAdminSubmissions()
+            getReports()
             submit()
             update()
             setBarcode()
@@ -19,7 +20,7 @@ fun Route.appFoodRoutes() {
 
         route("/report") {
             report()
-            
+
             withAdmin {
                 reviewReport()
             }

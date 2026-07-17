@@ -107,6 +107,7 @@ data class AppEdibleReport(
 data class AppEdibleData(
     val edible: AppFood,
     val barcode: String,
+    val reports: List<AppEdibleReport> = emptyList()
 )
 
 @Serializable
@@ -247,6 +248,11 @@ data class PendingFoodReview(
         PendingFoodStatus.APPROVED
     } else PendingFoodStatus.REJECTED
 }
+
+data class AppEdibleReportListPaginationCriteria(
+    val status: AppEdibleReport.Status,
+    val adminId: UUID
+)
 
 data class AppEdiblePaginationCriteria(
     val createdBy: UUID,

@@ -139,6 +139,44 @@ class AppFoodService(
         )
     }
 
+    suspend fun getReports(
+        adminId: UUID,
+        status: AppEdibleReport.Status,
+        limit: Int,
+        offset: Long
+    ): PaginationResult<AppEdibleData> {
+        val paginationCriteria = PaginationCriteria(
+            data = AppEdibleReportListPaginationCriteria(
+                status = status,
+                adminId = adminId
+            ),
+            limit = limit,
+            offset = offset
+        )
+
+        val paginationQuery = appFoodRepository
+            .getReports(paginationCriteria)
+            .getOrThrow()
+
+        return PaginationResult(
+            data = paginationQuery.data.map {
+                val (edibleRepoRes, barcode) = it.edible
+                AppEdibleData(
+                    edible = edibleRepoRes.edibleDao.toDto(
+                        edibleRepoRes.nutrients
+                            .sortedBy { n -> n.bySortOrder }
+                            .toNutrientsByType()
+                    ),
+                    barcode = barcode,
+                    reports = it.reports.map { (aerDao, reasons) -> aerDao.toDto(reasons) }
+                )
+            },
+            totalCount = paginationQuery.totalCount,
+            pageCount = paginationCriteria.calcPageCount(paginationQuery.totalCount.toDouble()),
+            currentPage = paginationCriteria.calcCurrentPage()
+        )
+    }
+
     suspend fun submit(
         req: AppEdibleWriteRequest,
         userId: UUID

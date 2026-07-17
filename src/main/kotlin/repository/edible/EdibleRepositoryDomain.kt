@@ -2,6 +2,7 @@ package com.example.repository.edible
 
 import com.example.domain.*
 import com.example.mapping.AEDao
+import com.example.mapping.AERDao
 import com.example.mapping.EdibleDao
 import java.util.*
 
@@ -28,4 +29,9 @@ data class AppEdibleReportWrite(
 data class AppEdibleReportReview(
     val id: Int,
     val reviewedBy: UUID
+)
+
+data class AppEdibleReportQuery(
+    val edible: Pair<AppEdibleRepoResult, String>,
+    val reports: List<Pair<AERDao, List<AppEdibleReport.Reason>>>,
 )

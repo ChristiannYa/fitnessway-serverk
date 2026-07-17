@@ -178,6 +178,9 @@ fun Application.configureStatusPages() {
                 is InvalidEdibleBarcodeException ->
                     ex.message.toString() to HttpStatusCode.BadRequest
 
+                is InvalidAppEdibleReportStatusException ->
+                    ex.message.toString() to HttpStatusCode.BadRequest
+
                 is AppEdibleReportNotFoundException ->
                     ex.message.toString() to HttpStatusCode.NotFound
 

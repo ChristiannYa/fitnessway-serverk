@@ -12,6 +12,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.postgresql.util.PSQLException
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.*
 
@@ -116,6 +117,91 @@ class AppFoodRepository : IAppFoodRepository {
             val aerDao = AERDao.findById(id) ?: return@suspendTransaction null
             aerDao to queryReportReasons(aerDao.id.value)
         }
+
+    override suspend fun getReports(
+        paginationCriteria: PaginationCriteria<AppEdibleReportListPaginationCriteria>
+    ): Result<PaginationQuery<AppEdibleReportQuery>> =
+        suspendTransaction {
+
+            val statusString = paginationCriteria.data.status.toString().lowercase()
+
+            // Report counts per edible regardless of the status
+            val reportCountByEdibleId = with(AER.id.count()) {
+                AER
+                    .select(AER.edibleId, this)
+                    .groupBy(AER.edibleId)
+                    .associate { it[AER.edibleId].value to it[this] }
+            }
+
+            // Query just the report IDs that match the status filter
+            val matchingReports = AER
+                .select(AER.id, AER.edibleId, AER.createdAt)
+                .where { AER.status eq statusString }
+                .map { Triple(it[AER.id].value, it[AER.edibleId].value, it[AER.createdAt]) }
+
+            val totalCount = matchingReports.size.toLong()
+
+            // Sort by count (desc), then created at (desc), then id (desc); then paginate
+            val pagedReportIds = matchingReports
+                .sortedWith(
+                    compareByDescending<Triple<Int, Int, OffsetDateTime>> { (_, edibleId, _) ->
+                        reportCountByEdibleId[edibleId] ?: 0
+                    }
+                        .thenByDescending { (_, _, createdAt) -> createdAt }
+                        .thenByDescending { (count, _, _) -> count }
+                )
+                .drop(paginationCriteria.offset.toInt())
+                .take(paginationCriteria.limit)
+                .map { (count, _, _) -> count }
+
+            if (pagedReportIds.isEmpty()) return@suspendTransaction Result.success(
+                PaginationQuery(
+                    emptyList(),
+                    totalCount
+                )
+            )
+
+            // Join full rows for the current page
+            val rows = AE
+                .barcodesJoin()
+                .joinReports()
+                .selectAll()
+                .where { AER.id inList pagedReportIds }
+
+            val rowsByReportId = rows.groupBy { it[AER.id].value }
+
+            val appEdibleIds = pagedReportIds
+                .mapNotNull { rowsByReportId[it]?.firstOrNull()?.get(AE.id)?.value }
+
+            val edibleIdToNutrients =
+                appEdibleIds.associateWith { queryNutrientsForFood(AEN, it, paginationCriteria.data.adminId) }
+
+            val reports = pagedReportIds.map { reportId ->
+                val rows = rowsByReportId[reportId]
+                    ?: return@suspendTransaction Result.failure(
+                        IllegalStateException("report #$reportId not found in joined result")
+                    )
+
+                val firstRow = rows.first()
+                val aeDao = AEDao.wrapRow(firstRow)
+                val aerDao = AERDao.wrapRow(firstRow)
+                val barcode = firstRow[AEB.barcode]
+                val reasons: List<AppEdibleReport.Reason> = rows.map { it[AERR.reason].toEnum() }
+
+                val nutrients = edibleIdToNutrients[aeDao.id.value]
+                    ?: return@suspendTransaction Result.failure(
+                        IllegalStateException("app edible dao #${aeDao.id.value}'s nutrients not found")
+                    )
+
+                AppEdibleReportQuery(
+                    edible = AppEdibleRepoResult(aeDao, nutrients) to barcode,
+                    reports = listOf(aerDao to reasons)
+                )
+            }
+
+            Result.success(PaginationQuery(reports, totalCount))
+        }
+
 
     override suspend fun submit(
         foodToCreate: AppFoodCreate
