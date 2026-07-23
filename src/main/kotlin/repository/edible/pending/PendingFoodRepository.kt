@@ -105,7 +105,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         }
 
         UPEN.batchInsert(foodToCreate.nutrientList) { d ->
-            this[UPEN.edibleId] = peDao.id
+            this[UPEN.sourceId] = peDao.id
             this[UPEN.nutrientId] = d.id
             this[UPEN.amount] = d.amount.toBigDecimal()
         }
@@ -154,7 +154,7 @@ class PendingFoodRepository : IPendingFoodRepository {
         pendingFoodBaseDaos.any { foodBaseDao ->
             val foodBaseDaoNutrients = UPEN
                 .select(UPEN.nutrientId, UPEN.amount)
-                .where { UPEN.edibleId eq foodBaseDao.id }
+                .where { UPEN.sourceId eq foodBaseDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
                         id = row[UPEN.nutrientId].value,

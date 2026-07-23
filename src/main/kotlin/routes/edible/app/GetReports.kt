@@ -6,20 +6,20 @@ import com.example.domain.AppEdibleReport
 import com.example.dto.DtoRes
 import com.example.exception.InvalidAppEdibleReportStatusException
 import com.example.utils.extensions.extractPaginationOrThrow
-import com.example.utils.extensions.extractPathParamOrThrow
+import com.example.utils.extensions.extractQueryParamOrThrow
 import com.example.utils.toEnumOrThrow
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.getReports() {
-    get("/reports/{status}") {
+    get("/reports") {
         val userPrincipal = call.attributes[UserPrincipalKey]
         val appEdibleService = application.attributes[AppEdibleServiceKey]
 
         val (limit, offset) = call.extractPaginationOrThrow()
         val status: AppEdibleReport.Status = call
-            .extractPathParamOrThrow("status")
+            .extractQueryParamOrThrow("status")
             .toEnumOrThrow { InvalidAppEdibleReportStatusException() }
 
         val reports = appEdibleService.getReports(

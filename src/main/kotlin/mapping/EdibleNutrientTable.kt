@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Column
 import java.math.BigDecimal
 
 interface EdibleNutrientTable {
-    val edibleId: Column<EntityID<Int>>
+    val sourceId: Column<EntityID<Int>>
     val nutrientId: Column<EntityID<Int>>
     val amount: Column<BigDecimal>
 }

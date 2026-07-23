@@ -5,15 +5,14 @@ import com.example.config.RewardConfig.applyMultiplier
 import com.example.domain.*
 import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
-import com.example.exception.AppEdibleReportNotFoundException
-import com.example.exception.EdibleAlreadyExistsException
-import com.example.exception.EdibleNotFoundException
-import com.example.exception.InvalidEdibleBarcodeException
+import com.example.exception.*
+import com.example.exception.NotFoundException
+import com.example.mappers.toList
 import com.example.mappers.toNutrientsByType
+import com.example.mapping.AERDao
+import com.example.mapping.AERUDao
 import com.example.mapping.toDto
-import com.example.repository.edible.AppEdibleRepoResult
-import com.example.repository.edible.AppEdibleReportReview
-import com.example.repository.edible.AppEdibleReportWrite
+import com.example.repository.edible.*
 import com.example.repository.edible.app.IAppFoodRepository
 import com.example.repository.user.IUserRepository
 import com.example.repository.user.wallets.IUserWalletRepository
@@ -22,6 +21,7 @@ import com.example.utils.suspendTransaction
 import com.example.utils.toEnum
 import io.ktor.server.plugins.*
 import java.util.*
+import kotlin.time.toKotlinInstant
 
 private data class ReportData(
     val reward: Double,
@@ -211,6 +211,7 @@ class AppFoodService(
         appEdible
     }
 
+    // @TODO: Replace with repo's `update()`
     suspend fun update(
         userId: UUID,
         edibleId: Int,
@@ -259,30 +260,55 @@ class AppFoodService(
         )
     }
 
-    suspend fun report(req: AppEdibleReportRequest, userId: UUID): AppEdibleReport =
-        appFoodRepository
-            .report(
-                AppEdibleReportWrite(
-                    edibleId = req.edibleId,
-                    reportedBy = userId,
-                    reasons = req.reasons,
-                    notes = req.notes
-                )
+    suspend fun report(
+        req: AppEdibleReportRequest,
+        userId: UUID
+    ): AppEdibleReport = appFoodRepository
+        .report(
+            AppEdibleReportWrite(
+                edibleId = req.edibleId,
+                reportedBy = userId,
+                reasons = req.reasons,
+                notes = req.notes
             )
-            .toDto(req.reasons.map { it.toEnum() })
+        )
+        .toDto(req.reasons.map { it.toEnum() })
 
-    suspend fun reviewReport(reportId: Int, reviewerId: UUID): AppEdibleReport = suspendTransaction {
+    suspend fun reviewReport(
+        reportId: Int,
+        reviewerId: UUID,
+    ): Unit = suspendTransaction {
 
-        val report = appFoodRepository
-            .reviewReport(AppEdibleReportReview(reportId, reviewerId))
-            ?.let { (aerDao, reasons) -> aerDao.toDto(reasons) }
-            ?: throw AppEdibleReportNotFoundException(reportId)
+        // 1: Make sure report is found
+        val (aerDao, _) = appFoodRepository
+            .findReportById(reportId)
+            ?: throw NotFoundException("report")
 
-        report.reportedBy?.let {
+        // 1.1: Make sure report is not reviewed already
+        if (aerDao.reviewedAt != null) throw AppEdibleReportAlreadyReviewedException(reportId)
+
+        // 2: Review report
+        val aerDaoReview = appFoodRepository.reviewReport(AppEdibleReportReview(reportId, reviewerId))
+
+        // 3: BUILD UPDATED/FIXED EDIBLE
+        val edibleUpdated = appFoodRepository
+            .findReportUpdateById(reportId, reviewerId)
+            ?.let { edibleRepoResult ->
+                val original = find { appFoodRepository.findById(edibleRepoResult.edibleDao.id.value, reviewerId) }
+                    ?: throw NotFoundException("report update edible")
+
+                original.updateFromReport(edibleRepoResult, aerDaoReview, reportId)
+            }
+            ?: throw NotFoundException("report update")
+
+        // 3.1: UPDATE/FIX EDIBLE
+        appFoodRepository.update(edibleUpdated.edible.id, reviewerId, edibleUpdated.toDbWrite())
+
+        // 4: REWARD USER
+        aerDao.reportedBy?.let {
             userRepository
-                .findById(it)
+                .findById(it.value)
                 ?.let { reporterFound ->
-
                     userWalletRepository.addCurrency(
                         UserAddCurrency(
                             userId = reporterFound.id,
@@ -292,7 +318,49 @@ class AppFoodService(
                     )
                 }
         }
-
-        report
     }
 }
+
+// -------------------------------------------
+// MAPPING FUNCTIONS JUST TO SHORTED MAIN CODE
+// -------------------------------------------
+
+private fun AppEdibleData.updateFromReport(
+    updatedEdibleFromRepo: EdibleRepoResult<AERUDao, NutrientDataAmount>,
+    aerDaoReview: AERDao,
+    reportId: Int,
+): AppEdibleData {
+    val (aeruDao, nutrients) = updatedEdibleFromRepo
+    return this.copy(
+        edible = this.edible.copy(
+            information = this.edible.information.copy(
+                base = EdibleBase(
+                    name = aeruDao.name,
+                    brand = aeruDao.brand,
+                    amountPerServing = aeruDao.amountPerServing.toDouble(),
+                    servingUnit = aeruDao.servingUnit
+                ),
+                nutrients = nutrients.toNutrientsByType(),
+                type = aeruDao.edibleType
+            )
+        ),
+        barcode = aeruDao.barcode,
+        reports = this.reports.map {
+            if (it.id != reportId) it
+            else it.copy(
+                status = aerDaoReview.status.toEnum(),
+                reviewedAt = aerDaoReview.reviewedAt?.toInstant()?.toKotlinInstant(),
+                reviewedBy = aerDaoReview.reviewedBy?.value
+            )
+        }
+    )
+}
+
+private fun AppEdibleData.toDbWrite() = AppEdibleRepoWrite(
+    base = this.edible.information.base,
+    nutrientList = this.edible.information.nutrients
+        .toList()
+        .map { NutrientIdWithAmount(id = it.data.base.id, amount = it.amount) },
+    edibleType = this.edible.information.type,
+    barcode = this.barcode
+)

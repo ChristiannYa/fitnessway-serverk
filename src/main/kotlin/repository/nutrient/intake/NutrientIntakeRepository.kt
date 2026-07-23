@@ -97,7 +97,7 @@ class NutrientIntakeRepository : INutrientIntakeRepository {
     ): List<Pair<Int, BigDecimal>>? where T : Table, T : EdibleNutrientTable {
         val nutrients = this
             .selectAll()
-            .where { this@queryFoodNutrientAmounts.edibleId eq foodId }
+            .where { this@queryFoodNutrientAmounts.sourceId eq foodId }
             .map { row ->
                 Pair(
                     row[nutrientId].value,

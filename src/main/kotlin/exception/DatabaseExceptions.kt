@@ -13,6 +13,14 @@ class AlreadyExistsException(
     cause: Throwable? = null
 ) : DatabaseException("$item already exists", cause)
 
+/**
+ * @param item builds the following error message: [item] not found
+ */
+class NotFoundException(
+    item: String,
+    cause: Throwable? = null
+) : DatabaseException("$item not found", cause)
+
 class UnexpectedInsertCountException(
     message: String = "insert count is not 1",
     cause: Throwable? = null

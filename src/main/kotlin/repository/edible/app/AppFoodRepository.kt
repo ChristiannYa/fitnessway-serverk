@@ -1,7 +1,6 @@
 package com.example.repository.edible.app
 
 import com.example.domain.*
-import com.example.exception.AppEdibleReportAlreadyReviewedException
 import com.example.mapping.*
 import com.example.repository.edible.*
 import com.example.utils.similarity
@@ -118,6 +117,23 @@ class AppFoodRepository : IAppFoodRepository {
             aerDao to queryReportReasons(aerDao.id.value)
         }
 
+    override suspend fun findReportUpdateById(
+        id: Int,
+        userId: UUID
+    ): EdibleRepoResult<AERUDao, NutrientDataAmount>? = suspendTransaction {
+
+        val aeruDao = AERU
+            .selectAll()
+            .where { AERU.id eq id }
+            .map { AERUDao.wrapRow(it) }
+            .firstOrNull()
+            ?: return@suspendTransaction null
+
+        val nutrients = queryNutrientsForFood(AERUN, aeruDao.id.value, userId)
+
+        EdibleRepoResult(aeruDao, nutrients)
+    }
+
     override suspend fun getReports(
         paginationCriteria: PaginationCriteria<AppEdibleReportListPaginationCriteria>
     ): Result<PaginationQuery<AppEdibleReportQuery>> =
@@ -220,13 +236,45 @@ class AppFoodRepository : IAppFoodRepository {
         }
 
         AEN.batchInsert(foodToCreate.nutrientList) { nutrient ->
-            this[AEN.edibleId] = aeDao.id.value
+            this[AEN.sourceId] = aeDao.id.value
             this[AEN.nutrientId] = nutrient.id
             this[AEN.amount] = nutrient.amount.toBigDecimal()
         }
 
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, foodToCreate.createdBy)
     }
+
+    override suspend fun update(
+        id: Int,
+        adminId: UUID,
+        updateData: AppEdibleRepoWrite
+    ): OffsetDateTime =
+        suspendTransaction {
+            val now = Instant.now().atOffset(ZoneOffset.UTC)
+
+            AE.update(where = { AE.id eq id }) {
+                it[name] = updateData.base.name
+                it[brand] = updateData.base.brand.toString()
+                it[amountPerServing] = updateData.base.amountPerServing.toBigDecimal()
+                it[servingUnit] = updateData.base.servingUnit
+                it[edibleType] = updateData.edibleType
+                it[updatedAt] = now
+            }
+
+            AEB.update({ AEB.edibleId eq id }) {
+                it[barcode] = updateData.barcode
+                it[updatedAt] = now
+            }
+
+            AEN.batchUpsert(updateData.nutrientList) { nutrient ->
+                this[AEN.sourceId] = id
+                this[AEN.nutrientId] = nutrient.id
+                this[AEN.amount] = nutrient.amount.toBigDecimal()
+                this[AEN.updatedAt] = now
+            }
+
+            now
+        }
 
     // @TODO: update the `updatedAt` field as well
     override suspend fun updateBase(
@@ -250,7 +298,7 @@ class AppFoodRepository : IAppFoodRepository {
     ) = suspendTransaction {
 
         AEN.batchUpsert(nutrients) { nutrient ->
-            this[AEN.edibleId] = edibleId
+            this[AEN.sourceId] = edibleId
             this[AEN.nutrientId] = nutrient.id
             this[AEN.amount] = nutrient.amount.toBigDecimal()
         }
@@ -309,7 +357,7 @@ class AppFoodRepository : IAppFoodRepository {
         aeDaos.any { appFoodDao ->
             val appFoodDaoNutrients = AEN
                 .select(AEN.nutrientId, AEN.amount)
-                .where { AEN.edibleId eq appFoodDao.id }
+                .where { AEN.sourceId eq appFoodDao.id }
                 .map { row ->
                     NutrientIdWithAmount(
                         id = row[AEN.nutrientId].value,
@@ -376,27 +424,18 @@ class AppFoodRepository : IAppFoodRepository {
         aerDao
     }
 
-    /**
-     * Also checks if the report has already been reviewed to avoid having
-     * the service layer make a DB call to find it and check for it
-     * @throws AppEdibleReportAlreadyReviewedException
-     */
-    override suspend fun reviewReport(reportReview: AppEdibleReportReview): Pair<AERDao, List<AppEdibleReport.Reason>>? =
+    override suspend fun reviewReport(reportReview: AppEdibleReportReview): AERDao =
         suspendTransaction {
-            val aerDao = AERDao
-                .findById(reportReview.id)
-                ?.also {
-                    if (it.reviewedAt != null)
-                        throw AppEdibleReportAlreadyReviewedException(reportReview.id)
+            AER
+                .updateReturning(
+                    returning = AER.columns,
+                    where = { AER.id eq reportReview.id }
+                ) {
+                    it[AER.reviewedAt] = Instant.now().atOffset(ZoneOffset.UTC)
+                    it[AER.reviewedBy] = EntityID(reportReview.reviewedBy, U)
+                    it[AER.status] = AppEdibleReport.Status.REVIEWED.toString().lowercase()
                 }
-                ?.apply {
-                    this.reviewedAt = Instant.now().atOffset(ZoneOffset.UTC)
-                    this.reviewedBy = EntityID(reportReview.reviewedBy, U)
-                    this.status = AppEdibleReport.Status.REVIEWED.toString().lowercase()
-                }
-                ?: return@suspendTransaction null
-
-            aerDao to queryReportReasons(aerDao.id.value)
+                .let { it.first().let { r -> AERDao.wrapRow(r) } }
         }
 
     private suspend fun queryReportReasons(reportId: Int): List<AppEdibleReport.Reason> =

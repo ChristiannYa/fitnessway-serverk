@@ -19,14 +19,11 @@ fun Route.reviewReport() {
             .toIntOrNull()
             ?: throw InvalidIdException("report")
 
-        val report = service.reviewReport(reportId, userId)
+        service.reviewReport(reportId, userId)
 
         call.respond(
             HttpStatusCode.OK,
-            DtoRes.success(
-                "report reviewed successfully",
-                mapOf("report" to report)
-            )
+            DtoRes.success<Unit>("report reviewed successfully")
         )
     }
 }

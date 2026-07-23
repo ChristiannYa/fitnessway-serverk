@@ -22,7 +22,7 @@ fun <T> queryNutrientsForFood(
     (foodNutrientTable innerJoin N)
         .nutrientDataJoins(userId)
         .selectAll()
-        .where { foodNutrientTable.edibleId eq foodId }
+        .where { foodNutrientTable.sourceId eq foodId }
         .map { it.toNutrientDataAmount(foodNutrientTable.amount) }
 
 fun <T> queryNutrientsForFoods(
@@ -33,9 +33,9 @@ fun <T> queryNutrientsForFoods(
     (foodNutrientTable innerJoin N)
         .nutrientDataJoins(userId)
         .selectAll()
-        .where { (foodNutrientTable.edibleId inList foodIds) }
+        .where { (foodNutrientTable.sourceId inList foodIds) }
         .groupBy(
-            keySelector = { it[foodNutrientTable.edibleId].value },
+            keySelector = { it[foodNutrientTable.sourceId].value },
             valueTransform = { it.toNutrientDataAmount(foodNutrientTable.amount) }
         )
 
@@ -55,10 +55,10 @@ fun <T> queryNutrientPreviews(
         .nutrientDataJoins(userId)
         .selectAll()
         .where {
-            (foodNutrientTable.edibleId inList foodIds) and
+            (foodNutrientTable.sourceId inList foodIds) and
             (foodNutrientTable.nutrientId inList previewIds)
         }
-        .groupBy { it[foodNutrientTable.edibleId].value }
+        .groupBy { it[foodNutrientTable.sourceId].value }
 
     return foodIds.associateWith { foodId ->
         val nutrientData = foodRows[foodId]

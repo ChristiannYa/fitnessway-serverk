@@ -79,6 +79,13 @@ data class AppFood(
 )
 
 @Serializable
+data class AppEdibleData(
+    val edible: AppFood,
+    val barcode: String,
+    val reports: List<AppEdibleReport> = emptyList()
+)
+
+@Serializable
 data class AppEdibleReport(
     val id: Int,
     val edibleId: Int,
@@ -104,10 +111,12 @@ data class AppEdibleReport(
 }
 
 @Serializable
-data class AppEdibleData(
-    val edible: AppFood,
-    val barcode: String,
-    val reports: List<AppEdibleReport> = emptyList()
+data class AppEdibleReportUpdate(
+    val reportId: Int,
+    val base: EdibleBase,
+    val nutrients: List<NutrientIdWithAmount>,
+    val type: EdibleType,
+    val barcode: String
 )
 
 @Serializable
@@ -295,7 +304,7 @@ data class UserEdiblesPaginationCriteria(
     val edibleType: EdibleType
 )
 
-// @TODO: Move to App domain
+// @TODO: Move to App domain OR replace with Kotlin's `Result`
 sealed class DatabaseResult {
     data object Success : DatabaseResult()
     data object Duplicate : DatabaseResult()
@@ -312,7 +321,7 @@ sealed class DatabaseResult {
             val ex = when (this) {
                 is Duplicate -> AlreadyExistsException(itemDescription)
                 is UnexpectedInsertCount -> UnexpectedInsertCountException()
-                is UnexpectedError -> UnexpectedErrorException("unexpected error: ${this.error}")
+                is UnexpectedError -> UnexpectedErrorException("databse error: ${this.error}")
             }
 
             throw ex

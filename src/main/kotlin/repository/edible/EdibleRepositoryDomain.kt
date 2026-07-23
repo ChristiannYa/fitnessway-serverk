@@ -13,10 +13,11 @@ data class EdibleRepoResult<E : EdibleDao, N : NutrientEntry>(
 
 typealias AppEdibleRepoResult = EdibleRepoResult<AEDao, NutrientDataAmount>
 
-data class AppEdibleWrite(
+data class AppEdibleRepoWrite(
     val base: EdibleBase,
     val nutrientList: List<NutrientIdWithAmount>,
-    val edibleType: EdibleType
+    val edibleType: EdibleType,
+    val barcode: String,
 )
 
 data class AppEdibleReportWrite(
