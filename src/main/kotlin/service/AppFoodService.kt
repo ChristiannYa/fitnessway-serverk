@@ -274,10 +274,12 @@ class AppFoodService(
                 )
             )
 
-        appFoodRepository.submitEdibleInReport(
-            reportId = aerDao.id.value,
-            writeData = req.updatedEdible.let { (_, e) -> e.toRepoWrite() }
-        )
+        req.updatedEdible?.let { updatedEdible ->
+            appFoodRepository.submitEdibleInReport(
+                reportId = aerDao.id.value,
+                writeData = updatedEdible.let { (_, e) -> e.toRepoWrite() }
+            )
+        }
 
         aerDao.toDto(req.reasons.map { it.toEnum() })
     }
@@ -298,19 +300,16 @@ class AppFoodService(
         // 2: Review report
         val aerDaoReview = appFoodRepository.reviewReport(AppEdibleReportReview(reportId, reviewerId))
 
-        // 3: BUILD UPDATED/FIXED EDIBLE
-        val edibleUpdated = appFoodRepository
+        // 3: BUILD UPDATED/FIXED EDIBLE (IF UPDATE IS PRESENT)
+        appFoodRepository
             .findReportUpdateById(reportId, reviewerId)
             ?.let { edibleRepoResult ->
                 val original = find { appFoodRepository.findById(edibleRepoResult.edibleDao.id.value, reviewerId) }
                     ?: throw ItemNotFoundException("report update edible")
 
-                original.updateFromReport(edibleRepoResult, aerDaoReview, reportId)
+                val updated = original.updateFromReport(edibleRepoResult, aerDaoReview, reportId)
+                appFoodRepository.update(updated.edible.id, reviewerId, updated.toDbWrite())
             }
-            ?: throw ItemNotFoundException("report update")
-
-        // 3.1: UPDATE/FIX EDIBLE
-        appFoodRepository.update(edibleUpdated.edible.id, reviewerId, edibleUpdated.toDbWrite())
 
         // 4: REWARD USER
         aerDao.reportedBy?.let {

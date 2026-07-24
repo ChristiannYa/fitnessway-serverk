@@ -22,12 +22,15 @@ import kotlin.test.assertNotNull
 
 class ITAddAppEdible : TAppEdibleService() {
 
-    private fun AppFood.toUpdateVersion(barcode: String): Pair<Int, AppEdibleWriteRequest> =
+    private fun AppFood.toUpdateVersion(
+        barcode: String,
+        name: String = "${this.information.base.name} (updated) #${(1..999).random()}"
+    ): Pair<Int, AppEdibleWriteRequest> =
         Pair(
             this.id,
             AppEdibleWriteRequest(
                 edibleRequest = EdibleWriteRequest(
-                    base = this.information.base.copy(name = "${this.information.base.name} (updated) #${(1..999).random()}"),
+                    base = this.information.base.copy(name = name),
                     nutrients = this.information.nutrients
                         .toList()
                         .map { n -> NutrientIdWithAmount(n.data.base.id, n.amount) },
@@ -60,7 +63,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val admin = createUser(userType = UserType.ADMIN)
         val reporter = createUser()
         val barcode = "011110150974"
-        val appEdible = submitAppEdible(userId = admin.id, name = "Shoe", barcode = barcode)
+        val appEdible = submitAppEdible(userId = admin.id, barcode = barcode)
 
         // Act - report edible
         val report = appEdibleService.report(
@@ -82,12 +85,12 @@ class ITAddAppEdible : TAppEdibleService() {
     }
 
     @Test
-    fun `admin reviewed report updates report`() = runTest {
+    fun `reviewed report is updated accordingly`() = runTest {
         // Arrange
         val admin = createUser(userType = UserType.ADMIN)
         val reporter = createUser()
         val barcode = "011110150974"
-        val appEdible = submitAppEdible(userId = admin.id, name = "Shoe", barcode = barcode)
+        val appEdible = submitAppEdible(userId = admin.id, barcode = barcode)
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
@@ -112,7 +115,7 @@ class ITAddAppEdible : TAppEdibleService() {
     }
 
     @Test
-    fun `admin reviewed report rewards users appropiately`() = runTest {
+    fun `users are rewared when reporting`() = runTest {
         // Arrange
         val admin = createUser(userType = UserType.ADMIN)
 
@@ -198,6 +201,35 @@ class ITAddAppEdible : TAppEdibleService() {
                 "updatedReporterAsContributorCurrency"
             )
         )
+    }
+
+    @Test
+    fun `reported edible is updated upon review`() = runTest {
+        // Arrange
+        val admin = createUser(userType = UserType.ADMIN)
+        val reporter = createUser()
+        val barcode = "011110150974"
+        val appEdible = submitAppEdible(userId = admin.id, barcode = barcode)
+        val (updatedEdibleId, updatedEdibleReq) = appEdible.toUpdateVersion(barcode)
+        val report = appEdibleService.report(
+            req = AppEdibleReportRequest(
+                edibleId = appEdible.id,
+                reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
+                notes = null,
+                updatedEdible = Pair(updatedEdibleId, updatedEdibleReq)
+            ),
+            userId = reporter.id
+        )
+
+        // Act - review report
+        appEdibleService.reviewReport(report.id, admin.id)
+        val reviewedReport = appFoodRepository.findReportById(report.id)
+        assertNotNull(reviewedReport, "reviewedReport")
+
+        // Assert - Edible is updated
+        val appEdibleDb = appEdibleService.findById(appEdible.id, admin.id)
+        assertNotNull(appEdibleDb, "appEdibleDb")
+        assertEquals(updatedEdibleReq.edibleRequest.base.name, appEdibleDb.edible.information.base.name)
     }
 
     // ----------

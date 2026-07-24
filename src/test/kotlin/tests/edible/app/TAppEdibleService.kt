@@ -10,9 +10,9 @@ abstract class TAppEdibleService : TAppTest() {
 
     protected suspend fun submitAppEdible(
         userId: UUID,
-        name: String = "edible",
+        name: String = "edible #${(1000..9999).random()}",
         barcode: String = "011110150974"
-    ): AppFood = buildEdibleRequestData("$name #${(1000..9999).random()}").let {
+    ): AppFood = buildEdibleRequestData(name).let {
         appEdibleService.submit(
             req = AppEdibleWriteRequest(
                 edibleRequest = it,
