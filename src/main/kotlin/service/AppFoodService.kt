@@ -210,14 +210,13 @@ class AppFoodService(
         appEdible
     }
 
-    // @TODO: Replace with repo's `update()`
     suspend fun update(
         userId: UUID,
         edibleId: Int,
         updateInfo: AppEdibleWriteRequest
     ) = suspendTransaction {
 
-        val (repoResult, _) = appFoodRepository
+        val (repoResult, barcodeDb) = appFoodRepository
             .findById(edibleId, userId)
             ?: throw EdibleNotFoundException("app edible #$edibleId not found when updating")
 
@@ -232,6 +231,10 @@ class AppFoodService(
         }
 
         appFoodRepository.updateNutrients(edibleId, updateInfo.edibleRequest.nutrients)
+
+        if (barcodeDb != updateInfo.barcode) {
+            appFoodRepository.setBarcode(barcode = updateInfo.barcode, repoResult.edibleDao.id.value)
+        }
     }
 
     suspend fun setBarcode(

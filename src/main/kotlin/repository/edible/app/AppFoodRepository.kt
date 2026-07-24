@@ -345,7 +345,7 @@ class AppFoodRepository : IAppFoodRepository {
     ): DatabaseResult = suspendTransaction {
         try {
             val insertCount = AEB
-                .insert {
+                .upsert(AEB.edibleId) {
                     it[AEB.barcode] = barcode
                     it[AEB.edibleId] = edibleId
                 }
