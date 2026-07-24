@@ -9,7 +9,7 @@ object AEN : Table("app_edible_nutrients"), EdibleNutrientTable {
     override val nutrientId = reference("nutrient_id", N)
     override val amount = decimal("amount", 12, 4)
     val createdAt = timestampWithTimeZone("created_at").clientDefault { OffsetDateTime.now() }
-    val updatedAt = timestampWithTimeZone("updated_at")
+    val updatedAt = timestampWithTimeZone("updated_at").nullable()
 
     override val primaryKey = PrimaryKey(sourceId, nutrientId)
 }

@@ -97,6 +97,9 @@ fun Application.configureStatusPages() {
 
                 is UnexpectedErrorException ->
                     ex.message.toString() to HttpStatusCode.InternalServerError
+
+                is ItemNotFoundException ->
+                    ex.message.toString() to HttpStatusCode.NotFound
             }
         }
 

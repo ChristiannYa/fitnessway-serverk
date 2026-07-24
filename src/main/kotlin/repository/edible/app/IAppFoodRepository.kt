@@ -16,6 +16,7 @@ interface IAppFoodRepository {
     suspend fun findReportUpdateById(id: Int, userId: UUID): EdibleRepoResult<AERUDao, NutrientDataAmount>?
     suspend fun getReports(paginationCriteria: PaginationCriteria<AppEdibleReportListPaginationCriteria>): Result<PaginationQuery<AppEdibleReportQuery>>
     suspend fun submit(foodToCreate: AppFoodCreate): Pair<AEDao, List<NutrientDataAmount>>
+    suspend fun submitEdibleInReport(reportId: Int, writeData: AppEdibleRepoWrite)
     suspend fun update(id: Int, adminId: UUID, updateData: AppEdibleRepoWrite): OffsetDateTime
     suspend fun updateBase(edibleId: Int, base: EdibleBase)
     suspend fun updateType(edibleId: Int, type: EdibleType)

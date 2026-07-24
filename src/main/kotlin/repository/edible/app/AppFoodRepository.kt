@@ -244,6 +244,27 @@ class AppFoodRepository : IAppFoodRepository {
         aeDao to queryNutrientsForFood(AEN, aeDao.id.value, foodToCreate.createdBy)
     }
 
+    override suspend fun submitEdibleInReport(reportId: Int, writeData: AppEdibleRepoWrite) =
+        suspendTransaction {
+            AERU.insert {
+                it[AERU.id] = EntityID(reportId, AER)
+                it[AERU.name] = writeData.base.name
+                it[AERU.brand] = writeData.base.brand.toString()
+                it[AERU.amountPerServing] = writeData.base.amountPerServing.toBigDecimal()
+                it[AERU.servingUnit] = writeData.base.servingUnit
+                it[AERU.edibleType] = writeData.type
+                it[AERU.barcode] = writeData.barcode
+            }
+
+            AERUN.batchInsert(writeData.nutrientList) { nutrient ->
+                this[AERUN.sourceId] = EntityID(reportId, AERU)
+                this[AERUN.nutrientId] = EntityID(nutrient.id, N)
+                this[AERUN.amount] = nutrient.amount.toBigDecimal()
+            }
+
+            Unit
+        }
+
     override suspend fun update(
         id: Int,
         adminId: UUID,
@@ -257,7 +278,7 @@ class AppFoodRepository : IAppFoodRepository {
                 it[brand] = updateData.base.brand.toString()
                 it[amountPerServing] = updateData.base.amountPerServing.toBigDecimal()
                 it[servingUnit] = updateData.base.servingUnit
-                it[edibleType] = updateData.edibleType
+                it[edibleType] = updateData.type
                 it[updatedAt] = now
             }
 

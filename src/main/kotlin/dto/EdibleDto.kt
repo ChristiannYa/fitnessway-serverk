@@ -44,7 +44,8 @@ data class AppEdibleWriteRequest(
 data class AppEdibleReportRequest(
     val edibleId: Int,
     val reasons: List<String>,
-    val notes: String?
+    val notes: String?,
+    val updatedEdible: Pair<Int, AppEdibleWriteRequest>
 )
 
 @Serializable

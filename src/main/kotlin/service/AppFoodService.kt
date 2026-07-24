@@ -6,7 +6,6 @@ import com.example.domain.*
 import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
 import com.example.exception.*
-import com.example.exception.NotFoundException
 import com.example.mappers.toList
 import com.example.mappers.toNutrientsByType
 import com.example.mapping.AERDao
@@ -263,16 +262,25 @@ class AppFoodService(
     suspend fun report(
         req: AppEdibleReportRequest,
         userId: UUID
-    ): AppEdibleReport = appFoodRepository
-        .report(
-            AppEdibleReportWrite(
-                edibleId = req.edibleId,
-                reportedBy = userId,
-                reasons = req.reasons,
-                notes = req.notes
+    ): AppEdibleReport = suspendTransaction {
+
+        val aerDao = appFoodRepository
+            .report(
+                AppEdibleReportWrite(
+                    edibleId = req.edibleId,
+                    reportedBy = userId,
+                    reasons = req.reasons,
+                    notes = req.notes
+                )
             )
+
+        appFoodRepository.submitEdibleInReport(
+            reportId = aerDao.id.value,
+            writeData = req.updatedEdible.let { (_, e) -> e.toRepoWrite() }
         )
-        .toDto(req.reasons.map { it.toEnum() })
+
+        aerDao.toDto(req.reasons.map { it.toEnum() })
+    }
 
     suspend fun reviewReport(
         reportId: Int,
@@ -282,7 +290,7 @@ class AppFoodService(
         // 1: Make sure report is found
         val (aerDao, _) = appFoodRepository
             .findReportById(reportId)
-            ?: throw NotFoundException("report")
+            ?: throw ItemNotFoundException("report")
 
         // 1.1: Make sure report is not reviewed already
         if (aerDao.reviewedAt != null) throw AppEdibleReportAlreadyReviewedException(reportId)
@@ -295,11 +303,11 @@ class AppFoodService(
             .findReportUpdateById(reportId, reviewerId)
             ?.let { edibleRepoResult ->
                 val original = find { appFoodRepository.findById(edibleRepoResult.edibleDao.id.value, reviewerId) }
-                    ?: throw NotFoundException("report update edible")
+                    ?: throw ItemNotFoundException("report update edible")
 
                 original.updateFromReport(edibleRepoResult, aerDaoReview, reportId)
             }
-            ?: throw NotFoundException("report update")
+            ?: throw ItemNotFoundException("report update")
 
         // 3.1: UPDATE/FIX EDIBLE
         appFoodRepository.update(edibleUpdated.edible.id, reviewerId, edibleUpdated.toDbWrite())
@@ -322,7 +330,7 @@ class AppFoodService(
 }
 
 // -------------------------------------------
-// MAPPING FUNCTIONS JUST TO SHORTED MAIN CODE
+// MAPPER FUNCTIONS JUST TO SHORTEN MAIN CODE
 // -------------------------------------------
 
 private fun AppEdibleData.updateFromReport(
@@ -361,6 +369,13 @@ private fun AppEdibleData.toDbWrite() = AppEdibleRepoWrite(
     nutrientList = this.edible.information.nutrients
         .toList()
         .map { NutrientIdWithAmount(id = it.data.base.id, amount = it.amount) },
-    edibleType = this.edible.information.type,
+    type = this.edible.information.type,
     barcode = this.barcode
+)
+
+private fun AppEdibleWriteRequest.toRepoWrite() = AppEdibleRepoWrite(
+    base = this.edibleRequest.base,
+    nutrientList = this.edibleRequest.nutrients,
+    type = this.edibleRequest.edibleType.toEnum(),
+    barcode = this.barcode,
 )

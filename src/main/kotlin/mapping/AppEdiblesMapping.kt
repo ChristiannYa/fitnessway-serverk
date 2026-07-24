@@ -32,15 +32,17 @@ class AEDao(id: EntityID<Int>) : EdibleDao(id) {
     var createdAt by AE.createdAt
     var updatedAt by AE.updatedAt
 
+    fun toBase() = EdibleBase(
+        name = this.name,
+        brand = this.brand,
+        amountPerServing = this.amountPerServing.toDouble(),
+        servingUnit = this.servingUnit
+    )
+
     fun toDto(nutrients: NutrientsByType<NutrientDataAmount>) = AppFood(
         id = this.id.value,
         information = FoodInformationDto(
-            base = EdibleBase(
-                name = this.name,
-                brand = this.brand,
-                amountPerServing = this.amountPerServing.toDouble(),
-                servingUnit = this.servingUnit
-            ),
+            base = this.toBase(),
             nutrients = nutrients,
             type = this.edibleType
         ),

@@ -3,9 +3,15 @@ package tests.edible.app
 import com.example.config.RewardConfig
 import com.example.config.RewardConfig.applyMultiplier
 import com.example.domain.AppEdibleReport
+import com.example.domain.AppFood
+import com.example.domain.NutrientIdWithAmount
 import com.example.domain.UserType
 import com.example.dto.AppEdibleReportRequest
+import com.example.dto.AppEdibleWriteRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.exception.InvalidEdibleBarcodeException
+import com.example.mappers.toList
+import com.example.utils.toEnum
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import utils.equalsMessage
@@ -15,6 +21,21 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class ITAddAppEdible : TAppEdibleService() {
+
+    private fun AppFood.toUpdateVersion(barcode: String): Pair<Int, AppEdibleWriteRequest> =
+        Pair(
+            this.id,
+            AppEdibleWriteRequest(
+                edibleRequest = EdibleWriteRequest(
+                    base = this.information.base.copy(name = "${this.information.base.name} (updated) #${(1..999).random()}"),
+                    nutrients = this.information.nutrients
+                        .toList()
+                        .map { n -> NutrientIdWithAmount(n.data.base.id, n.amount) },
+                    edibleType = this.information.type.toString()
+                ),
+                barcode = barcode
+            )
+        )
 
     @Test
     fun `submits app edible along with its barcode`() = runTest {
@@ -38,14 +59,16 @@ class ITAddAppEdible : TAppEdibleService() {
         // Arrange
         val admin = createUser(userType = UserType.ADMIN)
         val reporter = createUser()
-        val appEdible = submitAppEdible(admin.id, "011110150974")
+        val barcode = "011110150974"
+        val appEdible = submitAppEdible(userId = admin.id, name = "Shoe", barcode = barcode)
 
         // Act - report edible
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
                 reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
-                notes = null
+                notes = null,
+                updatedEdible = appEdible.toUpdateVersion(barcode)
             ),
             userId = reporter.id
         )
@@ -63,23 +86,29 @@ class ITAddAppEdible : TAppEdibleService() {
         // Arrange
         val admin = createUser(userType = UserType.ADMIN)
         val reporter = createUser()
-        val appEdible = submitAppEdible(admin.id, "011110150974")
+        val barcode = "011110150974"
+        val appEdible = submitAppEdible(userId = admin.id, name = "Shoe", barcode = barcode)
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
                 reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
-                notes = null
+                notes = null,
+                updatedEdible = appEdible.toUpdateVersion(barcode)
             ),
             userId = reporter.id
         )
 
         // Act - Review report (as admin)
-        val reviewedReport = appEdibleService.reviewReport(report.id, admin.id)
+        appEdibleService.reviewReport(report.id, admin.id)
 
         // Assert - report is updated
-        assertEquals(AppEdibleReport.Status.REVIEWED, reviewedReport.status)
-        assertNotNull(reviewedReport.reviewedAt, notNullMessage("reviewedAt"))
-        assertEquals(admin.id, reviewedReport.reviewedBy)
+        val reviewedReport = appFoodRepository.findReportById(report.id)
+        assertNotNull(reviewedReport, "reviewedReport")
+
+        val (aerDao, _) = reviewedReport
+        assertEquals(AppEdibleReport.Status.REVIEWED, aerDao.status.toEnum())
+        assertNotNull(aerDao.reviewedAt, notNullMessage("reviewedAt"))
+        assertEquals(admin.id, aerDao.reviewedBy?.value)
     }
 
     @Test
@@ -90,15 +119,30 @@ class ITAddAppEdible : TAppEdibleService() {
         val reporterAsUser = createUser()
         val reporterAsContributor = createUser(userType = UserType.CONTRIBUTOR)
 
-        val appEdibleA = submitAppEdible(admin.id, barcode = "011110150974")
-        val appEdibleB = submitAppEdible(admin.id, barcode = "074312008092")
-        val appEdibleC = submitAppEdible(admin.id, barcode = "011110007407")
+        val (appEdibleA, appEdibleABarcode) = run {
+            val barcode = "011110150974"
+            val submission = submitAppEdible(admin.id, barcode = barcode)
+            submission to barcode
+        }
+
+        val (appEdibleB, appEdibleBBarcode) = run {
+            val barcode = "074312008092"
+            val submission = submitAppEdible(admin.id, barcode = barcode)
+            submission to barcode
+        }
+
+        val (appEdibleC, appEdibleCBarcode) = run {
+            val barcode = "011110007407"
+            val submission = submitAppEdible(admin.id, barcode = barcode)
+            submission to barcode
+        }
 
         val reportAFromUser = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdibleA.id,
                 reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
-                notes = null
+                notes = null,
+                updatedEdible = appEdibleA.toUpdateVersion(appEdibleABarcode)
             ),
             userId = reporterAsUser.id
         )
@@ -106,7 +150,8 @@ class ITAddAppEdible : TAppEdibleService() {
             req = AppEdibleReportRequest(
                 edibleId = appEdibleB.id,
                 reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
-                notes = null
+                notes = null,
+                updatedEdible = appEdibleB.toUpdateVersion(appEdibleBBarcode)
             ),
             userId = reporterAsContributor.id
         )
@@ -114,7 +159,8 @@ class ITAddAppEdible : TAppEdibleService() {
             req = AppEdibleReportRequest(
                 edibleId = appEdibleC.id,
                 reasons = listOf(AppEdibleReport.Reason.INCORRECT_INFO.toString().lowercase()),
-                notes = null
+                notes = null,
+                updatedEdible = appEdibleC.toUpdateVersion(appEdibleCBarcode)
             ),
             userId = reporterAsContributor.id
         )

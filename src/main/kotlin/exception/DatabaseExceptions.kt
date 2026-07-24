@@ -16,7 +16,7 @@ class AlreadyExistsException(
 /**
  * @param item builds the following error message: [item] not found
  */
-class NotFoundException(
+class ItemNotFoundException(
     item: String,
     cause: Throwable? = null
 ) : DatabaseException("$item not found", cause)
