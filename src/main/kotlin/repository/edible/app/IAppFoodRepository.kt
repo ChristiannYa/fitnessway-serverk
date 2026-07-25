@@ -5,7 +5,6 @@ import com.example.mapping.AEDao
 import com.example.mapping.AERDao
 import com.example.mapping.AERUDao
 import com.example.repository.edible.*
-import java.time.OffsetDateTime
 import java.util.*
 
 interface IAppFoodRepository {
@@ -17,11 +16,11 @@ interface IAppFoodRepository {
     suspend fun getReports(paginationCriteria: PaginationCriteria<AppEdibleReportListPaginationCriteria>): Result<PaginationQuery<AppEdibleReportQuery>>
     suspend fun submit(foodToCreate: AppFoodCreate): Pair<AEDao, List<NutrientDataAmount>>
     suspend fun submitEdibleInReport(reportId: Int, writeData: AppEdibleRepoWrite)
-    suspend fun update(id: Int, adminId: UUID, updateData: AppEdibleRepoWrite): OffsetDateTime
+    suspend fun setBarcode(barcode: String, edibleId: Int): DatabaseResult
     suspend fun updateBase(edibleId: Int, base: EdibleBase)
     suspend fun updateType(edibleId: Int, type: EdibleType)
     suspend fun updateNutrients(edibleId: Int, nutrients: List<NutrientIdWithAmount>)
-    suspend fun setBarcode(barcode: String, edibleId: Int): DatabaseResult
+    suspend fun updateBarcode(edibleId: Int, old: String, new: String)
     suspend fun isDuplicate(base: EdibleBase, nutrientList: List<NutrientIdWithAmount>): Boolean
     suspend fun search(criteria: PaginationCriteria<AppFoodSearchPaginationCriteria>): PaginationQuery<FoodPreview>
     suspend fun report(report: AppEdibleReportWrite): AERDao

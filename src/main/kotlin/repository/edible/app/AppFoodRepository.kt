@@ -9,6 +9,7 @@ import com.example.utils.toEnum
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.postgresql.util.PSQLException
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -265,37 +266,29 @@ class AppFoodRepository : IAppFoodRepository {
             Unit
         }
 
-    override suspend fun update(
-        id: Int,
-        adminId: UUID,
-        updateData: AppEdibleRepoWrite
-    ): OffsetDateTime =
-        suspendTransaction {
-            val now = Instant.now().atOffset(ZoneOffset.UTC)
+    override suspend fun setBarcode(
+        barcode: String,
+        edibleId: Int
+    ): DatabaseResult = suspendTransaction {
+        try {
+            val insertCount = AEB
+                .insert {
+                    it[AEB.barcode] = barcode
+                    it[AEB.edibleId] = edibleId
+                }
+                .insertedCount
 
-            AE.update(where = { AE.id eq id }) {
-                it[name] = updateData.base.name
-                it[brand] = updateData.base.brand.toString()
-                it[amountPerServing] = updateData.base.amountPerServing.toBigDecimal()
-                it[servingUnit] = updateData.base.servingUnit
-                it[edibleType] = updateData.type
-                it[updatedAt] = now
-            }
+            if (insertCount != 1) DatabaseResult.UnexpectedInsertCount
+            else DatabaseResult.Success
 
-            AEB.update({ AEB.edibleId eq id }) {
-                it[barcode] = updateData.barcode
-                it[updatedAt] = now
-            }
+        } catch (ex: ExposedSQLException) {
+            val cause = ex.cause
 
-            AEN.batchUpsert(updateData.nutrientList) { nutrient ->
-                this[AEN.sourceId] = id
-                this[AEN.nutrientId] = nutrient.id
-                this[AEN.amount] = nutrient.amount.toBigDecimal()
-                this[AEN.updatedAt] = now
-            }
-
-            now
+            if (cause is PSQLException && cause.sqlState == "23505")
+                DatabaseResult.Duplicate
+            else DatabaseResult.UnexpectedError(ex.message.toString())
         }
+    }
 
     // @TODO: update the `updatedAt` field as well
     override suspend fun updateBase(
@@ -339,29 +332,16 @@ class AppFoodRepository : IAppFoodRepository {
         Unit
     }
 
-    override suspend fun setBarcode(
-        barcode: String,
-        edibleId: Int
-    ): DatabaseResult = suspendTransaction {
-        try {
-            val insertCount = AEB
-                .upsert(AEB.edibleId) {
-                    it[AEB.barcode] = barcode
-                    it[AEB.edibleId] = edibleId
-                }
-                .insertedCount
+    override suspend fun updateBarcode(edibleId: Int, old: String, new: String) =
+        suspendTransaction {
+            AEB.deleteWhere { (AEB.barcode eq old) and (AEB.edibleId eq edibleId) }
+            AEB.insert {
+                it[AEB.edibleId] = edibleId
+                it[AEB.barcode] = new
+            }
 
-            if (insertCount != 1) DatabaseResult.UnexpectedInsertCount
-            else DatabaseResult.Success
-
-        } catch (ex: ExposedSQLException) {
-            val cause = ex.cause
-
-            if (cause is PSQLException && cause.sqlState == "23505")
-                DatabaseResult.Duplicate
-            else DatabaseResult.UnexpectedError(ex.message.toString())
+            Unit
         }
-    }
 
     override suspend fun isDuplicate(
         base: EdibleBase,

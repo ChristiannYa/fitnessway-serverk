@@ -45,7 +45,6 @@ fun buildPendingFoodCreateData(
 }
 
 fun buildEdibleRequestData(name: String): EdibleWriteRequest {
-    print("buildEdibleRequestData($name)")
     return EdibleWriteRequest(
         base = EdibleBase(
             name = name,

@@ -210,7 +210,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val reporter = createUser()
         val barcode = "011110150974"
         val appEdible = submitAppEdible(userId = admin.id, barcode = barcode)
-        val (updatedEdibleId, updatedEdibleReq) = appEdible.toUpdateVersion(barcode)
+        val (updatedEdibleId, updatedEdibleReq) = appEdible.toUpdateVersion("9403994758130")
         val report = appEdibleService.report(
             req = AppEdibleReportRequest(
                 edibleId = appEdible.id,
@@ -230,6 +230,7 @@ class ITAddAppEdible : TAppEdibleService() {
         val appEdibleDb = appEdibleService.findById(appEdible.id, admin.id)
         assertNotNull(appEdibleDb, "appEdibleDb")
         assertEquals(updatedEdibleReq.edibleRequest.base.name, appEdibleDb.edible.information.base.name)
+        assertEquals(updatedEdibleReq.barcode, appEdibleDb.barcode)
     }
 
     // ----------

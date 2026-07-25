@@ -5,6 +5,7 @@ import com.example.config.RewardConfig.applyMultiplier
 import com.example.domain.*
 import com.example.dto.AppEdibleReportRequest
 import com.example.dto.AppEdibleWriteRequest
+import com.example.dto.EdibleWriteRequest
 import com.example.exception.*
 import com.example.mappers.toList
 import com.example.mappers.toNutrientsByType
@@ -210,33 +211,6 @@ class AppFoodService(
         appEdible
     }
 
-    suspend fun update(
-        userId: UUID,
-        edibleId: Int,
-        updateInfo: AppEdibleWriteRequest
-    ) = suspendTransaction {
-
-        val (repoResult, barcodeDb) = appFoodRepository
-            .findById(edibleId, userId)
-            ?: throw EdibleNotFoundException("app edible #$edibleId not found when updating")
-
-        val originalAppEdible = repoResult.edibleDao.toDto(repoResult.nutrients.toNutrientsByType())
-
-        if (originalAppEdible.information.base != updateInfo.edibleRequest.base) {
-            appFoodRepository.updateBase(edibleId, updateInfo.edibleRequest.base)
-        }
-
-        if (repoResult.edibleDao.edibleType != updateInfo.edibleRequest.edibleType.toEnum<EdibleType>()) {
-            appFoodRepository.updateType(edibleId, updateInfo.edibleRequest.edibleType.toEnum())
-        }
-
-        appFoodRepository.updateNutrients(edibleId, updateInfo.edibleRequest.nutrients)
-
-        if (barcodeDb != updateInfo.barcode) {
-            appFoodRepository.setBarcode(barcode = updateInfo.barcode, repoResult.edibleDao.id.value)
-        }
-    }
-
     suspend fun setBarcode(
         barcode: String,
         edibleId: Int,
@@ -306,12 +280,15 @@ class AppFoodService(
         // 3: BUILD UPDATED/FIXED EDIBLE (IF UPDATE IS PRESENT)
         appFoodRepository
             .findReportUpdateById(reportId, reviewerId)
-            ?.let { edibleRepoResult ->
-                val original = find { appFoodRepository.findById(edibleRepoResult.edibleDao.id.value, reviewerId) }
+            ?.let { reportUpdateById ->
+                val original = find { appFoodRepository.findById(reportUpdateById.edibleDao.id.value, reviewerId) }
                     ?: throw ItemNotFoundException("report update edible")
 
-                val updated = original.updateFromReport(edibleRepoResult, aerDaoReview, reportId)
-                appFoodRepository.update(updated.edible.id, reviewerId, updated.toDbWrite())
+                val update = original
+                    .updateFromReport(reportUpdateById, aerDaoReview, reportId)
+                    .toWriteRequest()
+
+                updateDiff(original.edible.id, original, update)
             }
 
         // 4: REWARD USER
@@ -327,6 +304,46 @@ class AppFoodService(
                         )
                     )
                 }
+        }
+    }
+
+    suspend fun update(
+        userId: UUID,
+        edibleId: Int,
+        updateInfo: AppEdibleWriteRequest
+    ) = suspendTransaction {
+
+        val original = findById(edibleId, userId)
+            ?: throw EdibleNotFoundException("app edible #$edibleId not found when updating")
+
+        updateDiff(edibleId, original, updateInfo)
+    }
+
+    /**
+     * Updates as long as `original`'s [EdibleBase], [EdibleType], or barcode differs from `update`.
+     * The nutrients' update happens regardless of any diff
+     */
+    private suspend fun updateDiff(
+        edibleId: Int,
+        original: AppEdibleData,
+        update: AppEdibleWriteRequest
+    ) {
+        if (original.edible.information.base != update.edibleRequest.base) {
+            appFoodRepository.updateBase(edibleId, update.edibleRequest.base)
+        }
+
+        if (original.edible.information.type != update.edibleRequest.edibleType.toEnum<EdibleType>()) {
+            appFoodRepository.updateType(edibleId, update.edibleRequest.edibleType.toEnum())
+        }
+
+        appFoodRepository.updateNutrients(edibleId, update.edibleRequest.nutrients)
+
+        if (original.barcode != update.barcode) {
+            appFoodRepository.updateBarcode(
+                edibleId = edibleId,
+                old = original.barcode,
+                new = update.barcode
+            )
         }
     }
 }
@@ -366,12 +383,14 @@ private fun AppEdibleData.updateFromReport(
     )
 }
 
-private fun AppEdibleData.toDbWrite() = AppEdibleRepoWrite(
-    base = this.edible.information.base,
-    nutrientList = this.edible.information.nutrients
-        .toList()
-        .map { NutrientIdWithAmount(id = it.data.base.id, amount = it.amount) },
-    type = this.edible.information.type,
+private fun AppEdibleData.toWriteRequest() = AppEdibleWriteRequest(
+    edibleRequest = EdibleWriteRequest(
+        base = this.edible.information.base,
+        nutrients = this.edible.information.nutrients
+            .toList()
+            .map { n -> NutrientIdWithAmount(id = n.data.base.id, amount = n.amount) },
+        edibleType = this.edible.information.type.toString()
+    ),
     barcode = this.barcode
 )
 
